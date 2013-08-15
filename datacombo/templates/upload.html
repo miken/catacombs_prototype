@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Update Survey</h1>
+
+<p>Select a survey to upload data to, then pick a CSV file with cleaned data for that survey.</p>
+
+<form action="{% url "upload" %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p><input type="submit" value="Upload" /></p>
+</form>
+
+<a href="{% url "home-view" %}">back to home</a>
+{% endblock %}

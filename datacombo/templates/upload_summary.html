@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Test</h1>
+
+<h4>Here's what in the file you uploaded:</h4>
+
+<p>There are {{ number_of_rows }} rows in your file.</p>
+
+<p>Your file contains the following columns:<br />
+  <table class="table">
+    <tr>
+      <th>Column Name</th>
+      <th>Match?</th>
+    </tr>
+
+    {% for col in col_list %}
+    <tr>
+      <td>{{ col }}</td>
+      <td>pending...</td>
+    </tr>
+    {% endfor %}
+  </table>
+</p>
+
+<a href="{% url "home-view" %}">back to home</a>
+{% endblock %}

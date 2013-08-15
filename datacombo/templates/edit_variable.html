@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if variable.id %}
+    <h1>Edit Variable</h1>
+{% else %}
+    <h1>Add Variable</h1>
+{% endif %}
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_variable" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+<a href="{% url "variables-list" %}">back to list</a>
+{% endblock %}

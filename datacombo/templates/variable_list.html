@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Variables</h1>
+
+<table class="table table-striped">
+  <tr>
+    <th class="col-md-3">Survey</th>
+    <th>Variable Name</th>
+    <th>Description</th>
+    <th>Active?</th>
+    <th class="col-md-2">Action</th>
+  </tr>
+  
+  {% for variable in object_list %}
+  <tr class="variable">
+    <td>{{ variable.survey.name }}</td>
+    <td>{{ variable.name }}</td>
+    <td>{{ variable.description }}</td>
+    <td>{{ variable.active }}</td>
+    <td>
+      <a href="{% url "variables-edit" pk=variable.id %}" class="btn btn-default">Edit</a>
+      <a href="{% url "variables-delete" pk=variable.id %}" class="btn btn-danger">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="{% url "variables-new" %}">Add variable</a>
+{% endblock %}

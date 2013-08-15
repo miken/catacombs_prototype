@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Delete Survey</h1>
+
+<p>Are you sure you want to delete the survey {{ survey }}?</p>
+
+<form action="{% url "surveys-delete" pk=survey.id %}" method="POST">
+  {% csrf_token %}
+
+    <button type="submit" class="btn btn-large btn-danger">Yes, delete.</button>
+    <a href="{% url "surveys-list" %}" class="btn btn-large btn-success">No, cancel.</a>
+</form>
+
+{% endblock %}

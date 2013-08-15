@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Delete Variable</h1>
+
+<p>Are you sure you want to delete the variable {{ variable }}?</p>
+
+<form action="{% url "variables-delete" pk=variable.id %}" method="POST">
+  {% csrf_token %}
+
+    <button type="submit" class="btn btn-large btn-danger">Yes, delete.</button>
+    <a href="{% url "variables-list" %}" class="btn btn-large btn-success">No, cancel.</a>
+</form>
+
+{% endblock %}

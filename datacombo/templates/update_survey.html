@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Update Survey</h1>
+
+<p>You're about to upload new, cleaned CSV data for:<br>
+<b>{{ survey.name }}</b>
+</p>
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_survey" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+<a href="{% url "surveys-list" %}">back to list</a>
+{% endblock %}
