@@ -1,3 +1,4 @@
+*.csv
 venv_mac
 venv_win
 *.py[cod]

@@ -2,6 +2,10 @@ from django.db import models
 
 
 # Create your models here.
+class ImportSession(models.Model):
+    date_created = models.DateField()
+
+
 class Survey(models.Model):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=10)
@@ -31,6 +35,7 @@ class School(models.Model):
     abbrev_name = models.CharField(max_length=50, verbose_name=u'Short Name Used in Report')
     surveys = models.ManyToManyField(Survey, through='SchoolParticipation')
     q_code = models.CharField(max_length=10, verbose_name=u'Code used in Qualtrics logins')
+    imported_thru = models.ForeignKey(ImportSession, null=True)
 
     def __unicode__(self):
         return self.name
@@ -41,6 +46,7 @@ class SchoolParticipation(models.Model):
     survey = models.ForeignKey(Survey)
     date_participated = models.DateField()
     note = models.CharField(max_length=100, blank=True, null=True)
+    imported_thru = models.ForeignKey(ImportSession, null=True)
 
     def __unicode__(self):
         return self.school.name
@@ -67,6 +73,7 @@ class Student(models.Model):
     course = models.ForeignKey(Course, null=True)
     teacher = models.ForeignKey(Teacher, null=True)
     school = models.ForeignKey(School, null=True)
+    imported_thru = models.ForeignKey(ImportSession, null=True)
 
 
 class Response(models.Model):
@@ -78,3 +85,4 @@ class Response(models.Model):
     #Indicates whether the answer was for a teacher or for a school
     on_teacher = models.ForeignKey(Teacher, null=True)
     on_school = models.ForeignKey(School, null=True)
+    imported_thru = models.ForeignKey(ImportSession, null=True)

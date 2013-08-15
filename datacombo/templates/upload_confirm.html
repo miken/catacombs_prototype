@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Data Import Confirmation</h1>
+
+<p>You selected to update this survey: <strong>{{ survey_name }}</strong></p>
+
+
+
+<h2>Column Matching</h2>
+
+<p>The following table lists all variables recorded for this survey and indicate whether the system found a match from the uploaded CSV file<br />
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 col-lg-offset-3">
+        <table class="table table-hover table-condensed">
+          <tr>
+            <th>Survey Variable in Database</th>
+            <th>Match?</th>
+          </tr>
+
+          {% for var, status in var_status_dict.items %}
+          <tr>
+            <td>{{ var }}</td>
+            <td>
+              {% if status == 1 %}
+                <i class="icon-ok-sign icon-large text-success"></i>
+              {% elif status == 0 %}
+                <i class="icon-remove-sign icon-large text-danger"></i>
+              {% else %}
+                <i class="icon-question-sign icon-large text-warning"></i>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+</p>
+
+<h2>Update School Records</h2>
+
+<p>Based on your CSV file, the following schools do not exist and will be added to the <strong>School</strong> database with the following fields. You can modify these new records later after upload:</p>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 col-lg-offset-3">
+        <table class="table table-striped">
+          <tr>
+            <th>School Name</th>
+            <th>Abbreviation</th>
+            <th>School Short</th>
+          </tr>
+
+          {% for school in sch_objects %}
+          <tr>
+            <td>{{ school.name }}</td>
+            <td>{{ school.abbrev_name }}</td>
+            <td>{{ school.short }}</td>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+
+<h2>CSV File Information</h2>
+
+<p>There are {{ number_of_rows }} rows in your file.</p>
+
+<p>If this all looks good, press the big button below to begin the import process:<br />
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 col-lg-offset-3">
+        <form action="{% url "import-save" %}" method="POST">
+          {% csrf_token %}
+          <a href="" class="btn btn-success btn-lg btn-block"><i class="icon-plus"> </i>Import Into Database</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</p>
+
+<p>If you'd like to make changes just click the link below to re-upload a different file or modify other records.</p>
+
+<a href="{% url "home-view" %}">back to home</a>
+{% endblock %}

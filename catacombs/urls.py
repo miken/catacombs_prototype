@@ -2,6 +2,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 import datacombo.views
+from datacombo.forms import UploadFileForm
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -10,7 +11,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', datacombo.views.HomeView.as_view(), name='home-view'),
-    url(r'^upload/$', datacombo.views.upload_file, name='upload'),
+    url(r'^upload/$', datacombo.views.UploadFileFormPreview(UploadFileForm), name='upload'),
     url(r'^vars/$', datacombo.views.ListVariableView.as_view(), name='variables-list',),
     url(r'^vars/new$', datacombo.views.CreateVariableView.as_view(), name='variables-new',),
     url(r'^vars/edit/(?P<pk>\d+)/$', datacombo.views.UpdateVariableView.as_view(),

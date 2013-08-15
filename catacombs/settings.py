@@ -126,6 +126,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.formtools',
     'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.admindocs',

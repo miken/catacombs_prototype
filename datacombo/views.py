@@ -4,10 +4,13 @@ from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
+from django.contrib.formtools.preview import FormPreview
 
-from datacombo.models import Variable, School, Survey
+from datacombo.models import Variable, School, Survey, SchoolParticipation
 from datacombo.forms import UploadFileForm
+from datacombo.helpers import round_time_conversion
 
+from collections import OrderedDict
 import pandas as pd
 
 
@@ -184,20 +187,76 @@ class UploadSurveyView(UpdateView):
         return context
 
 
+class UploadFileFormPreview(FormPreview):
+
+    def done(self, request, cleaned_data):
+        # Do something with the cleaned_data, then redirect
+        # to a "success" page
+        return HttpResponseRedirect(reverse('home-view'))
+
+
+
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
+            selected_survey_id = request.POST['survey']
+            selected_survey = Survey.objects.get(id=selected_survey_id)
+            #Get the list of variables for this survey
+            selected_survey_varlist = selected_survey.variable_set.values_list('name', flat=True)
+            #Get the list of schools for this survey
+            selected_survey_schshort_list = selected_survey.school_set.values_list('short', flat=True)
+
+            #Now process the uploaded file
             uploaded_file = request.FILES['file']
-            #Do something with uploaded_file
+            #Load it as a CSV file
             newcsv = pd.read_csv(uploaded_file)
-            number_of_rows = len(newcsv)
-            col_list = newcsv.columns.tolist()
+            tallies = newcsv.groupby(['School_Short', 'School_Name']).size()
+            tallies.name = 'Number of Rows'
+            tallies = tallies.reset_index()
+            tallies = tallies.set_index('School_Short')
+            csv_rowcount = len(newcsv)
+            csv_collist = newcsv.columns.tolist()
+            csv_schshort_list = newcsv['School_Short'].unique().tolist()
+            csv_schshorts_to_add = [s for s in csv_schshort_list if s not in selected_survey_schshort_list]
+            #Now create school objects for these schools
+            csv_sch_object_list = []
+            csv_schpart_object_list = []
+            for schshort in csv_schshorts_to_add:
+                sch_object = School()
+                sch_object.short = schshort
+                sch_object.name = tallies.get_value(schshort, 'School_Name')
+                sch_object.abbrev_name = schshort[:-3]
+                csv_sch_object_list.append(sch_object)
+                #Define participation
+                schpart = SchoolParticipation()
+                round = schshort[-3:]
+                schpart.school = sch_object
+                schpart.survey = selected_survey
+                schpart.date_participated = round_time_conversion[round]
+                csv_schpart_object_list.append(schpart)
+            #Pare this list down for faster lookup
+            csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
+
+            #Now create a dictionary with key as the variable name from selected_survey_varlist
+            #and value as status of whether that variable exists in the CSV file
+            var_status = {}
+            for var in selected_survey_varlist:
+                if var in csv_cols_in_db:
+                    var_status[var] = 1
+                else:
+                    var_status[var] = 0
+
+            #School List
+
+            #Load all variables into the context for view rendering
             context = {}
-            context['number_of_rows'] = number_of_rows
-            context['col_list'] = col_list
+            context['survey_name'] = selected_survey.name
+            context['number_of_rows'] = csv_rowcount
+            context['var_status_dict'] = var_status
+            context['sch_objects'] = csv_sch_object_list
             #Redirect to upload summary after POST
-            response = SimpleTemplateResponse('upload_summary.html', context=context)
+            response = SimpleTemplateResponse('upload_confirm.html', context=context)
             return response
     else:
         form = UploadFileForm()
