@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Delete Session</h1>
+
+<p>Are you sure you want to delete the session <strong>{{ session.title }}</strong> created on <strong>{{ session.date_created }}</strong>?</p>
+
+<form action="{% url "sessions-delete" pk=session.id %}" method="POST">
+  {% csrf_token %}
+
+    <button type="submit" class="btn btn-large btn-danger">Yes, delete.</button>
+    <a href="{% url "sessions-list" %}" class="btn btn-large btn-success">No, cancel.</a>
+</form>
+
+{% endblock %}

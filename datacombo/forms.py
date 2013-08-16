@@ -12,6 +12,7 @@ def get_survey_list():
 
 
 class UploadFileForm(forms.Form):
+    title = forms.CharField(max_length=100)
     survey_list = get_survey_list()
     survey = forms.ChoiceField(choices=survey_list)
     file = forms.FileField()

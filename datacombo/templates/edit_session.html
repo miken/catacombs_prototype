@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if session.id %}
+    <h1>Edit Session</h1>
+{% else %}
+    <h1>Add Session</h1>
+{% endif %}
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_session" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+<a href="{% url "sessions-list" %}">back to list</a>
+{% endblock %}

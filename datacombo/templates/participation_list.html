@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Surveys</h1>
+
+<table class="table table-striped">
+  <tr>
+    <th>Survey Name</th>
+    <th>Survey Code</th>
+    <th>Action</th>
+  </tr>
+  
+  {% for survey in object_list %}
+  <tr class="survey">
+    <td>{{ survey.name }}</td>
+    <td>{{ survey.code }}</td>
+    <td>
+      <a href="{% url "surveys-edit" pk=survey.id %}" class="btn btn-default">Edit</a>
+      <a href="{% url "surveys-delete" pk=survey.id %}" class="btn btn-danger">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="{% url "surveys-new" %}">Add survey</a>
+{% endblock %}

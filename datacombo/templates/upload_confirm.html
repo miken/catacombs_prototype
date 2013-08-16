@@ -97,7 +97,11 @@
     <div class="container">
       <div class="row">
         <div class="col-lg-6 col-lg-offset-3">
-            <a href="" class="btn btn-danger btn-lg btn-block"><i class="icon-undo"> </i>Undo Import</a>
+          <!-- <form action="{% url "sessions-delete" pk=session_id %}" method="post"> -->
+            <!-- {% csrf_token %} -->
+            <!-- <input type="submit" name="delete" value="Undo Import" /> -->
+            <a href="{% url "sessions-delete" pk=session_id %}" class="btn btn-danger btn-lg btn-block"><i class="icon-undo"> </i>Undo Import</a>
+          <!-- </form> -->
         </div>
       </div>
     </div>

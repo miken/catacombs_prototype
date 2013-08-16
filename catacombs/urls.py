@@ -2,7 +2,6 @@ from django.conf.urls import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 import datacombo.views
-from datacombo.forms import UploadFileForm
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -11,7 +10,6 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', datacombo.views.HomeView.as_view(), name='home-view'),
-    #url(r'^upload/$', datacombo.views.UploadFileFormPreview(UploadFileForm), name='upload'),
     url(r'^upload/$', datacombo.views.upload_file, name='upload'),
     url(r'^vars/$', datacombo.views.ListVariableView.as_view(), name='variables-list',),
     url(r'^vars/new$', datacombo.views.CreateVariableView.as_view(), name='variables-new',),
@@ -31,8 +29,11 @@ urlpatterns = patterns('',
         name='surveys-edit',),
     url(r'^surveys/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSurveyView.as_view(),
         name='surveys-delete',),
-    url(r'^surveys/upload/(?P<pk>\d+)/$', datacombo.views.UploadSurveyView.as_view(),
-        name='surveys-upload',),
+    url(r'^sessions/$', datacombo.views.ListSessionView.as_view(), name='sessions-list',),
+    url(r'^sessions/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSessionView.as_view(),
+        name='sessions-edit',),
+    url(r'^sessions/delete/(?P<pk>\d+)/$', datacombo.views.delete_session,
+        name='sessions-delete',),
     # Uncomment the admin/doc line below to enable admin documentation:
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

@@ -5,9 +5,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.formtools.preview import FormPreview
 
 from datacombo.models import Variable, School, Survey, SchoolParticipation, ImportSession
 from datacombo.forms import UploadFileForm
@@ -171,32 +170,7 @@ class DeleteSurveyView(DeleteView):
     def get_success_url(self):
         return reverse('surveys-list')
 
-
-class UploadSurveyView(UpdateView):
-
-    model = Survey
-    template_name = 'update_survey.html'
-
-    def get_success_url(self):
-        return reverse('home-view')
-
-    def get_context_data(self, **kwargs):
-        context = super(UploadSurveyView, self).get_context_data(**kwargs)
-        context['action'] = reverse('surveys-upload',
-                                    kwargs={'pk': self.get_object().id})
-
-        return context
-
-
-class UploadFileFormPreview(FormPreview):
-
-    form_template = 'upload.html'
-    preview_template = 'upload_confirm.html'
-
-    def done(self, request, cleaned_data):
-        return HttpResponseRedirect(reverse('home-view'))
-
-
+#View functions for handling file uploads
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -235,7 +209,10 @@ def upload_file(request):
                 #Now create school objects for these schools
                 #First, remember this import session
                 session = ImportSession()
+                session.title = request.POST['title']
                 session.date_created = datetime.datetime.now()
+                #If success, save this session
+                session.save()
 
                 csv_sch_object_list = []
                 csv_schpart_object_list = []
@@ -259,8 +236,6 @@ def upload_file(request):
                     schpart.save()
                     csv_schpart_object_list.append(schpart)
 
-                #If success, save this session
-                session.save()
 
                 #Pare this list down for faster lookup
                 csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
@@ -283,9 +258,45 @@ def upload_file(request):
                 context['number_of_new_schools'] = number_of_new_schools
                 context['sch_objects'] = csv_sch_object_list
                 context['participation_objects'] = csv_schpart_object_list
+                context['session_id'] = session.id
             #Redirect to upload summary after POST
             response = SimpleTemplateResponse('upload_confirm.html', context=context)
             return response
     else:
         form = UploadFileForm()
-    return render(request, 'upload.html', {'form': form})
+    return render_to_response('upload.html', {'form': form}, context_instance=RequestContext(request))
+
+
+def delete_session(request, pk):
+    session = get_object_or_404(ImportSession, pk=pk)
+    if request.method == 'POST':
+        session.delete()
+        return HttpResponseRedirect(reverse('sessions-list'))
+    else:
+        #session = get_object_or_404(ImportSession, pk=pk)
+        return render(request, 'delete_session.html', {'session': session})
+
+
+
+#Views for Import Session
+class ListSessionView(ListView):
+
+    model = ImportSession
+    template_name = 'session_list.html'
+
+
+class UpdateSessionView(UpdateView):
+
+    model = ImportSession
+    template_name = 'edit_session.html'
+
+    def get_success_url(self):
+        return reverse('sessions-list')
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateSessionView, self).get_context_data(**kwargs)
+        context['action'] = reverse('sessions-edit',
+                                    kwargs={'pk': self.get_object().id})
+
+        return context

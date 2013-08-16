@@ -3,7 +3,13 @@ from django.db import models
 
 # Create your models here.
 class ImportSession(models.Model):
+    title = models.CharField(max_length=100, default=u'Session with no name')
     date_created = models.DateField()
+
+    def school_count(self):
+        schools_participated = self.school_set.all()
+        count = len(schools_participated)
+        return count
 
 
 class Survey(models.Model):

@@ -1,9 +1,6 @@
-import socket
-compname = socket.gethostname()
-
-if compname == 'Michal-PC':
-    sqlite_path = 'C:/Users/Michal/Dropbox/Python/catacombs/database.db'
-elif compname == 'mikes-imac':
-    sqlite_path = '/Users/club292/Dropbox/Python/catacombs/database.db'
-elif compname == '6420-64-MikeN01':
-    sqlite_path = 'C:/Dropbox/Python/catacombs/database.db'
+import os
+#This gives you the path to the /catacombs/catacombs folder
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+#Go up one level and you'll find your database file
+root_dir = os.path.join(curr_dir, '..')
+sqlite_path = os.path.join(root_dir, 'database.db')
