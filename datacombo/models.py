@@ -8,13 +8,11 @@ class ImportSession(models.Model):
     date_created = models.DateField()
 
     def school_count(self):
-        schools_participated = self.school_set.all()
-        count = len(schools_participated)
+        count = self.school_set.count()
         return count
 
     def pr_count(self):
-        participations_recorded = self.schoolparticipation_set.all()
-        count = len(participations_recorded)
+        count = self.schoolparticipation_set.count()
         return count
 
     def __unicode__(self):
@@ -26,8 +24,7 @@ class Survey(models.Model):
     code = models.CharField(max_length=10)
 
     def school_count(self):
-        schools_participated = self.school_set.all()
-        count = len(schools_participated)
+        count = self.school_set.count()
         return count
 
     def __unicode__(self):
@@ -53,6 +50,11 @@ class School(models.Model):
     q_code = models.CharField(max_length=10, verbose_name=u'Code used in Qualtrics logins')
     #When the ImportSession is deleted, this school will become "orphaned" and need to be removed individually
     imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
+
+    def repeat_count(self):
+        '''This function tells how many times this school has participated in YouthTruth'''
+        count = self.schoolparticipation_set.count()
+        return count
 
     def get_absolute_url(self):
         return reverse('schools-view', kwargs={'pk': self.id})
