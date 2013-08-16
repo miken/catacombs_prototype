@@ -44,6 +44,38 @@
     </div>
   </p>
 
+  <h2>Update Participation Records</h2>
+
+  {% if number_of_new_participations == 0 %}
+
+    <p>There are no new participation records for the schools in the CSV file.</p>
+
+  {% else %}
+
+    <p>The database did not find participation records for these schools and therefore have added them automatically:</p>
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-6 col-lg-offset-3">
+              <table class="table table-striped">
+                <tr>
+                  <th>School Name</th>
+                  <th>Date Participated</th>
+                </tr>
+
+                {% for p in participation_objects %}
+                <tr>
+                  <td>{{ p.school.name }}</td>
+                  <td>{{ p.date_participated }}</td>
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+        </div>
+
+  {% endif %}
+
   <h2>Update School Records</h2>
 
   {% if number_of_new_schools == 0 %}
@@ -67,7 +99,7 @@
               <tr>
                 <td>{{ school.name }}</td>
                 <td>{{ school.abbrev_name }}</td>
-                <td>{{ school.short }}</td>
+                <td>{{ school.alpha }}</td>
                 </td>
               </tr>
               {% endfor %}

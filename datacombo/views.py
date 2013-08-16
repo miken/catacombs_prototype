@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
 from datacombo.models import Variable, School, Survey, SchoolParticipation, ImportSession
 from datacombo.forms import UploadFileForm
@@ -122,6 +122,13 @@ class DeleteSchoolView(DeleteView):
         return reverse('schools-list')
 
 
+class SchoolView(DetailView):
+
+    model = School
+    template_name = 'school.html'
+
+
+
 #Views for Survey
 class ListSurveyView(ListView):
 
@@ -191,50 +198,69 @@ def upload_file(request):
                 selected_survey = Survey.objects.get(id=selected_survey_id)
                 #Get the list of variables for this survey
                 selected_survey_varlist = selected_survey.variable_set.values_list('name', flat=True)
-                #Get the list of schools for this survey
-                selected_survey_schshort_list = selected_survey.school_set.values_list('short', flat=True)
+                #Get the list of school alphas for this survey (from school records)
+                selected_survey_schalpha_list = selected_survey.school_set.values_list('alpha', flat=True)
+                #Get the list of school shorts for this survey (from participation records)
+                selected_survey_schshort_list = selected_survey.schoolparticipation_set.values_list('legacy_school_short', flat=True)
 
                 #Now turn attention back to newcsv
                 tallies = newcsv.groupby(['School_Short', 'School_Name']).size()
                 tallies.name = 'Number of Rows'
                 tallies = tallies.reset_index()
                 tallies = tallies.set_index('School_Short')
+                #Get the number of rows in spreadsheet to report out later
                 csv_rowcount = len(newcsv)
                 csv_collist = newcsv.columns.tolist()
                 csv_schshort_list = newcsv['School_Short'].unique().tolist()
-                #Compare the list of schools in CSV with list of schools in database to determine which new schools to add
+                #Compare the list of schools in CSV with list of schools in database to determine which new participation records to add
                 csv_schshorts_to_add = [s for s in csv_schshort_list if s not in selected_survey_schshort_list]
-                number_of_new_schools = len(csv_schshorts_to_add)
+                number_of_new_participations = len(csv_schshorts_to_add)
 
-                #Now create school objects for these schools
-                #First, remember this import session
+                # Generate a list of school alphas from the CSV file as well
+                # To determine which schools to add
+                csv_schalpha_dict = {}
+                for schshort in csv_schshorts_to_add:
+                    schalpha = schshort[:-3]
+                    if schalpha not in selected_survey_schalpha_list:
+                        csv_schalpha_dict[schshort] = schalpha
+                number_of_new_schools = len(csv_schalpha_dict)
+
+
+                # Create new import session first
+                # First, remember this import session
                 session = ImportSession()
                 session.title = request.POST['title']
                 session.date_created = datetime.datetime.now()
-                #If success, save this session
                 session.save()
 
+                # Then create schools
                 csv_sch_object_list = []
-                csv_schpart_object_list = []
-                for schshort in csv_schshorts_to_add:
-                    #Define school
-                    sch_object = School()
-                    sch_object.short = schshort
-                    sch_object.name = tallies.get_value(schshort, 'School_Name')
-                    sch_object.abbrev_name = schshort[:-3]
-                    sch_object.imported_thru = session
-                    sch_object.save()
-                    csv_sch_object_list.append(sch_object)
+                for schshort, alpha in csv_schalpha_dict.items():
+                    sch_obj = School()
+                    sch_obj.alpha = alpha
+                    sch_obj.name = tallies.get_value(schshort, 'School_Name')
+                    sch_obj.abbrev_name = alpha
+                    sch_obj.survey = selected_survey
+                    sch_obj.imported_thru = session
+                    sch_obj.save()
+                    csv_sch_object_list.append(sch_obj)
 
-                    #Define participation
-                    schpart = SchoolParticipation()
+                # Then create participation records
+                csv_pr_object_list = []
+                for schshort in csv_schshorts_to_add:
+                    pr = SchoolParticipation()
                     round = schshort[-3:]
-                    schpart.school = sch_object
-                    schpart.survey = selected_survey
-                    schpart.date_participated = round_time_conversion[round]
-                    schpart.imported_thru = session
-                    schpart.save()
-                    csv_schpart_object_list.append(schpart)
+                    alpha = schshort[:-3]
+                    pr.school = School.objects.get(alpha=alpha)
+                    pr.survey = selected_survey
+                    pr.date_participated = round_time_conversion[round]
+                    pr.legacy_school_short = schshort
+                    pr.note = 'Imported on {}'.format(pr.date_participated)
+                    pr.imported_thru = session
+                    pr.save()
+                    csv_pr_object_list.append(pr)
+
+
 
 
                 #Pare this list down for faster lookup
@@ -249,15 +275,15 @@ def upload_file(request):
                     else:
                         var_status[var] = 0
 
-                #School List
 
                 #Load all variables into the context for view rendering
                 context['survey_name'] = selected_survey.name
                 context['number_of_rows'] = csv_rowcount
                 context['var_status_dict'] = var_status
                 context['number_of_new_schools'] = number_of_new_schools
+                context['number_of_new_participations'] = number_of_new_participations
                 context['sch_objects'] = csv_sch_object_list
-                context['participation_objects'] = csv_schpart_object_list
+                context['participation_objects'] = csv_pr_object_list
                 context['session_id'] = session.id
             #Redirect to upload summary after POST
             response = SimpleTemplateResponse('upload_confirm.html', context=context)
@@ -273,7 +299,6 @@ def delete_session(request, pk):
         session.delete()
         return HttpResponseRedirect(reverse('sessions-list'))
     else:
-        #session = get_object_or_404(ImportSession, pk=pk)
         return render(request, 'delete_session.html', {'session': session})
 
 

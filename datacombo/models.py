@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.urlresolvers import reverse
 
 
 # Create your models here.
@@ -10,6 +11,14 @@ class ImportSession(models.Model):
         schools_participated = self.school_set.all()
         count = len(schools_participated)
         return count
+
+    def pr_count(self):
+        participations_recorded = self.schoolparticipation_set.all()
+        count = len(participations_recorded)
+        return count
+
+    def __unicode__(self):
+        return self.title
 
 
 class Survey(models.Model):
@@ -36,12 +45,17 @@ class Variable(models.Model):
 
 
 class School(models.Model):
-    short = models.CharField(max_length=20, verbose_name=u'Old School_Short notation')
+    #This field is used to match with schoolparticipation.legacy_school_short
+    alpha = models.CharField(max_length=20, verbose_name=u'Legacy School_Alpha')
     name = models.CharField(max_length=100, verbose_name=u'Full School Name')
     abbrev_name = models.CharField(max_length=50, verbose_name=u'Short Name Used in Report')
-    surveys = models.ManyToManyField(Survey, through='SchoolParticipation')
+    survey = models.ForeignKey(Survey)
     q_code = models.CharField(max_length=10, verbose_name=u'Code used in Qualtrics logins')
-    imported_thru = models.ForeignKey(ImportSession, null=True)
+    #When the ImportSession is deleted, this school will become "orphaned" and need to be removed individually
+    imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
+
+    def get_absolute_url(self):
+        return reverse('schools-view', kwargs={'pk': self.id})
 
     def __unicode__(self):
         return self.name
@@ -51,8 +65,10 @@ class SchoolParticipation(models.Model):
     school = models.ForeignKey(School)
     survey = models.ForeignKey(Survey)
     date_participated = models.DateField()
+    legacy_school_short = models.CharField(max_length=20, blank=True, verbose_name=u'Legacy School_Short notation')
     note = models.CharField(max_length=100, blank=True, null=True)
-    imported_thru = models.ForeignKey(ImportSession, null=True)
+    #When the ImportSession is deleted, this participation record will become "orphaned" and need to be removed individually
+    imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
 
     def __unicode__(self):
         return self.school.name

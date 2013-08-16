@@ -22,6 +22,6 @@ admin.site.register(SchoolParticipation, SchoolParticipationAdmin)
 
 
 class SchoolAdmin(admin.ModelAdmin):
-    fields = ['name', 'abbrev_name', 'short', 'q_code']
+    fields = ['name', 'abbrev_name', 'alpha', 'q_code']
 
 admin.site.register(School, SchoolAdmin)

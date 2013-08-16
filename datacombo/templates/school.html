@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ school }}</h1>
+
+
+<h2>Participation Records</h2>
+<table class="table table-striped">
+  <tr>
+    <th>Survey Period</th>
+    <th>Legacy School Short</th>
+    <th>Note (Can be added via Admin side)</th>
+  </tr>
+  
+  {% for p in school.schoolparticipation_set.all %}
+  <tr>
+    <td>{{ p.date_participated }}</td>
+    <td>{{ p.legacy_school_short }}</td>
+    <td>{{ p.note }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
