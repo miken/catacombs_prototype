@@ -11,7 +11,8 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', datacombo.views.HomeView.as_view(), name='home-view'),
-    url(r'^upload/$', datacombo.views.UploadFileFormPreview(UploadFileForm), name='upload'),
+    #url(r'^upload/$', datacombo.views.UploadFileFormPreview(UploadFileForm), name='upload'),
+    url(r'^upload/$', datacombo.views.upload_file, name='upload'),
     url(r'^vars/$', datacombo.views.ListVariableView.as_view(), name='variables-list',),
     url(r'^vars/new$', datacombo.views.CreateVariableView.as_view(), name='variables-new',),
     url(r'^vars/edit/(?P<pk>\d+)/$', datacombo.views.UpdateVariableView.as_view(),

@@ -1,17 +1,18 @@
+import pandas as pd
+import datetime
+
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.formtools.preview import FormPreview
 
-from datacombo.models import Variable, School, Survey, SchoolParticipation
+from datacombo.models import Variable, School, Survey, SchoolParticipation, ImportSession
 from datacombo.forms import UploadFileForm
 from datacombo.helpers import round_time_conversion
 
-from collections import OrderedDict
-import pandas as pd
 
 
 #Index View
@@ -189,11 +190,11 @@ class UploadSurveyView(UpdateView):
 
 class UploadFileFormPreview(FormPreview):
 
-    def done(self, request, cleaned_data):
-        # Do something with the cleaned_data, then redirect
-        # to a "success" page
-        return HttpResponseRedirect(reverse('home-view'))
+    form_template = 'upload.html'
+    preview_template = 'upload_confirm.html'
 
+    def done(self, request, cleaned_data):
+        return HttpResponseRedirect(reverse('home-view'))
 
 
 def upload_file(request):
@@ -219,22 +220,37 @@ def upload_file(request):
             csv_collist = newcsv.columns.tolist()
             csv_schshort_list = newcsv['School_Short'].unique().tolist()
             csv_schshorts_to_add = [s for s in csv_schshort_list if s not in selected_survey_schshort_list]
+
             #Now create school objects for these schools
+            #First, remember this import session
+            session = ImportSession()
+            session.date_created = datetime.datetime.now()
+
             csv_sch_object_list = []
             csv_schpart_object_list = []
             for schshort in csv_schshorts_to_add:
+                #Define school
                 sch_object = School()
                 sch_object.short = schshort
                 sch_object.name = tallies.get_value(schshort, 'School_Name')
                 sch_object.abbrev_name = schshort[:-3]
+                sch_object.imported_thru = session
+                sch_object.save()
                 csv_sch_object_list.append(sch_object)
+
                 #Define participation
                 schpart = SchoolParticipation()
                 round = schshort[-3:]
                 schpart.school = sch_object
                 schpart.survey = selected_survey
                 schpart.date_participated = round_time_conversion[round]
+                schpart.imported_thru = session
+                schpart.save()
                 csv_schpart_object_list.append(schpart)
+
+            #If success, save this session
+            session.save()
+
             #Pare this list down for faster lookup
             csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
 
@@ -260,6 +276,4 @@ def upload_file(request):
             return response
     else:
         form = UploadFileForm()
-    return render_to_response('upload.html',
-                              {'form': form},
-                              context_instance=RequestContext(request))
+    return render(request, 'upload.html', {'form': form})

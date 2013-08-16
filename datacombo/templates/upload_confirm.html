@@ -74,10 +74,7 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-6 col-lg-offset-3">
-        <form action="{% url "import-save" %}" method="POST">
-          {% csrf_token %}
-          <a href="" class="btn btn-success btn-lg btn-block"><i class="icon-plus"> </i>Import Into Database</a>
-        </form>
+          <a href="{% url "home-view" %}" class="btn btn-success btn-lg btn-block"><i class="icon-thumbs-up"> </i>Confirm Import</a>
       </div>
     </div>
   </div>
