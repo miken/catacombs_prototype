@@ -201,76 +201,88 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            selected_survey_id = request.POST['survey']
-            selected_survey = Survey.objects.get(id=selected_survey_id)
-            #Get the list of variables for this survey
-            selected_survey_varlist = selected_survey.variable_set.values_list('name', flat=True)
-            #Get the list of schools for this survey
-            selected_survey_schshort_list = selected_survey.school_set.values_list('short', flat=True)
-
-            #Now process the uploaded file
+            #Process the uploaded file
             uploaded_file = request.FILES['file']
-            #Load it as a CSV file
-            newcsv = pd.read_csv(uploaded_file)
-            tallies = newcsv.groupby(['School_Short', 'School_Name']).size()
-            tallies.name = 'Number of Rows'
-            tallies = tallies.reset_index()
-            tallies = tallies.set_index('School_Short')
-            csv_rowcount = len(newcsv)
-            csv_collist = newcsv.columns.tolist()
-            csv_schshort_list = newcsv['School_Short'].unique().tolist()
-            csv_schshorts_to_add = [s for s in csv_schshort_list if s not in selected_survey_schshort_list]
-
-            #Now create school objects for these schools
-            #First, remember this import session
-            session = ImportSession()
-            session.date_created = datetime.datetime.now()
-
-            csv_sch_object_list = []
-            csv_schpart_object_list = []
-            for schshort in csv_schshorts_to_add:
-                #Define school
-                sch_object = School()
-                sch_object.short = schshort
-                sch_object.name = tallies.get_value(schshort, 'School_Name')
-                sch_object.abbrev_name = schshort[:-3]
-                sch_object.imported_thru = session
-                sch_object.save()
-                csv_sch_object_list.append(sch_object)
-
-                #Define participation
-                schpart = SchoolParticipation()
-                round = schshort[-3:]
-                schpart.school = sch_object
-                schpart.survey = selected_survey
-                schpart.date_participated = round_time_conversion[round]
-                schpart.imported_thru = session
-                schpart.save()
-                csv_schpart_object_list.append(schpart)
-
-            #If success, save this session
-            session.save()
-
-            #Pare this list down for faster lookup
-            csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
-
-            #Now create a dictionary with key as the variable name from selected_survey_varlist
-            #and value as status of whether that variable exists in the CSV file
-            var_status = {}
-            for var in selected_survey_varlist:
-                if var in csv_cols_in_db:
-                    var_status[var] = 1
-                else:
-                    var_status[var] = 0
-
-            #School List
-
-            #Load all variables into the context for view rendering
+            #Create context first to catch all message
             context = {}
-            context['survey_name'] = selected_survey.name
-            context['number_of_rows'] = csv_rowcount
-            context['var_status_dict'] = var_status
-            context['sch_objects'] = csv_sch_object_list
+            try:
+                #Load it as a CSV file
+                newcsv = pd.read_csv(uploaded_file)
+            except pd._parser.CParserError:
+                context['csv_file'] = False
+            else:
+                context['csv_file'] = True
+                #Process the selected survey
+                selected_survey_id = request.POST['survey']
+                selected_survey = Survey.objects.get(id=selected_survey_id)
+                #Get the list of variables for this survey
+                selected_survey_varlist = selected_survey.variable_set.values_list('name', flat=True)
+                #Get the list of schools for this survey
+                selected_survey_schshort_list = selected_survey.school_set.values_list('short', flat=True)
+
+                #Now turn attention back to newcsv
+                tallies = newcsv.groupby(['School_Short', 'School_Name']).size()
+                tallies.name = 'Number of Rows'
+                tallies = tallies.reset_index()
+                tallies = tallies.set_index('School_Short')
+                csv_rowcount = len(newcsv)
+                csv_collist = newcsv.columns.tolist()
+                csv_schshort_list = newcsv['School_Short'].unique().tolist()
+                #Compare the list of schools in CSV with list of schools in database to determine which new schools to add
+                csv_schshorts_to_add = [s for s in csv_schshort_list if s not in selected_survey_schshort_list]
+                number_of_new_schools = len(csv_schshorts_to_add)
+
+                #Now create school objects for these schools
+                #First, remember this import session
+                session = ImportSession()
+                session.date_created = datetime.datetime.now()
+
+                csv_sch_object_list = []
+                csv_schpart_object_list = []
+                for schshort in csv_schshorts_to_add:
+                    #Define school
+                    sch_object = School()
+                    sch_object.short = schshort
+                    sch_object.name = tallies.get_value(schshort, 'School_Name')
+                    sch_object.abbrev_name = schshort[:-3]
+                    sch_object.imported_thru = session
+                    sch_object.save()
+                    csv_sch_object_list.append(sch_object)
+
+                    #Define participation
+                    schpart = SchoolParticipation()
+                    round = schshort[-3:]
+                    schpart.school = sch_object
+                    schpart.survey = selected_survey
+                    schpart.date_participated = round_time_conversion[round]
+                    schpart.imported_thru = session
+                    schpart.save()
+                    csv_schpart_object_list.append(schpart)
+
+                #If success, save this session
+                session.save()
+
+                #Pare this list down for faster lookup
+                csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
+
+                #Now create a dictionary with key as the variable name from selected_survey_varlist
+                #and value as status of whether that variable exists in the CSV file
+                var_status = {}
+                for var in selected_survey_varlist:
+                    if var in csv_cols_in_db:
+                        var_status[var] = 1
+                    else:
+                        var_status[var] = 0
+
+                #School List
+
+                #Load all variables into the context for view rendering
+                context['survey_name'] = selected_survey.name
+                context['number_of_rows'] = csv_rowcount
+                context['var_status_dict'] = var_status
+                context['number_of_new_schools'] = number_of_new_schools
+                context['sch_objects'] = csv_sch_object_list
+                context['participation_objects'] = csv_schpart_object_list
             #Redirect to upload summary after POST
             response = SimpleTemplateResponse('upload_confirm.html', context=context)
             return response
