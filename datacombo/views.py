@@ -253,7 +253,7 @@ def upload_file(request):
                     round = schshort[-3:]
                     pr.date_participated = round_time_conversion[round]
                     pr.legacy_school_short = schshort
-                    pr.note = 'Imported on {}'.format(pr.date_participated)
+                    pr.note = 'Imported on {}'.format(session.date_created)
                     pr.imported_thru = session
                     #Save everything now
                     pr.save()

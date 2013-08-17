@@ -112,7 +112,7 @@ class Teacher(models.Model):
     full_name = u'{first} {last}'.format(first=first_name, last=last_name)
     salutation = models.CharField(max_length=10, default='', verbose_name=u'Salutation')
     salute_name = u'{salute} {last}'.format(salute=salutation, last=last_name)
-    school = models.ForeignKey(School)
+    feedback_given_in = models.ForeignKey(SchoolParticipation)
     courses = models.ManyToManyField(Course)
 
 
@@ -121,7 +121,7 @@ class Student(models.Model):
     response_id = models.CharField(max_length=20, verbose_name=u'Response ID recorded by Qualtrics')
     course = models.ForeignKey(Course, null=True)
     teacher = models.ForeignKey(Teacher, null=True)
-    school = models.ForeignKey(School, null=True)
+    surveyed_in = models.ForeignKey(SchoolParticipation)
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
 
