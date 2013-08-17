@@ -21,7 +21,10 @@ class ImportSession(models.Model):
 
 class Survey(models.Model):
     name = models.CharField(max_length=100)
-    code = models.CharField(max_length=10)
+    code = models.CharField(max_length=10, unique=True)
+
+    class Meta:
+        ordering = ["code"]
 
     def school_count(self):
         count = self.school_set.count()
@@ -37,19 +40,25 @@ class Variable(models.Model):
     description = models.CharField(max_length=100)
     active = models.BooleanField()
 
+    class Meta:
+        ordering = ["name"]
+
     def __unicode__(self):
         return self.name
 
 
 class School(models.Model):
     #This field is used to match with schoolparticipation.legacy_school_short
-    alpha = models.CharField(max_length=20, verbose_name=u'Legacy School_Alpha')
+    alpha = models.CharField(max_length=20, unique=True, verbose_name=u'Legacy School_Alpha')
     name = models.CharField(max_length=100, verbose_name=u'Full School Name')
     abbrev_name = models.CharField(max_length=50, verbose_name=u'Short Name Used in Report')
     survey = models.ForeignKey(Survey)
-    q_code = models.CharField(max_length=10, verbose_name=u'Code used in Qualtrics logins')
+    q_code = models.CharField(max_length=10, blank=True, default='', verbose_name=u'Code used in Qualtrics logins')
     #When the ImportSession is deleted, this school will become "orphaned" and need to be removed individually
     imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        ordering = ["name"]
 
     def repeat_count(self):
         '''This function tells how many times this school has participated in YouthTruth'''
@@ -67,10 +76,14 @@ class SchoolParticipation(models.Model):
     school = models.ForeignKey(School)
     survey = models.ForeignKey(Survey)
     date_participated = models.DateField()
-    legacy_school_short = models.CharField(max_length=20, blank=True, verbose_name=u'Legacy School_Short notation')
-    note = models.CharField(max_length=100, blank=True, null=True)
+    legacy_school_short = models.CharField(max_length=20, blank=True, default='', verbose_name=u'Legacy School_Short notation')
+    note = models.CharField(max_length=100, blank=True, default='')
     #When the ImportSession is deleted, this participation record will become "orphaned" and need to be removed individually
     imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        ordering = ["date_participated"]
+        get_latest_by = "date_participated"
 
     def __unicode__(self):
         return self.school.name
@@ -85,7 +98,7 @@ class Teacher(models.Model):
     first_name = models.CharField(max_length=50, verbose_name=u'First Name')
     last_name = models.CharField(max_length=50, verbose_name=u'Last Name')
     full_name = u'{first} {last}'.format(first=first_name, last=last_name)
-    salutation = models.CharField(max_length=10, verbose_name=u'Salutation')
+    salutation = models.CharField(max_length=10, default='', verbose_name=u'Salutation')
     salute_name = u'{salute} {last}'.format(salute=salutation, last=last_name)
     school = models.ForeignKey(School)
     courses = models.ManyToManyField(Course)

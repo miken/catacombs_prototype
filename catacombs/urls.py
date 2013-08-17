@@ -30,13 +30,11 @@ urlpatterns = patterns('',
     url(r'^schools/(?P<pk>\d+)/$', datacombo.views.SchoolView.as_view(),
         name='schools-view',),
 
-    #Surveys
-    url(r'^surveys/$', datacombo.views.ListSurveyView.as_view(), name='surveys-list',),
-    url(r'^surveys/new$', datacombo.views.CreateSurveyView.as_view(), name='surveys-new',),
-    url(r'^surveys/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSurveyView.as_view(),
-        name='surveys-edit',),
-    url(r'^surveys/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSurveyView.as_view(),
-        name='surveys-delete',),
+    #Surveys - We're gonna disable this for now
+    #url(r'^surveys/$', datacombo.views.ListSurveyView.as_view(), name='surveys-list',),
+    #url(r'^surveys/new$', datacombo.views.CreateSurveyView.as_view(), name='surveys-new',),
+    #url(r'^surveys/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSurveyView.as_view(), name='surveys-edit',),
+    #url(r'^surveys/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSurveyView.as_view(), name='surveys-delete',),
 
     #Import Sessions
     url(r'^sessions/$', datacombo.views.ListSessionView.as_view(), name='sessions-list',),

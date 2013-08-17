@@ -19,7 +19,7 @@ varlist = varlist[varlist['factor'] != '1']
 #os.chdir(root_dir)
 
 #Find that HS TM survey
-hstm = Survey.objects.get(code='hstm')
+hstm = Survey.objects.get(code='tch-hs')
 
 for var in varlist.index:
     dj_var = Variable()

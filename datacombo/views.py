@@ -177,6 +177,7 @@ class DeleteSurveyView(DeleteView):
     def get_success_url(self):
         return reverse('surveys-list')
 
+
 #View functions for handling file uploads
 def upload_file(request):
     if request.method == 'POST':
@@ -198,8 +199,6 @@ def upload_file(request):
                 selected_survey = Survey.objects.get(id=selected_survey_id)
                 #Get the list of variables for this survey
                 selected_survey_varlist = selected_survey.variable_set.values_list('name', flat=True)
-                #Get the list of school alphas for this survey (from school records)
-                selected_survey_schalpha_list = selected_survey.school_set.values_list('alpha', flat=True)
                 #Get the list of school shorts for this survey (from participation records)
                 selected_survey_schshort_list = selected_survey.schoolparticipation_set.values_list('legacy_school_short', flat=True)
 
@@ -214,16 +213,6 @@ def upload_file(request):
                 csv_schshort_list = newcsv['School_Short'].unique().tolist()
                 #Compare the list of schools in CSV with list of schools in database to determine which new participation records to add
                 csv_schshorts_to_add = [s for s in csv_schshort_list if s not in selected_survey_schshort_list]
-                number_of_new_participations = len(csv_schshorts_to_add)
-
-                # Generate a list of school alphas from the CSV file as well
-                # To determine which schools to add
-                csv_schalpha_dict = {}
-                for schshort in csv_schshorts_to_add:
-                    schalpha = schshort[:-3]
-                    if schalpha not in selected_survey_schalpha_list:
-                        csv_schalpha_dict[schshort] = schalpha
-                number_of_new_schools = len(csv_schalpha_dict)
 
 
                 # Create new import session first
@@ -233,25 +222,28 @@ def upload_file(request):
                 session.date_created = datetime.datetime.now()
                 session.save()
 
-                # Then create schools
-                csv_sch_object_list = []
-                for schshort, alpha in csv_schalpha_dict.items():
-                    sch_obj = School()
-                    sch_obj.alpha = alpha
-                    sch_obj.name = tallies.get_value(schshort, 'School_Name')
-                    sch_obj.abbrev_name = alpha
-                    sch_obj.survey = selected_survey
-                    sch_obj.imported_thru = session
-                    sch_obj.save()
-                    csv_sch_object_list.append(sch_obj)
-
                 # Then create participation records
+                csv_sch_object_list = []
                 csv_pr_object_list = []
                 for schshort in csv_schshorts_to_add:
                     pr = SchoolParticipation()
                     round = schshort[-3:]
-                    alpha = schshort[:-3]
-                    pr.school = School.objects.get(alpha=alpha)
+                    abbr = schshort[:-3]
+                    alpha = '{abbr}-{surveycode}'.format(abbr=abbr, surveycode=selected_survey.code)
+                    #Example of alpha: HTH-tch-hs
+                    try:
+                        pr.school = School.objects.get(alpha=alpha, survey=selected_survey)
+                    except School.DoesNotExist:
+                        #If a school does not exists yet - create it and then assign to pr
+                        sch_obj = School()
+                        sch_obj.abbrev_name = schshort[:-3]
+                        sch_obj.name = tallies.get_value(schshort, 'School_Name')
+                        sch_obj.alpha = alpha
+                        sch_obj.survey = selected_survey
+                        sch_obj.imported_thru = session
+                        sch_obj.save()
+                        csv_sch_object_list.append(sch_obj)
+                        pr.school = sch_obj
                     pr.survey = selected_survey
                     pr.date_participated = round_time_conversion[round]
                     pr.legacy_school_short = schshort
@@ -260,8 +252,9 @@ def upload_file(request):
                     pr.save()
                     csv_pr_object_list.append(pr)
 
-
-
+                # Calculate number of new schools
+                number_of_new_participations = len(csv_pr_object_list)
+                number_of_new_schools = len(csv_sch_object_list)
 
                 #Pare this list down for faster lookup
                 csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
@@ -274,7 +267,6 @@ def upload_file(request):
                         var_status[var] = 1
                     else:
                         var_status[var] = 0
-
 
                 #Load all variables into the context for view rendering
                 context['survey_name'] = selected_survey.name

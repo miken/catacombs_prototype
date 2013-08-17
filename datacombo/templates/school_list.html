@@ -8,6 +8,7 @@
   <tr>
     <th>School Name</th>
     <th>Abbrev.</th>
+    <th>Alpha Code</th>
     <th>Times Participated in YT</th>
     <th>Action</th>
   </tr>
@@ -16,6 +17,7 @@
   <tr class="school">
     <td><a href="{{ school.get_absolute_url }}">{{ school.name }}</a></td>
     <td>{{ school.abbrev_name }}</td>
+    <td>{{ school.alpha }}</td>
     <td>{{ school.repeat_count }}</td>
     <td>
       <a href="{% url "schools-edit" pk=school.id %}" class="btn btn-default">Edit</a>
