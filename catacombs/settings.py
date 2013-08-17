@@ -1,5 +1,6 @@
 # Django settings for catacombs project.
 import os
+import dj_database_url
 from whichcomp import sqlite_path
 
 DEBUG = True
@@ -11,17 +12,21 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': sqlite_path,                      # Or path to database file if using sqlite3.
-        # The following settings are not used with sqlite3:
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                      # Set to empty string for default.
+#If DATABASE_URL' does not exist, then it's local machine
+if 'DATABASE_URL' not in os.environ.keys():
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+            'NAME': sqlite_path,                      # Or path to database file if using sqlite3.
+            # The following settings are not used with sqlite3:
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+            'PORT': '',                      # Set to empty string for default.
+        }
     }
-}
+else:
+    DATABASES['default'] = dj_database_url.config()
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -130,7 +135,7 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'south',
+    #'south',
     'datacombo',
 )
 
@@ -164,8 +169,8 @@ LOGGING = {
 }
 
 # Parse database configuration from $DATABASE_URL
-import dj_database_url
-DATABASES['default'] = dj_database_url.config()
+
+
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -175,7 +180,6 @@ ALLOWED_HOSTS = ['*']
 
 # Static asset configuration
 # Might have already been configured above. Check later.
-import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
