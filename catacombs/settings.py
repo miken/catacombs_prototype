@@ -26,6 +26,7 @@ if 'DATABASE_URL' not in os.environ.keys():
         }
     }
 else:
+    DATABASES = {}
     DATABASES['default'] = dj_database_url.config()
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
