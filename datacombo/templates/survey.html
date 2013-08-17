@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ survey.name }}</h1>
+
+<table class="table table-striped">
+  <tr>
+    <th>School Name</th>
+    <th>Times Participated in YT</th>
+  </tr>
+  
+  {% for school in survey.school_set.all %}
+  <tr class="school">
+    <td><a href="{{ school.get_absolute_url }}">{{ school.name }}</a></td>
+    <td>{{ school.repeat_count }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="{% url "home-view" %}">Back to home</a>
+{% endblock %}

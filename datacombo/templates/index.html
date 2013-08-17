@@ -13,8 +13,8 @@
   </tr>
   
   {% for survey in all_surveys %}
-  <tr class="school">
-    <td>{{ survey.name }}</td>
+  <tr class="survey">
+    <td><a href="{{ survey.get_absolute_url }}">{{ survey.name }}</a></td>
     <td>{{ survey.school_count }}</td>
   </tr>
   {% endfor %}

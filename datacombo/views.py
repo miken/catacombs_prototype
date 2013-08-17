@@ -13,7 +13,6 @@ from datacombo.forms import UploadFileForm
 from datacombo.helpers import round_time_conversion
 
 
-
 #Index View
 class HomeView(TemplateView):
 
@@ -72,6 +71,7 @@ class DeleteVariableView(DeleteView):
 
     def get_success_url(self):
         return reverse('variables-list')
+
 
 #Views for School
 class ListSchoolView(ListView):
@@ -176,6 +176,12 @@ class DeleteSurveyView(DeleteView):
 
     def get_success_url(self):
         return reverse('surveys-list')
+
+
+class SurveyView(DetailView):
+
+    model = Survey
+    template_name = 'survey.html'
 
 
 #View functions for handling file uploads

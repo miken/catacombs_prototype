@@ -35,6 +35,8 @@ urlpatterns = patterns('',
     #url(r'^surveys/new$', datacombo.views.CreateSurveyView.as_view(), name='surveys-new',),
     #url(r'^surveys/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSurveyView.as_view(), name='surveys-edit',),
     #url(r'^surveys/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSurveyView.as_view(), name='surveys-delete',),
+    url(r'^surveys/(?P<pk>\d+)/$', datacombo.views.SurveyView.as_view(),
+        name='surveys-view',),
 
     #Import Sessions
     url(r'^sessions/$', datacombo.views.ListSessionView.as_view(), name='sessions-list',),

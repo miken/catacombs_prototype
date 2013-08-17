@@ -30,6 +30,9 @@ class Survey(models.Model):
         count = self.school_set.count()
         return count
 
+    def get_absolute_url(self):
+        return reverse('surveys-view', kwargs={'pk': self.id})
+
     def __unicode__(self):
         return self.name
 
