@@ -26,6 +26,15 @@ class Survey(models.Model):
     class Meta:
         ordering = ["code"]
 
+    def alpha_suffix(self):
+        '''
+        Creates a suffix that gets appended to a school alpha
+        For example: if a school abbr is 'HTH' and it participated in
+        high school teacher feedback survey, its alpha is 'HTH-hs'
+        '''
+        suffix = self.code[-2:]
+        return suffix
+
     def school_count(self):
         count = self.school_set.count()
         return count
@@ -55,7 +64,7 @@ class School(models.Model):
     alpha = models.CharField(max_length=20, unique=True, verbose_name=u'Legacy School_Alpha')
     name = models.CharField(max_length=100, verbose_name=u'Full School Name')
     abbrev_name = models.CharField(max_length=50, verbose_name=u'Short Name Used in Report')
-    survey = models.ForeignKey(Survey)
+    surveys = models.ManyToManyField(Survey, through='SchoolParticipation')
     q_code = models.CharField(max_length=10, blank=True, default='', verbose_name=u'Code used in Qualtrics logins')
     #When the ImportSession is deleted, this school will become "orphaned" and need to be removed individually
     imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)

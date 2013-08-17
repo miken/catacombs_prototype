@@ -232,30 +232,32 @@ def upload_file(request):
                 csv_sch_object_list = []
                 csv_pr_object_list = []
                 for schshort in csv_schshorts_to_add:
-                    pr = SchoolParticipation()
-                    round = schshort[-3:]
                     abbr = schshort[:-3]
-                    alpha = '{abbr}-{surveycode}'.format(abbr=abbr, surveycode=selected_survey.code)
+                    alpha = '{abbr}-{surveycode}'.format(abbr=abbr, surveycode=selected_survey.alpha_suffix())
                     #Example of alpha: HTH-tch-hs
+                    #Check if school exists, if not create one
                     try:
-                        pr.school = School.objects.get(alpha=alpha, survey=selected_survey)
+                        sch_obj = School.objects.get(alpha=alpha)
                     except School.DoesNotExist:
                         #If a school does not exists yet - create it and then assign to pr
                         sch_obj = School()
                         sch_obj.abbrev_name = schshort[:-3]
                         sch_obj.name = tallies.get_value(schshort, 'School_Name')
                         sch_obj.alpha = alpha
-                        sch_obj.survey = selected_survey
                         sch_obj.imported_thru = session
                         sch_obj.save()
                         csv_sch_object_list.append(sch_obj)
-                        pr.school = sch_obj
+                    pr = SchoolParticipation()
+                    pr.school = sch_obj
                     pr.survey = selected_survey
+                    round = schshort[-3:]
                     pr.date_participated = round_time_conversion[round]
                     pr.legacy_school_short = schshort
                     pr.note = 'Imported on {}'.format(pr.date_participated)
                     pr.imported_thru = session
+                    #Save everything now
                     pr.save()
+                    #Append them to list for use later
                     csv_pr_object_list.append(pr)
 
                 # Calculate number of new schools
