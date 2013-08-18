@@ -101,9 +101,19 @@ class SchoolParticipation(models.Model):
         return self.school.name
 
 
+class Subject(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __unicode__(self):
+        return self.subject.name
+
+
 class Course(models.Model):
     name = models.CharField(max_length=50, verbose_name=u'Course Name')
-    subject = models.CharField(max_length=50)
+    subject = models.ForeignKey(Subject)
+
+    def __unicode__(self):
+        return self.course.name
 
 
 class Teacher(models.Model):
@@ -130,8 +140,9 @@ class Response(models.Model):
     survey = models.ForeignKey(Survey)
     answer = models.PositiveSmallIntegerField(blank=True, null=True)
     #Indicates to whom the answer belongs
+    #Set null=True for student because of a future possibility of surveying teachers and parents etc.
     student = models.ForeignKey(Student, null=True)
-    #Indicates whether the answer was for a teacher or for a school
-    on_teacher = models.ForeignKey(Teacher, null=True)
+    #Indicates whether the answer was for a course or for a school-overall
+    on_course = models.ForeignKey(Course, null=True)
     on_school = models.ForeignKey(School, null=True)
     imported_thru = models.ForeignKey(ImportSession, null=True)

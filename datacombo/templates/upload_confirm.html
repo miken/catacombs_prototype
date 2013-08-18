@@ -60,12 +60,14 @@
                 <tr>
                   <th>School Name</th>
                   <th>Date Participated</th>
+                  <th>Number of Students Imported</th>
                 </tr>
 
                 {% for p in participation_objects %}
                 <tr>
                   <td>{{ p.school.name }}</td>
                   <td>{{ p.date_participated }}</td>
+                  <td>{{ p.student_set.count }}</td>
                   </td>
                 </tr>
                 {% endfor %}

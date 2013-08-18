@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
-from datacombo.models import Variable, School, Survey, SchoolParticipation, ImportSession
+from datacombo.models import Variable, School, Survey, SchoolParticipation, ImportSession, Response, Student
 from datacombo.forms import UploadFileForm
 from datacombo.helpers import round_time_conversion
 
@@ -200,26 +200,11 @@ def upload_file(request):
                 context['csv_file'] = False
             else:
                 context['csv_file'] = True
-                #Process the selected survey
+                # Process the selected survey
                 selected_survey_id = request.POST['survey']
                 selected_survey = Survey.objects.get(id=selected_survey_id)
-                #Get the list of variables for this survey
+                # Get the list of variables for this survey
                 selected_survey_varlist = selected_survey.variable_set.values_list('name', flat=True)
-                #Get the list of school shorts for this survey (from participation records)
-                selected_survey_schshort_list = selected_survey.schoolparticipation_set.values_list('legacy_school_short', flat=True)
-
-                #Now turn attention back to newcsv
-                tallies = newcsv.groupby(['School_Short', 'School_Name']).size()
-                tallies.name = 'Number of Rows'
-                tallies = tallies.reset_index()
-                tallies = tallies.set_index('School_Short')
-                #Get the number of rows in spreadsheet to report out later
-                csv_rowcount = len(newcsv)
-                csv_collist = newcsv.columns.tolist()
-                csv_schshort_list = newcsv['School_Short'].unique().tolist()
-                #Compare the list of schools in CSV with list of schools in database to determine which new participation records to add
-                csv_schshorts_to_add = [s for s in csv_schshort_list if s not in selected_survey_schshort_list]
-
 
                 # Create new import session first
                 # First, remember this import session
@@ -228,44 +213,97 @@ def upload_file(request):
                 session.date_created = datetime.datetime.now()
                 session.save()
 
-                # Then create participation records
-                csv_sch_object_list = []
-                csv_pr_object_list = []
-                for schshort in csv_schshorts_to_add:
+                # Tallies of new objects
+                number_of_new_schools = 0
+                number_of_new_participations = 0
+                number_of_new_students = 0
+
+                # List of objects for view rendering later
+                new_schools_list = []
+                new_records_list = []
+
+                #Start parsing:
+                for idx in newcsv.index:
+                    row = newcsv.ix[idx]
+
+                    # Create/update school
+                    schshort = row['School_Short']
                     abbr = schshort[:-3]
                     alpha = '{abbr}-{surveycode}'.format(abbr=abbr, surveycode=selected_survey.alpha_suffix())
-                    #Example of alpha: HTH-tch-hs
-                    #Check if school exists, if not create one
                     try:
                         sch_obj = School.objects.get(alpha=alpha)
                     except School.DoesNotExist:
-                        #If a school does not exists yet - create it and then assign to pr
+                        #If a school does not exist yet, create and then assign it to pr
                         sch_obj = School()
                         sch_obj.abbrev_name = schshort[:-3]
-                        sch_obj.name = tallies.get_value(schshort, 'School_Name')
+                        sch_obj.name = row['School_Name']
                         sch_obj.alpha = alpha
                         sch_obj.imported_thru = session
                         sch_obj.save()
-                        csv_sch_object_list.append(sch_obj)
-                    pr = SchoolParticipation()
-                    pr.school = sch_obj
-                    pr.survey = selected_survey
-                    round = schshort[-3:]
-                    pr.date_participated = round_time_conversion[round]
-                    pr.legacy_school_short = schshort
-                    pr.note = 'Imported on {}'.format(session.date_created)
-                    pr.imported_thru = session
-                    #Save everything now
-                    pr.save()
-                    #Append them to list for use later
-                    csv_pr_object_list.append(pr)
+                        number_of_new_schools += 1
+                        new_schools_list.append(sch_obj)
 
-                # Calculate number of new schools
-                number_of_new_participations = len(csv_pr_object_list)
-                number_of_new_schools = len(csv_sch_object_list)
+                    # Create/update participation record
+                    try:
+                        pr = SchoolParticipation.objects.get(school=sch_obj, survey=selected_survey)
+                    except SchoolParticipation.DoesNotExist:
+                        #If a record does not exist yet, create
+                        pr = SchoolParticipation()
+                        pr.school = sch_obj
+                        pr.survey = selected_survey
+                        survey_round = schshort[-3:]
+                        pr.date_participated = round_time_conversion[survey_round]
+                        pr.legacy_school_short = schshort
+                        pr.note = 'Imported on {}'.format(session.date_created)
+                        pr.imported_thru = session
+                        pr.save()
+                        number_of_new_participations += 1
+                        new_records_list.append(pr)
+                    # Create/update teacher
+                    #
+                    # Create/update course
+                    #
+                    # Create/update student
+                    pin = row['PIN']
+                    try:
+                        std_obj = Student.objects.get(pin=pin, surveyed_in=pr)
+                    except Student.DoesNotExist:
+                        #If a student does not exist, create and then assign to resp
+                        std_obj = Student()
+                        std_obj.pin = pin
+                        std_obj.response_id = row['ID']
+                        #Blank for now
+                        #std_obj.course
+                        #std_obj.teacher
+                        std_obj.surveyed_in = pr
+                        std_obj.imported_thru = session
+                        std_obj.save()
+                        number_of_new_students += 1
+
+                    # Create/update response
+                    for var in selected_survey_varlist:
+                        # If there's no response for that question, skip it
+                        answer = row[var]
+                        if pd.isnull(answer):
+                            pass
+                        else:
+                            var_obj = selected_survey.variable_set.get(name=var)
+                            resp = Response()
+                            resp.question = var_obj
+                            resp.survey = selected_survey
+                            resp.answer = answer
+                            resp.student = std_obj
+                            # resp.on_course = cse_obj
+                            # Assign response to school
+                            resp.on_school = sch_obj
+                            resp.imported_thru = session
+                            resp.save()
 
                 #Pare this list down for faster lookup
+                csv_collist = newcsv.columns.tolist()
                 csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
+                #Number of rows
+                csv_rowcount = len(newcsv)
 
                 #Now create a dictionary with key as the variable name from selected_survey_varlist
                 #and value as status of whether that variable exists in the CSV file
@@ -282,8 +320,9 @@ def upload_file(request):
                 context['var_status_dict'] = var_status
                 context['number_of_new_schools'] = number_of_new_schools
                 context['number_of_new_participations'] = number_of_new_participations
-                context['sch_objects'] = csv_sch_object_list
-                context['participation_objects'] = csv_pr_object_list
+                context['number_of_new_students'] = number_of_new_students
+                context['sch_objects'] = new_schools_list
+                context['participation_objects'] = new_records_list
                 context['session_id'] = session.id
             #Redirect to upload summary after POST
             response = SimpleTemplateResponse('upload_confirm.html', context=context)
