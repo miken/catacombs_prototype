@@ -97,6 +97,10 @@ class SchoolParticipation(models.Model):
         ordering = ["date_participated"]
         get_latest_by = "date_participated"
 
+    def student_count(self):
+        count = self.student_set.count()
+        return count
+
     def __unicode__(self):
         return self.school.name
 

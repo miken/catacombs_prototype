@@ -10,6 +10,7 @@
   <tr>
     <th>Survey Period</th>
     <th>Legacy School Short</th>
+    <th>Number of Recorded Student Responses</th>
     <th>Note (Can be added via Admin side)</th>
   </tr>
   
@@ -17,6 +18,7 @@
   <tr>
     <td>{{ p.date_participated }}</td>
     <td>{{ p.legacy_school_short }}</td>
+    <td>{{ p.student_count }}</td>
     <td>{{ p.note }}</td>
   </tr>
   {% endfor %}
