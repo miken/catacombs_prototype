@@ -1,5 +1,4 @@
-import csv
-import StringIO
+import pandas as pd
 import datetime
 
 from django.http import HttpResponse, HttpResponseRedirect
@@ -190,35 +189,22 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            #Process the uploaded file
+             #Process the uploaded file
             uploaded_file = request.FILES['file']
-
-            # Guessing file encoding - taken from here:
-            #http://jazstudios.blogspot.it/2011/11/python-detect-charset-and-convert-to.html
-            content = uploaded_file.read()
-
-            # Unicode detection disabled for now
-            #encoding = chardet.detect(content)['encoding']
-            #if encoding != 'utf-8':
-            #    content = content.decode(encoding, 'replace').encode('utf-8')
-
-            filestream = StringIO.StringIO(content)
-            dialect = csv.Sniffer().sniff(content)
-
             #Create context first to catch all message
             context = {}
             try:
                 #Load it as a CSV file
-                newcsv = csv.DictReader(filestream.read().splitlines(), dialect=dialect)
-            except csv.Error:
+                newcsv = pd.read_csv(uploaded_file)
+            except pd._parser.CParserError:
                 context['csv_file'] = False
             else:
                 context['csv_file'] = True
                 # Process the selected survey
-                selected_survey_id = request.POST['survey']
-                selected_survey = Survey.objects.get(id=selected_survey_id)
+                survey_id = request.POST['survey']
+                survey = Survey.objects.get(id=survey_id)
                 # Get the list of variables for this survey
-                selected_survey_varlist = selected_survey.variable_set.values_list('name', flat=True)
+                survey_alphalist = survey.school_set.values_list('alpha', flat=True)
 
                 # Create new import session first
                 # First, remember this import session
@@ -233,119 +219,180 @@ def upload_file(request):
                 number_of_new_students = 0
                 number_of_rows = 0
 
-                # List of objects for view rendering later
-                new_school_id_list = []
-                new_record_id_list = []
+                # List of objects for bulk creation later
+                new_schools_list = []
+                new_records_list = []
+                new_students_list = []
+                new_responses_list = []
 
-                #Start parsing:
-                for row in newcsv:
-                    # Create/update school
-                    schshort = row['School_Short']
-                    abbr = schshort[:-3]
-                    alpha = '{abbr}-{surveycode}'.format(abbr=abbr, surveycode=selected_survey.alpha_suffix())
+                # Create a few aggregate dataframe for lookup use later:
+                tallies = newcsv.groupby(['School_Short', 'School_Name']).size()
+                tallies = tallies.reset_index()
+                surveycode = survey.alpha_suffix()
+                tallies['abbr'] = tallies['School_Short'].str[:-3]
+                tallies['alpha'] = tallies['abbr'] + '-' + surveycode
+                tallies = tallies.set_index('School_Short')
+                # Create a record of unique triples of PIN, ID and School_Short
+                csv_pin = newcsv.groupby(['PIN', 'ID', 'School_Short']).size()
+                csv_pin = csv_pin.reset_index()
+                # Set PIN as index for faster lookup
+                csv_pin = csv_pin.set_index('PIN')
+                csv_columns = newcsv.columns.tolist()
 
-                    try:
-                        sch_obj = selected_survey.school_set.get(alpha=alpha)
-                    except School.DoesNotExist:
-                        #If a school does not exist yet, create and then assign it to pr
+                # Create/update schools
+                for a in tallies['alpha']:
+                    if a in survey_alphalist:
+                        pass
+                    else:
+                        series = tallies[tallies['alpha'] == a]
                         sch_obj = School()
-                        sch_obj.abbrev_name = schshort[:-3]
-                        sch_obj.name = row['School_Name']
-                        sch_obj.alpha = alpha
+                        sch_obj.abbrev_name = series['abbr'][0]
+                        sch_obj.name = series['School_Name'][0]
+                        sch_obj.alpha = a
                         sch_obj.imported_thru = session
-                        sch_obj.save()
+                        # Append to object list for bulk create later
+                        new_schools_list.append(sch_obj)
+                        # Add up the tallies
                         number_of_new_schools += 1
-                        new_school_id_list.append(sch_obj.id)
+                # Bulk create new school objects
+                School.objects.bulk_create(new_schools_list)
 
-                    # Create/update participation record
-                    try:
-                        pr = selected_survey.schoolparticipation_set.get(id=sch_obj.id)
-                    except SchoolParticipation.DoesNotExist:
-                        #If a record does not exist yet, create
-                        pr = SchoolParticipation()
-                        pr.school = sch_obj
-                        pr.survey = selected_survey
-                        survey_round = schshort[-3:]
-                        pr.date_participated = round_time_conversion[survey_round]
-                        pr.legacy_school_short = schshort
-                        pr.note = 'Imported on {}'.format(session.date_created)
-                        pr.imported_thru = session
-                        pr.save()
+
+                # Create/update school participation records
+                survey_record_list = survey.schoolparticipation_set.values('legacy_school_short', 'id')
+                survey_record_dict = {}
+                for valdict in survey_record_list:
+                    ss = valdict['legacy_school_short']
+                    i = valdict['id']
+                    survey_record_dict[ss] = i
+                # Get a new set of school records for lookup
+                survey_new_sch_list = School.objects.values('abbrev_name', 'id')
+                survey_new_sch_dict = {}
+                for valdict in survey_new_sch_list:
+                    abbr = valdict['abbrev_name']
+                    i = valdict['id']
+                    survey_new_sch_dict[abbr] = i
+                for s in tallies.index:
+                    if s in survey_record_dict.keys():
+                        pass
+                    else:
+                        pr_obj = SchoolParticipation()
+                        abbr = tallies.get_value(s, 'abbr')
+                        pr_obj.school_id = survey_new_sch_dict[abbr]
+                        pr_obj.survey = survey
+                        survey_round = s[-3:]
+                        pr_obj.date_participated = round_time_conversion[survey_round]
+                        pr_obj.legacy_school_short = s
+                        pr_obj.note = 'Imported on {}'.format(session.date_created)
+                        pr_obj.imported_thru = session
                         number_of_new_participations += 1
-                        new_record_id_list.append(pr.id)
-                    # Create/update teacher
-                    #
-                    # Create/update course
-                    #
-                    # Create/update student
-                    pin = row['PIN']
-                    try:
-                        std_obj = pr.student_set.get(pin=pin)
-                    except Student.DoesNotExist:
-                        #If a student does not exist, create and then assign to resp
+                        # Append to object list for bulk create later
+                        new_records_list.append(pr_obj)
+                        # Add up the tallies
+                        number_of_new_participations += 1
+                #Bulk create new participation objects
+                SchoolParticipation.objects.bulk_create(new_records_list)
+
+                # Create/update teacher records
+
+                # Create/update course records
+
+                # Create/update student records
+                survey_students = Student.objects.filter(surveyed_in_id__in=survey_record_dict.values())
+                survey_student_pin_list = survey_students.values_list('pin', flat=True)
+                # Get a new set of participation records for lookup too
+                survey_new_pr_list = survey.schoolparticipation_set.values('legacy_school_short', 'id', 'school')
+                survey_new_pr_dict = {}
+                for valdict in survey_new_pr_list:
+                    ss = valdict['legacy_school_short']
+                    i = valdict['id']
+                    sch_id = valdict['school']
+                    survey_new_pr_dict[ss] = (i, sch_id)
+                for p in csv_pin.index:
+                    if p in survey_student_pin_list:
+                        pass
+                    else:
                         std_obj = Student()
-                        std_obj.pin = pin
-                        std_obj.response_id = row['ID']
+                        std_obj.pin = p
+                        std_obj.response_id = csv_pin.get_value(p, 'ID')
                         #Blank for now
                         #std_obj.course
                         #std_obj.teacher
-                        std_obj.surveyed_in = pr
+                        schshort = csv_pin.get_value(p, 'School_Short')
+                        std_obj.surveyed_in_id = survey_new_pr_dict[schshort][0]
                         std_obj.imported_thru = session
-                        std_obj.save()
+                        # Append to object list for bulk create later
+                        new_students_list.append(std_obj)
+                        # Add up the tallies
                         number_of_new_students += 1
+                # Bulk create new student objects
+                Student.objects.bulk_create(new_students_list)
 
-                    # Create/update response
-                    for var in selected_survey_varlist:
-                        # If there's no response for that question, skip it
-                        answer = row[var]
-                        if answer == '':
-                            pass
-                        else:
-                            answer = int(answer)
-                            var_obj = selected_survey.variable_set.get(name=var)
-                            resp = Response()
-                            resp.question = var_obj
-                            resp.survey = selected_survey
-                            resp.answer = answer
-                            resp.student = std_obj
-                            # resp.on_course = cse_obj
-                            # Assign response to school
-                            resp.on_school = sch_obj
-                            resp.imported_thru = session
-                            resp.save()
+                # Create/update response records
+                survey_varlist = survey.variable_set.values('name', 'id')
+                survey_vardict = {}
+                for valdict in survey_varlist:
+                    varname = valdict['name']
+                    varid = valdict['id']
+                    survey_vardict[varname] = varid
+                # Get new set of student records for lookup too
+                survey_new_pr_id_list = [tpl[1] for tpl in survey_new_pr_dict.values()]
+                survey_new_std = Student.objects.filter(surveyed_in_id__in=survey_new_pr_id_list)
+                survey_new_std_list = survey_new_std.values('pin', 'id')
+                survey_new_std_dict = {}
+                for valdict in survey_new_std_list:
+                    pin = valdict['pin']
+                    i = valdict['id']
+                    survey_new_std_dict[pin] = i
 
-                    # Number of rows
-                    number_of_rows += 1
-
-
-                # List of objects for view rendering later
-                new_schools_list = list(School.objects.filter(id__in=new_school_id_list))
-                new_records_list = list(SchoolParticipation.objects.filter(id__in=new_record_id_list))
-
-                #Pare this list down for faster lookup
-                csv_collist = newcsv.fieldnames
-                csv_cols_in_db = [c for c in csv_collist if c in selected_survey_varlist]
-
-                #Now create a dictionary with key as the variable name from selected_survey_varlist
-                #and value as status of whether that variable exists in the CSV file
+                # Now create a dictionary with key as the variable name from survey_varlist
+                # and value as status of whether that variable exists in the CSV file
                 var_status = {}
-                for var in selected_survey_varlist:
-                    if var in csv_cols_in_db:
+                for var in survey_vardict.keys():
+                    if var in csv_columns:
                         var_status[var] = 1
                     else:
                         var_status[var] = 0
+                    for i in newcsv.index:
+                        row = newcsv.ix[i]
+                        a = row[var]
+                        if pd.isnull(a):
+                            pass
+                        else:
+                            resp = Response()
+                            resp.question_id = survey_vardict[var]
+                            resp.survey = survey
+                            resp.answer = a
+                            pin = row['PIN']
+                            resp.student_id = survey_new_std_dict[pin]
+                            # resp.on_course = cse_obj
+                            # Assign response to school
+                            schshort = csv_pin.get_value(pin, 'School_Short')
+                            resp.on_school_id = survey_new_pr_dict[schshort][1]
+                            resp.imported_thru = session
+                            # Append to object list for bulk create later
+                            new_responses_list.append(resp)
+                            # Add up the tallies
+                            number_of_rows += 1
+                        # If the list of responses reach 500, we'll do bulk create and reset the list
+                        if len(new_responses_list) == 500:
+                            Response.objects.bulk_create(new_responses_list)
+                            new_responses_list = []
+                # Bulk create new response objects
+                Response.objects.bulk_create(new_responses_list)
+                new_responses_list = []
 
-                #Load all variables into the context for view rendering
-                context['survey_name'] = selected_survey.name
+                # Load all variables into the context for view rendering
+                context['survey_name'] = survey.name
                 context['number_of_rows'] = number_of_rows
                 context['var_status_dict'] = var_status
                 context['number_of_new_schools'] = number_of_new_schools
                 context['number_of_new_participations'] = number_of_new_participations
                 context['number_of_new_students'] = number_of_new_students
-                context['sch_objects'] = new_schools_list
-                context['participation_objects'] = new_records_list
+                context['sch_objects'] = School.objects.filter(imported_thru=session)
+                context['participation_objects'] = SchoolParticipation.objects.filter(imported_thru=session)
                 context['session_id'] = session.id
-            #Redirect to upload summary after POST
+            # Redirect to upload summary after POST
             response = SimpleTemplateResponse('upload_confirm.html', context=context)
             return response
     else:

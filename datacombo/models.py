@@ -15,6 +15,10 @@ class ImportSession(models.Model):
         count = self.schoolparticipation_set.count()
         return count
 
+    def student_count(self):
+        count = self.student_set.count()
+        return count
+
     def __unicode__(self):
         return self.title
 
@@ -61,7 +65,7 @@ class Variable(models.Model):
 
 class School(models.Model):
     #This field is used to match with schoolparticipation.legacy_school_short
-    alpha = models.CharField(max_length=20, unique=True, verbose_name=u'Legacy School_Alpha')
+    alpha = models.CharField(max_length=20, verbose_name=u'Legacy School_Alpha')
     name = models.CharField(max_length=100, verbose_name=u'Full School Name')
     abbrev_name = models.CharField(max_length=50, verbose_name=u'Short Name Used in Report')
     surveys = models.ManyToManyField(Survey, through='SchoolParticipation')
