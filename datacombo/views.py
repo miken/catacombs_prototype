@@ -203,8 +203,6 @@ def upload_file(request):
                 # Process the selected survey
                 survey_id = request.POST['survey']
                 survey = Survey.objects.get(id=survey_id)
-                # Get the list of variables for this survey
-                survey_alphalist = survey.school_set.values_list('alpha', flat=True)
 
                 # Create new import session first
                 # First, remember this import session
@@ -217,7 +215,8 @@ def upload_file(request):
                 number_of_new_schools = 0
                 number_of_new_participations = 0
                 number_of_new_students = 0
-                number_of_rows = 0
+                number_of_rows = len(newcsv)
+                number_of_datapoints = 0
 
                 # List of objects for bulk creation later
                 new_schools_list = []
@@ -240,8 +239,10 @@ def upload_file(request):
                 csv_columns = newcsv.columns.tolist()
 
                 # Create/update schools
+                # First get a list of currently existing schools to match with the new list of schools
+                school_alphalist = School.objects.values_list('alpha', flat=True)
                 for a in tallies['alpha']:
-                    if a in survey_alphalist:
+                    if a in school_alphalist:
                         pass
                     else:
                         series = tallies[tallies['alpha'] == a]
@@ -259,6 +260,7 @@ def upload_file(request):
 
 
                 # Create/update school participation records
+                # Retrieve the current set of participation records for this survey
                 survey_record_list = survey.schoolparticipation_set.values('legacy_school_short', 'id')
                 survey_record_dict = {}
                 for valdict in survey_record_list:
@@ -298,10 +300,13 @@ def upload_file(request):
                 # Create/update course records
 
                 # Create/update student records
+                # Get the list of student records that are related to the currently existing
+                # school participation records, prior to the bulk_add command
                 survey_students = Student.objects.filter(surveyed_in_id__in=survey_record_dict.values())
+                # Retrieve the list of existing student PINs from that list
                 survey_student_pin_list = survey_students.values_list('pin', flat=True)
-                # Get a new set of participation records for lookup too
-                survey_new_pr_list = survey.schoolparticipation_set.values('legacy_school_short', 'id', 'school')
+                # Get a fresh set of participation records after bulk creation
+                survey_new_pr_list = SchoolParticipation.objects.values('legacy_school_short', 'id', 'school')
                 survey_new_pr_dict = {}
                 for valdict in survey_new_pr_list:
                     ss = valdict['legacy_school_short']
@@ -309,6 +314,7 @@ def upload_file(request):
                     sch_id = valdict['school']
                     survey_new_pr_dict[ss] = (i, sch_id)
                 for p in csv_pin.index:
+                    # If the PIN in the CSV file matches the current PIN list, do not create a new student
                     if p in survey_student_pin_list:
                         pass
                     else:
@@ -335,8 +341,10 @@ def upload_file(request):
                     varname = valdict['name']
                     varid = valdict['id']
                     survey_vardict[varname] = varid
-                # Get new set of student records for lookup too
-                survey_new_pr_id_list = [tpl[1] for tpl in survey_new_pr_dict.values()]
+                # Get the list of PRecord IDs from the fresh set of participation records
+                survey_new_pr_id_list = [tpl[0] for tpl in survey_new_pr_dict.values()]
+                # Get the fresh set of student records from this "fresh" set of participation records
+                # This will include the new student objects that have been added
                 survey_new_std = Student.objects.filter(surveyed_in_id__in=survey_new_pr_id_list)
                 survey_new_std_list = survey_new_std.values('pin', 'id')
                 survey_new_std_dict = {}
@@ -373,7 +381,7 @@ def upload_file(request):
                             # Append to object list for bulk create later
                             new_responses_list.append(resp)
                             # Add up the tallies
-                            number_of_rows += 1
+                            number_of_datapoints += 1
                         # If the list of responses reach 500, we'll do bulk create and reset the list
                         if len(new_responses_list) == 500:
                             Response.objects.bulk_create(new_responses_list)
@@ -385,6 +393,7 @@ def upload_file(request):
                 # Load all variables into the context for view rendering
                 context['survey_name'] = survey.name
                 context['number_of_rows'] = number_of_rows
+                context['number_of_datapoints'] = number_of_datapoints
                 context['var_status_dict'] = var_status
                 context['number_of_new_schools'] = number_of_new_schools
                 context['number_of_new_participations'] = number_of_new_participations

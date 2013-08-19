@@ -9,6 +9,7 @@
 <table class="table table-striped">
   <tr>
     <th>Survey Period</th>
+    <th>Survey Title</th>
     <th>Legacy School Short</th>
     <th>Number of Recorded Student Responses</th>
     <th>Note (Can be added via Admin side)</th>
@@ -17,6 +18,7 @@
   {% for p in school.schoolparticipation_set.all %}
   <tr>
     <td>{{ p.date_participated }}</td>
+    <td>{{ p.survey.name }}</td>
     <td>{{ p.legacy_school_short }}</td>
     <td>{{ p.student_count }}</td>
     <td>{{ p.note }}</td>

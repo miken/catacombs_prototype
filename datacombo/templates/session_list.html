@@ -10,6 +10,7 @@
     <th>Number of Schools Imported</th>
     <th>Number of Participations Recorded</th>
     <th>Number of Student Responses Recorded</th>
+    <th>Number of Data Points Recorded</th>
     <th>Uploaded On</th>
     <th>Action</th>
   </tr>
@@ -20,6 +21,7 @@
     <td>{{ session.school_count }}</td>
     <td>{{ session.pr_count }}</td>
     <td>{{ session.student_count }}</td>
+    <td>{{ session.response_count }}</td>
     <td>{{ session.date_created }}</td>
     <td>
       <a href="{% url "sessions-edit" pk=session.id %}" class="btn btn-default">Edit</a>

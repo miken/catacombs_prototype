@@ -19,6 +19,10 @@ class ImportSession(models.Model):
         count = self.student_set.count()
         return count
 
+    def response_count(self):
+        count = self.response_set.count()
+        return count
+
     def __unicode__(self):
         return self.title
 
