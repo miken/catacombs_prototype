@@ -1,7 +1,7 @@
 # Django settings for catacombs project.
 import os
 import dj_database_url
-from whichcomp import sqlite_path
+#from whichcomp import sqlite_path
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -16,13 +16,13 @@ MANAGERS = ADMINS
 if 'DATABASE_URL' not in os.environ.keys():
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': sqlite_path,                      # Or path to database file if using sqlite3.
+            'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+            'NAME': 'catacombs',                      # Or path to database file if using sqlite3.
             # The following settings are not used with sqlite3:
-            'USER': '',
-            'PASSWORD': '',
+            'USER': 'youthtruth',
+            'PASSWORD': 'yob1llgates',
             'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-            'PORT': '',                      # Set to empty string for default.
+            'PORT': '5432',                      # Set to empty string for default.
         }
     }
 else:
