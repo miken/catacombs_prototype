@@ -10,7 +10,7 @@
     <th>Times Participated in YT</th>
   </tr>
   
-  {% for school in survey.school_set.all %}
+  {% for school in survey.school_set.distinct %}
   <tr class="school">
     <td><a href="{{ school.get_absolute_url }}">{{ school.name }}</a></td>
     <td>{{ school.repeat_count }}</td>

@@ -8,7 +8,7 @@ class ImportSession(models.Model):
     date_created = models.DateField()
 
     def school_count(self):
-        count = self.school_set.count()
+        count = self.school_set.distinct().count()
         return count
 
     def pr_count(self):
@@ -44,7 +44,9 @@ class Survey(models.Model):
         return suffix
 
     def school_count(self):
-        count = self.school_set.count()
+        # Use distinct, since a school can participate in the same survey multiple times
+        # We care about the number of distinct schools, instead of particpation records
+        count = self.school_set.distinct().count()
         return count
 
     def get_absolute_url(self):
@@ -69,7 +71,7 @@ class Variable(models.Model):
 
 class School(models.Model):
     #This field is used to match with schoolparticipation.legacy_school_short
-    alpha = models.CharField(max_length=20, verbose_name=u'Legacy School_Alpha')
+    alpha = models.CharField(max_length=50, verbose_name=u'Legacy School_Alpha')
     name = models.CharField(max_length=100, verbose_name=u'Full School Name')
     abbrev_name = models.CharField(max_length=50, verbose_name=u'Short Name Used in Report')
     surveys = models.ManyToManyField(Survey, through='SchoolParticipation')
@@ -96,7 +98,7 @@ class SchoolParticipation(models.Model):
     school = models.ForeignKey(School)
     survey = models.ForeignKey(Survey)
     date_participated = models.DateField()
-    legacy_school_short = models.CharField(max_length=20, blank=True, default='', verbose_name=u'Legacy School_Short notation')
+    legacy_school_short = models.CharField(max_length=50, blank=True, default='', verbose_name=u'Legacy School_Short notation')
     note = models.CharField(max_length=100, blank=True, default='')
     #When the ImportSession is deleted, this participation record will become "orphaned" and need to be removed individually
     imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
@@ -139,8 +141,8 @@ class Teacher(models.Model):
 
 
 class Student(models.Model):
-    pin = models.CharField(max_length=20, verbose_name=u'YouthTruth PIN used')
-    response_id = models.CharField(max_length=20, verbose_name=u'Response ID recorded by Qualtrics')
+    pin = models.CharField(max_length=50, verbose_name=u'YouthTruth PIN used')
+    response_id = models.CharField(max_length=50, verbose_name=u'Response ID recorded by Qualtrics')
     course = models.ForeignKey(Course, null=True)
     teacher = models.ForeignKey(Teacher, null=True)
     surveyed_in = models.ForeignKey(SchoolParticipation)
