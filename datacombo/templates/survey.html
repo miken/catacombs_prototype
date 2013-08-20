@@ -18,5 +18,14 @@
   {% endfor %}
 </table>
 
-<a href="{% url "home-view" %}">Back to home</a>
+<h1>Upload Data</h1>
+
+<form action="{% url "surveys-upload" pk=survey.id %}" method="POST">
+  {% csrf_token %}
+
+    <button type="submit" name="qpanel" class="btn btn-large btn-default">Upload New Qualtrics Panel</button>
+    <button type="submit" name="qraw" class="btn btn-large btn-default">Upload Qualtrics Raw Data</button>
+</form>
+
+<p><a href="{% url "home-view" %}">Back to home</a></p>
 {% endblock %}
