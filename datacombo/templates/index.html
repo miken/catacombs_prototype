@@ -5,33 +5,36 @@
 <h1>Data Combo Helper</h1>
 
 
-<h2>YouthTruth By The Number...</h2>
+<h2>Overall Summary</h2>
+
+<p>Click on any of the following surveys for an in-depth view and available data commands.</p>
+
 <table class="table table-striped">
   <tr>
     <th>Survey Name</th>
-    <th>Number of Schools</th>
+    <th>Number of Schools Received Feedback</th>
+    <th>Number of Teachers Received Feedback</th>
+    <th>Number of Students Surveyed</th>
   </tr>
   
   {% for survey in all_surveys %}
   <tr class="survey">
     <td><a href="{{ survey.get_absolute_url }}">{{ survey.name }}</a></td>
     <td>{{ survey.school_count }}</td>
+    <td>{{ survey.teacher_count }}</td>
+    <td>{{ survey.student_count }}</td>
   </tr>
   {% endfor %}
 </table>
 
-<h2>Data Exchange</h2>
+<h2>Data Troubleshooting</h2>
+<p>Having data issues? Use this option for troubleshooting issues with data. You can browse through the import sessions and look at "orphaned" objects in the database, e.g., schools that have no participation records, teachers with no course names, or students with no recorded responses.</p>
 <ul class="list-inline">
-  <li><a href="{% url "upload" %}" class="btn btn-large btn-primary"><i class="icon-upload"> </i>Upload CSV to a Survey</a></li>
   <li><a href="{% url "sessions-list" %}" class="btn btn-large btn-default"><i class="icon-th-list"> </i>Manage Import Sessions</a></li>
-  <li><a href="" class="btn btn-large btn-default" disabled="disabled"><i class="icon-download-alt"> </i>Export Comparative Data</a></li>
-  <li><a href="" class="btn btn-large btn-default" disabled="disabled"><i class="icon-file"> </i>Generate JSON File</a></li>
-</ul>
-
-<h2>Data Management</h2>
-<ul class="list-inline">
-  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default">Manage Schools</a></li>
-  <li><a href="{% url "variables-list" %}" class="btn btn-large btn-default">Manage Survey Variables</a></li>
+  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Schools</a></li>
+  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Schools</a></li>
+  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Teachers</a></li>
+  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Students</a></li>
 </ul>
 
 {% endblock %}

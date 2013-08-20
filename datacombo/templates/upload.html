@@ -1,16 +1,57 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="row">
+  <div class="col-lg-8 col-lg-offset-2">
+    <h1 class="text-center">CSV Upload</h1>
+    <div class="alert alert-info">
+      Please review the requirements below carefully before uploading your CSV file.
+    </div>
+    <p>Uploading new data for: <strong>{{ survey }}</strong></p>
 
-<h1>CSV Upload</h1>
+    <h2>If you're uploading...</h2>
 
-<p>Uploading new data for: {{ survey }}</p>
-
-<form action="{% url "surveys-upload" pk=survey.id %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-large btn-default">Upload</button>
-</form>
-
-<a href="{% url "home-view" %}">back to home</a>
+    <dl class="dl-horizontal">
+      <!-- Use the following em_msg to highlight the importance of column matching -->
+      {% with "Catacombs <strong>will not import if one</strong> of these columns is missing:" as em_msg %}
+      <dt>Qualtrics Panel</dt>
+      <dd>
+      {% if survey.is_teacher_feedback %}
+        <p>Since this is a teacher feedback survey, if you're uploading a Qualtrics panel, use a roster data file in "stacked" format. {{ em_msg }}</p>
+      {% else %}
+        <p>Check your CSV file prior to upload. {{ em_msg }}</p>
+      {% endif %}
+        <ul>
+        {% for colname in survey.panel_columns_for_csv_matching %}
+          <li>{{ colname }}</li>
+        {% endfor %}
+        </ul>
+      </dd>
+      <dt>Qualtrics Raw</dt>
+      <dd>
+        <p>Check your CSV file prior to upload. {{ em_msg }}</p>
+        <ul>
+        {% for colname in survey.raw_columns_for_csv_matching %}
+          <li>{{ colname }}</li>
+        {% endfor %}
+        </ul>
+      </dd>
+      {% endwith %}
+    </dl>
+  </div>
+</div>
+<div class="row">
+  <div class ="col-lg-4 col-lg-offset-4">
+    <p>
+      <form action="{% url "surveys-upload" pk=survey.id %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-lg btn-block btn-primary">Upload</button>
+      </form>
+    </p>
+  </div>
+</div>
+<div class="row">
+  <p class="text-center"><a href="{% url "home-view" %}">back to home</a></p>
+</div>
 {% endblock %}

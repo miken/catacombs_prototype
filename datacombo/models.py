@@ -3,36 +3,41 @@ from django.core.urlresolvers import reverse
 
 
 # Create your models here.
-class ImportSession(models.Model):
-    title = models.CharField(max_length=100, default=u'Session with no name')
-    date_created = models.DateField()
-
-    def school_count(self):
-        count = self.school_set.distinct().count()
-        return count
-
-    def pr_count(self):
-        count = self.schoolparticipation_set.count()
-        return count
-
-    def student_count(self):
-        count = self.student_set.count()
-        return count
-
-    def response_count(self):
-        count = self.response_set.count()
-        return count
-
-    def __unicode__(self):
-        return self.title
-
-
 class Survey(models.Model):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         ordering = ["code"]
+
+    def is_teacher_feedback(self):
+        '''
+        Determines whether a survey is a teacher feedback survey
+        by scanning the first three letters of the survey code
+        for the string 'tch'
+        '''
+        if self.code[:3] == 'tch':
+            return True
+        else:
+            return False
+
+    def panel_columns_for_csv_matching(self):
+        '''
+        Use this list to determine whether a new panel CSV file is a match
+        '''
+        if self.is_teacher_feedback():
+            return ['School_Short', 'School_Name', 'teachersalutation', 'teacherfirst', 'teacherlast', 'coursename', 'subject']
+        else:
+            return ['School_Short', 'School_Name']
+
+    def raw_columns_for_csv_matching(self):
+        '''
+        Use this list to determine whether a new raw CSV file is a match
+        '''
+        if self.is_teacher_feedback():
+            return ['ExternalDataReference', 'School_Short', 'SchoolName', 'teachersalutation1', 'teacherfirst1', 'teacherlast1', 'coursename1', 'subject1']
+        else:
+            return ['ExternalDataReference', 'School_Short', 'SchoolName']
 
     def alpha_suffix(self):
         '''
@@ -49,11 +54,67 @@ class Survey(models.Model):
         count = self.school_set.distinct().count()
         return count
 
+    def teacher_count(self):
+        # Use distinct, since a school can participate in the same survey multiple times
+        # We care about the number of distinct schools, instead of particpation records
+        count = Teacher.objects.filter(feedback_given_in__in=self.schoolparticipation_set.distinct()).count()
+        return count
+
+
+    def student_count(self):
+        # Use distinct, since a school can participate in the same survey multiple times
+        # We care about the number of distinct schools, instead of particpation records
+        count = Student.objects.filter(surveyed_in__in=self.schoolparticipation_set.distinct()).count()
+        return count
+
     def get_absolute_url(self):
         return reverse('surveys-view', kwargs={'pk': self.id})
 
     def __unicode__(self):
         return self.name
+
+
+class ImportSession(models.Model):
+    PANEL = 'panel'
+    RAW = 'raw'
+    LEGACY = 'legacy'
+    UNDEFINED = 'Undefined'
+    IMPORT_TYPE_CHOICES = (
+        (PANEL, 'Qualtrics Panel'),
+        (RAW, 'Qualtrics Raw Export'),
+        (LEGACY, 'Legacy Data'),
+        (UNDEFINED, 'Undefined'),
+    )
+
+    title = models.CharField(max_length=100, default=u'Session with no name')
+    import_type = models.CharField(max_length=10,
+                                   choices=IMPORT_TYPE_CHOICES,
+                                   default=UNDEFINED)
+    date_created = models.DateField()
+    survey = models.ForeignKey(Survey)
+
+    def school_count(self):
+        count = self.school_set.distinct().count()
+        return count
+
+    def pr_count(self):
+        count = self.schoolparticipation_set.count()
+        return count
+
+    def teacher_count(self):
+        count = self.teacher_set.count()
+        return count
+
+    def student_count(self):
+        count = self.student_set.count()
+        return count
+
+    def response_count(self):
+        count = self.response_set.count()
+        return count
+
+    def __unicode__(self):
+        return self.title
 
 
 class Variable(models.Model):
@@ -133,12 +194,24 @@ class Course(models.Model):
 class Teacher(models.Model):
     first_name = models.CharField(max_length=50, verbose_name=u'First Name')
     last_name = models.CharField(max_length=50, verbose_name=u'Last Name')
-    full_name = u'{first} {last}'.format(first=first_name, last=last_name)
     salutation = models.CharField(max_length=10, default='', verbose_name=u'Salutation')
-    salute_name = u'{salute} {last}'.format(salute=salutation, last=last_name)
     feedback_given_in = models.ForeignKey(SchoolParticipation)
     courses = models.ManyToManyField(Course)
+    imported_thru = models.ForeignKey(ImportSession, null=True)
 
+    class Meta:
+        ordering = ["first_name", "last_name"]
+
+    def full_name(self):
+        full_name = u'{first} {last}'.format(first=self.first_name, last=self.last_name)
+        return full_name
+
+    def salute_name(self):
+        salute_name = u'{salute} {last}'.format(salute=self.salutation, last=self.last_name)
+        return salute_name
+
+    def __unicode__(self):
+        return self.full_name()
 
 class Student(models.Model):
     pin = models.CharField(max_length=50, verbose_name=u'YouthTruth PIN used')

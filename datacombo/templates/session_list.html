@@ -4,13 +4,20 @@
 
 <h1>Upload Sessions</h1>
 
+<p>When new data is imported, Catacombs will attempt to "hook" new data points with existing data. For example, if we have matching participation records of a school in both the database and the CSV file, Catacombs will "hook" all new imported responses with the existing participation records.</p>
+
+<p>The downside of this approach is that when you delete an import session in this table, all data points, e.g., schools, teachers, students, and response records, "hooked" to that session will be deleted from the database too. Removing import session should only be the last resort - always check the number of "hooked" data points in this table to have a sense of what will be affected when you delete the session.</p>
+
 <table class="table table-striped">
   <tr>
     <th>Session Title</th>
-    <th>Number of Schools Imported</th>
-    <th>Number of Participations Recorded</th>
-    <th>Number of Student Responses Recorded</th>
-    <th>Number of Data Points Recorded</th>
+    <th>Type</th>
+    <th>For Which Survey?</th>
+    <th>Schools "Hooked To"</th>
+    <th>School Participations "Hooked To"</th>
+    <th>Teachers "Hooked To"</th>
+    <th>Student Responses "Hooked To"</th>
+    <th>Data Points "Hooked To"</th>
     <th>Uploaded On</th>
     <th>Action</th>
   </tr>
@@ -18,8 +25,11 @@
   {% for session in object_list %}
   <tr class="session">
     <td>{{ session.title }}</td>
+    <td>{{ session.import_type }}</td>
+    <td>{{ session.survey.name }}</td>
     <td>{{ session.school_count }}</td>
     <td>{{ session.pr_count }}</td>
+    <td>{{ session.teacher_count }}</td>
     <td>{{ session.student_count }}</td>
     <td>{{ session.response_count }}</td>
     <td>{{ session.date_created }}</td>
@@ -29,7 +39,7 @@
     </td>
   </tr>
   {% endfor %}
-</table>
+  </table>
 
-<a href="{% url "upload" %}">Upload a new CSV file</a>
+<a href="{% url "home-view" %}">Back to home</a>
 {% endblock %}

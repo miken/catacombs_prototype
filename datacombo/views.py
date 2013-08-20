@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
-from datacombo.models import Variable, School, Survey, SchoolParticipation, ImportSession, Response, Student
+from datacombo.models import Variable, School, Survey, ImportSession
 from datacombo.forms import UploadFileForm
 from datacombo.upload import process_uploaded
 
@@ -194,7 +194,7 @@ def upload_file(request, pk):
             newfile = request.FILES['file']
             file_type = request.POST['file_type']
             session_title = request.POST['title']
-            context = process_uploaded(newfile, file_type, session_title)
+            context = process_uploaded(newfile, file_type, survey, session_title)
             # Redirect to upload summary after POST
             response = SimpleTemplateResponse('upload_confirm.html', context=context)
             return response

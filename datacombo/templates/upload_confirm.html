@@ -8,74 +8,48 @@
 
   <p>That was not a valid CSV file. Please go back and try re-uploading a different file.</p>
 
+{% elif not_csv_match %}
+
+  <p>Catacombs determined that this CSV file is not valid for {{ survey_name }}. Please go back and try re-uploading the right CSV file for this survey.</p>
+
 {% else %}
 
   <p>You selected to update this survey: <strong>{{ survey_name }}</strong></p>
 
-  <h2>Column Matching</h2>
+  {% if filetype == 'legacy' %}
 
-  <p>The following table lists all variables recorded for this survey and indicate whether the system found a match from the uploaded CSV file<br />
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-6 col-lg-offset-3">
-          <table class="table table-hover table-condensed">
-            <tr>
-              <th>Survey Variable in Database</th>
-              <th>Match?</th>
-            </tr>
+    <h2>Column Matching</h2>
 
-            {% for var, status in var_status_dict.items %}
-            <tr>
-              <td>{{ var }}</td>
-              <td>
-                {% if status == 1 %}
-                  <i class="icon-ok-sign icon-large text-success"></i>
-                {% elif status == 0 %}
-                  <i class="icon-remove-sign icon-large text-danger"></i>
-                {% else %}
-                  <i class="icon-question-sign icon-large text-warning"></i>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </table>
-        </div>
-      </div>
-    </div>
-  </p>
+    <p>The following table lists all variables recorded for this survey and indicate whether the system found a match from the uploaded CSV file<br />
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-lg-offset-3">
+            <table class="table table-hover table-condensed">
+              <tr>
+                <th>Survey Variable in Database</th>
+                <th>Match?</th>
+              </tr>
 
-  <h2>Update Participation Records</h2>
-
-  {% if number_of_new_participations == 0 %}
-
-    <p>There are no new participation records for the schools in the CSV file.</p>
-
-  {% else %}
-
-    <p>The database did not find participation records for these schools and therefore have added them automatically:</p>
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-6 col-lg-offset-3">
-              <table class="table table-striped">
-                <tr>
-                  <th>School Name</th>
-                  <th>Date Participated</th>
-                  <th>Number of Students Created</th>
-                </tr>
-
-                {% for p in participation_objects %}
-                <tr>
-                  <td>{{ p.school.name }}</td>
-                  <td>{{ p.date_participated }}</td>
-                  <td>{{ p.student_set.count }}</td>
-                  </td>
-                </tr>
-                {% endfor %}
-              </table>
-            </div>
+              {% for var, status in var_status_dict.items %}
+              <tr>
+                <td>{{ var }}</td>
+                <td>
+                  {% if status == 1 %}
+                    <i class="icon-ok-sign icon-large text-success"></i>
+                  {% elif status == 0 %}
+                    <i class="icon-remove-sign icon-large text-danger"></i>
+                  {% else %}
+                    <i class="icon-question-sign icon-large text-warning"></i>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
           </div>
         </div>
-
+      </div>
+    </p>
+  
   {% endif %}
 
   <h2>Update School Records</h2>
@@ -97,7 +71,7 @@
                 <th>School Alpha</th>
               </tr>
 
-              {% for school in sch_objects %}
+              {% for school in added_schools %}
               <tr>
                 <td>{{ school.name }}</td>
                 <td>{{ school.abbrev_name }}</td>
@@ -112,12 +86,99 @@
       
   {% endif %}
 
+  <h2>Update Participation Records</h2>
+
+  {% if number_of_new_participations == 0 %}
+
+    <p>There are no new participation records for the schools in the CSV file.</p>
+
+  {% else %}
+
+    <p>The database did not find participation records for these schools and therefore have added them automatically:</p>
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-6 col-lg-offset-3">
+              <table class="table table-striped">
+                <tr>
+                  <th>School Name</th>
+                  <th>Date Participated</th>
+                  <th>Number of Teachers Created</th>
+                  {% if filetype == 'legacy' %}
+                  <th>Number of Students Created</th>
+                  {% endif %}
+                </tr>
+
+                {% for p in added_records %}
+                <tr>
+                  <td>{{ p.school.name }}</td>
+                  <td>{{ p.date_participated }}</td>
+                  <td>{{ p.teacher_set.count }}</td>
+                  {% if filetype == 'legacy' %}
+                    <td>{{ p.student_set.count }}</td>
+                  {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+        </div>
+
+  {% endif %}
+
+  {% if number_of_new_teachers %}
+
+    <h2>Update Teacher Records</h2>
+
+    {% if number_of_new_teachers == 0 %}
+
+      <p>All teachers in your CSV file already exist in the database.</p>
+
+    {% else %}
+
+      <p>A total of {{ number_of_new_teachers }} teachers were added to the database. The following table lists all new teachers:</p>
+        <table class="table table-striped">
+          <tr>
+            <th>School</th>
+            <th>Full Name</th>
+            <th>Number of Courses Created</th>
+          </tr>
+
+          {% for t in added_teachers %}
+          <tr>
+            <td>{{ t.feedback_given_in.school.abbrev_name }}</td>
+            <td>{{ t.full_name }}</td>
+            <td>{{ t.courses.count }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+    {% endif %}
+
+  {% endif %}
+
+  {% if number_of_new_courses %}
+
+    <h2>Update Course Records</h2>
+
+    {% if number_of_new_courses == 0 %}
+
+      <p>All courses listed in your CSV file already exist in the database.</p>
+
+    {% else %}
+
+      <p>A total of {{ number_of_new_courses }} courses were added to the database.</p>
+        
+    {% endif %}
+
+  {% endif %}
 
   <h2>CSV File Information</h2>
 
   <p>There are {{ number_of_rows }} rows in your file.</p>  
 
-  <p>{{ number_of_datapoints }} data points were imported from your file.</p>
+  {% if filetype == 'legacy' %}
+    <p>{{ number_of_datapoints }} data points were imported from your file.</p>  
+  {% endif %}
 
   <p>If this all looks good, press the big button below to confirm data import.<br />
     <div class="container">
