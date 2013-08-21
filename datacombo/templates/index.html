@@ -27,7 +27,17 @@
   {% endfor %}
 </table>
 
+<h2>Record Management</h2>
+
+<p>Use these options to manage the overall records of these objects in the database.</p>
+
+<ul class="list-inline">
+  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default">Manage Schools</a></li>
+  <li><a href="{% url "variables-list" %}" class="btn btn-large btn-default">Manage Survey Variables</a></li>
+</ul>
+
 <h2>Data Troubleshooting</h2>
+
 <p>Having data issues? Use this option for troubleshooting issues with data. You can browse through the import sessions and look at "orphaned" objects in the database, e.g., schools that have no participation records, teachers with no course names, or students with no recorded responses.</p>
 <ul class="list-inline">
   <li><a href="{% url "sessions-list" %}" class="btn btn-large btn-default"><i class="icon-th-list"> </i>Manage Import Sessions</a></li>
