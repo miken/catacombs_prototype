@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ schoolparticipation.school.name }}</h1>
+<h4>{{ schoolparticipation.month }}, {{ schoolparticipation.year }}</h4>
+  
+<p>This page provides the survey participation record of {{ schoolparticipation.school.name }}. This school participated in {{ schoolparticipation.survey.name }} in {{ schoolparticipation.month }}, {{ schoolparticipation.year }}</p>
+
+<h2>School Overall Information</h2>
+
+<p>The following table lists all information collected about this school via either Common Core or self-reported data.</p>
+
+<h2>Teacher Records</h2>
+
+<p>The following table lists all teachers and their number of courses we have student feedback records for in the database. Click on each teacher to find out more detailed information.</p>
+
+<div class="row">
+  <div class="col-lg-8 col-lg-offset-2">
+    <table class="table table-striped">
+      <tr>
+        <th>Teacher Name</th>
+        <th>Number of Courses</th>
+      </tr>
+      
+      {% for t in schoolparticipation.teacher_set.all %}
+      <tr>
+        <td>{{ t.full_name }}</td>
+        <td>{{ t.courses.count }}</td>
+      </tr>
+      {% endfor %}
+    </table>    
+  </div>
+</div>
+
+<p><a href="{{ schoolparticipation.school.get_absolute_url }}">Back to full records of {{ schoolparticipation.school.name }}</a></p>
+{% endblock %}

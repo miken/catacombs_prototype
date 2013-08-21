@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime
 
-from datacombo.models import School, SchoolParticipation, Student, Response, ImportSession, Teacher
+from datacombo.models import School, SchoolParticipation, Student, Response, ImportSession, Teacher, Course, Subject
 from datacombo.helpers import round_time_conversion
 
 
@@ -54,9 +54,6 @@ def upload_panel_data(newcsv, survey, session):
         surveycode = survey.alpha_suffix()
         school_short_name['abbr'] = school_short_name['School_Short'].str[:-3]
         school_short_name['alpha'] = school_short_name['abbr'] + '-' + surveycode
-
-        # Determine classroom size from this file
-        course_tallies = newcsv.groupby(['School_Short', 'teacherfull', 'subject', 'coursename']).size()
 
         # Match & create new schools
         number_of_new_schools = 0
@@ -129,10 +126,10 @@ def upload_panel_data(newcsv, survey, session):
             number_of_new_teachers = 0
             new_teachers_list = []
             # Obtain unique list of tuples of (School_Short, teacherfull) from the CSV file
-            short_teach_course = newcsv.groupby(['School_Short', 'teacherfull', 'teachersalutation', 'teacherfirst', 'teacherlast']).size()
+            s_t_df = newcsv.groupby(['School_Short', 'teacherfull', 'teachersalutation', 'teacherfirst', 'teacherlast']).size()
             # Release the current index and construct a custom index instead
-            short_teach_course = short_teach_course.reset_index()
-            short_teach_course['index'] = short_teach_course['School_Short'] + ' - ' + short_teach_course['teacherfull']
+            s_t_df = s_t_df.reset_index()
+            s_t_df['index'] = s_t_df['School_Short'] + ' - ' + s_t_df['teacherfull']
             # De-dupe this index column
             # One example for this de-duping feature is let's say, there's an error in data
             # where a teacher could be "Mr. Jenny Leighton"
@@ -140,8 +137,8 @@ def upload_panel_data(newcsv, survey, session):
             # This de-duping method will only take the name "Jenny Leighton" into consideration
             # The teacher will be recorded as "Mr. Jenny Leighton,"
             # and we could rename salutation from Mr. to Ms. later manually
-            short_teach_course = short_teach_course.drop_duplicates(cols='index')
-            short_teach_course = short_teach_course.set_index('index')
+            s_t_df = s_t_df.drop_duplicates(cols='index')
+            s_t_df = s_t_df.set_index('index')
             # Get the existing list of teachers 
             # prior to the bulk_create command
             existing_teachers = Teacher.objects.filter(feedback_given_in_id__in=existing_record_ids)
@@ -154,19 +151,20 @@ def upload_panel_data(newcsv, survey, session):
             # Get a fresh set of participation records to pair with new teachers
             # after bulk_create command
             fresh_records = SchoolParticipation.objects.filter(survey=survey)
-            fresh_records_dict = {}
+            fresh_record_dict = {}
             for pr in fresh_records:
-                fresh_records_dict[pr.legacy_school_short] = pr.id          
-            for idx in short_teach_course.index:
+                fresh_record_dict[pr.legacy_school_short] = pr.id
+            fresh_record_ids = fresh_record_dict.values()
+            for idx in s_t_df.index:
                 if idx in existing_teachers_dict.keys():
                     pass
                 else:
                     t = Teacher()
-                    t.first_name = short_teach_course.get_value(idx, 'teacherfirst')
-                    t.last_name = short_teach_course.get_value(idx, 'teacherlast')
-                    t.salutation = short_teach_course.get_value(idx, 'teachersalutation')
-                    schshort = short_teach_course.get_value(idx, 'School_Short')
-                    t.feedback_given_in_id = fresh_records_dict[schshort]
+                    t.first_name = s_t_df.get_value(idx, 'teacherfirst')
+                    t.last_name = s_t_df.get_value(idx, 'teacherlast')
+                    t.salutation = s_t_df.get_value(idx, 'teachersalutation')
+                    schshort = s_t_df.get_value(idx, 'School_Short')
+                    t.feedback_given_in_id = fresh_record_dict[schshort]
                     #t.courses = ?
                     t.imported_thru = session
                     # Append to object list for bulk create later
@@ -176,9 +174,87 @@ def upload_panel_data(newcsv, survey, session):
             #Bulk create new participation objects
             Teacher.objects.bulk_create(new_teachers_list)
 
-            # Match & create new courses
+            # Match & create new courses and subjects
+            number_of_new_subjects = 0
+            new_subjects_list = []
             number_of_new_courses = 0
             new_courses_list = []
+            # Obtain unique list of tuples of (School_Short, teacherfull) from the CSV file
+            s_t_c_df = newcsv.groupby(['School_Short', 'teacherfull', 'subject', 'coursename']).size()
+            # Release the current index and construct a custom index instead
+            s_t_c_df = s_t_c_df.reset_index()
+            s_t_c_df['index'] = s_t_c_df['School_Short'] + ' - ' + s_t_c_df['teacherfull'] + ' - ' + s_t_c_df['coursename']
+            # Recreate s_t_index to pair the 2 tables
+            s_t_c_df['s_t_index'] = s_t_c_df['School_Short'] + ' - ' + s_t_c_df['teacherfull']
+            # De-dupe this index column
+            # One example for this de-duping feature is let's say, there's an error in data
+            # where a teacher could be "Mr. Jenny Leighton"
+            # and "Ms. Jenny Leighton" in other rows
+            # This de-duping method will only take the name "Jenny Leighton" into consideration
+            # The teacher will be recorded as "Mr. Jenny Leighton,"
+            # and we could rename salutation from Mr. to Ms. later manually
+            s_t_c_df = s_t_c_df.drop_duplicates(cols='index')
+            s_t_c_df = s_t_c_df.set_index('index')
+            # Get the existing list of courses 
+            # prior to the bulk_create command
+            existing_courses_dict = {}
+            for t in existing_teachers:
+                schshort = t.feedback_given_in.legacy_school_short
+                for c in t.courses.all():
+                    idx = schshort + ' - ' + t.full_name() + ' - ' + c.name
+                    if idx in existing_courses_dict.keys():
+                        pass
+                    else:
+                        existing_courses_dict[idx] = c.id
+            for idx in s_t_c_df.index:
+                if idx in existing_courses_dict.keys():
+                    pass
+                else:
+                    c = Course()
+                    coursename = s_t_c_df.get_value(idx, 'coursename')
+                    c.name = coursename
+                    # Was there a subject that already exists? If not, add it
+                    subject_name = s_t_c_df.get_value(idx, 'subject')
+                    try:
+                        s = Subject.objects.get(name=subject_name)
+                    except Subject.DoesNotExist:
+                        s = Subject()
+                        s.name = subject_name
+                        s.save()
+                        number_of_new_subjects += 1
+                        new_subjects_list.append(s)
+                    c.subject = s
+                    c.legacy_survey_key = idx
+                    c.imported_thru = session
+                    # Must save first before adding course
+                    # We'll take care of this record matching later
+                    # Append to object list for bulk create later
+                    new_courses_list.append(c)
+                    # Add up the tallies
+                    number_of_new_courses += 1
+            #Bulk create new participation objects
+            Course.objects.bulk_create(new_courses_list)
+
+            # Match up teachers with their corresponding courses
+            # Do this for just the new courses, we don't connect old courses
+            # with newly imported teachers, i.e., teachers don't teach courses
+            # that existed in the past
+            # Get a fresh set of teachers to pair with new courses
+            # after bulk_create command
+            fresh_teachers = Teacher.objects.filter(feedback_given_in_id__in=fresh_record_ids)
+            fresh_teacher_dict = {}
+            for t in fresh_teachers:
+                schshort = t.feedback_given_in.legacy_school_short
+                idx = schshort + ' - ' + t.full_name()
+                fresh_teacher_dict[idx] = t.id
+            added_courses = Course.objects.filter(imported_thru=session)
+            for c in added_courses:
+                idx = c.legacy_survey_key
+                # Find the teacher_id with this key
+                s_t_index = s_t_c_df.get_value(idx, 's_t_index')
+                teacher_id = fresh_teacher_dict[s_t_index]
+                teacher = Teacher.objects.get(id=teacher_id)
+                c.teacher_set.add(teacher)
 
         number_of_rows = len(newcsv)
 
@@ -189,9 +265,11 @@ def upload_panel_data(newcsv, survey, session):
         if survey.is_teacher_feedback():
             context['number_of_new_teachers'] = number_of_new_teachers
             context['number_of_new_courses'] = number_of_new_courses
+            context['number_of_new_subjects'] = number_of_new_subjects
         context['added_schools'] = School.objects.filter(imported_thru=session)
         context['added_records'] = SchoolParticipation.objects.filter(imported_thru=session)
         added_teachers = Teacher.objects.filter(imported_thru=session).order_by('feedback_given_in__school__name', 'first_name', 'last_name')
+        context['added_subjects'] = new_subjects_list
         # Sort this object list according 
         context['added_teachers'] = added_teachers
         context['session_id'] = session.id

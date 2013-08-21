@@ -29,6 +29,8 @@ urlpatterns = patterns('',
         name='schools-delete',),
     url(r'^schools/(?P<pk>\d+)/$', datacombo.views.SchoolView.as_view(),
         name='schools-view',),
+    url(r'^schoolrecords/(?P<pk>\d+)/$', datacombo.views.SchoolParticipationView.as_view(),
+        name='schoolparticipations-view',),
 
     #Surveys - We're gonna disable this for now
     #url(r'^surveys/$', datacombo.views.ListSurveyView.as_view(), name='surveys-list',),

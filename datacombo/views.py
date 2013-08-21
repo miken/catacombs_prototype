@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
-from datacombo.models import Variable, School, Survey, ImportSession
+from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation
 from datacombo.forms import UploadFileForm
 from datacombo.upload import process_uploaded
 
@@ -127,6 +127,11 @@ class SchoolView(DetailView):
     model = School
     template_name = 'school.html'
 
+
+class SchoolParticipationView(DetailView):
+
+    model = SchoolParticipation
+    template_name = 'schoolparticipation.html'
 
 
 #Views for Survey

@@ -4,6 +4,7 @@
 
 <h1>{{ school }}</h1>
 
+<p>Below are the participation records of this school in YouthTruth. Please click on each link for more detailed information about the school's participation history.</p>
 
 <h2>Participation Records</h2>
 <table class="table table-striped">
@@ -11,19 +12,24 @@
     <th>Survey Period</th>
     <th>Survey Title</th>
     <th>Legacy School Short</th>
-    <th>Number of Recorded Student Responses</th>
-    <th>Note (Can be added via Admin side)</th>
+    <th>Number of Student Responses Recorded</th>
+    <th>Number of Teachers Receiving Feedback</th>
+    <th>Note</th>
   </tr>
   
   {% for p in school.schoolparticipation_set.all %}
   <tr>
-    <td>{{ p.date_participated }}</td>
+    <td><a href="{{ p.get_absolute_url }}">{{ p.date_participated }}</a></td>
     <td>{{ p.survey.name }}</td>
     <td>{{ p.legacy_school_short }}</td>
     <td>{{ p.student_count }}</td>
+    <td>{{ p.teacher_count }}</td>
     <td>{{ p.note }}</td>
   </tr>
   {% endfor %}
 </table>
 
+<p>Are there missing records? You can add another record manually for this school here.</p>
+
+<p><a href="{% url "home-view" %}">Back to home</a></p>
 {% endblock %}

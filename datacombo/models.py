@@ -168,27 +168,42 @@ class SchoolParticipation(models.Model):
         ordering = ["date_participated"]
         get_latest_by = "date_participated"
 
+    def month(self):
+        return self.date_participated.strftime("%B")
+
+    def year(self):
+        return self.date_participated.strftime("%Y")
+
     def student_count(self):
         count = self.student_set.count()
         return count
 
+    def teacher_count(self):
+        count = self.teacher_set.count()
+        return count
+
+    def get_absolute_url(self):
+        return reverse('schoolparticipations-view', kwargs={'pk': self.id})
+
     def __unicode__(self):
-        return self.school.name
+        return self.legacy_school_short
 
 
 class Subject(models.Model):
     name = models.CharField(max_length=50)
 
     def __unicode__(self):
-        return self.subject.name
+        return self.name
 
 
 class Course(models.Model):
     name = models.CharField(max_length=50, verbose_name=u'Course Name')
     subject = models.ForeignKey(Subject)
+    legacy_survey_key = models.CharField(max_length=255)
+    imported_thru = models.ForeignKey(ImportSession, null=True)
 
     def __unicode__(self):
-        return self.course.name
+        return self.name
 
 
 class Teacher(models.Model):
