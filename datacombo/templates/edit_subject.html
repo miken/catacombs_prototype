@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if subject.id %}
+    <h1>Edit Subject</h1>
+{% else %}
+    <h1>Add Subject</h1>
+{% endif %}
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_subject" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+<a href="{% url "subjects-list" %}">back to list</a>
+{% endblock %}

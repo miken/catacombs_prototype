@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
-from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher
+from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject
 from datacombo.forms import UploadFileForm, SchoolParticipationForm
 from datacombo.upload import process_uploaded
 
@@ -128,6 +128,64 @@ class SchoolView(DetailView):
         obj = School.objects.get(id=self.kwargs['pk'])
         return obj
 
+
+#Views for Subject
+class ListSubjectView(ListView):
+
+    model = Subject
+    template_name = 'subject_list.html'
+
+
+class CreateSubjectView(CreateView):
+
+    model = Subject
+    template_name = 'edit_subject.html'
+
+    def get_success_url(self):
+        return reverse('subjects-list')
+
+    def get_context_data(self, **kwargs):
+
+        context = super(CreateSubjectView, self).get_context_data(**kwargs)
+        context['action'] = reverse('subjects-new')
+
+        return context
+
+
+class UpdateSubjectView(UpdateView):
+
+    model = Subject
+    template_name = 'edit_subject.html'
+
+    def get_success_url(self):
+        return reverse('subjects-list')
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateSubjectView, self).get_context_data(**kwargs)
+        context['action'] = reverse('subjects-edit',
+                                    kwargs={'pk': self.get_object().id})
+
+        return context
+
+
+class DeleteSubjectView(DeleteView):
+
+    model = Subject
+    template_name = 'delete_subject.html'
+
+    def get_success_url(self):
+        return reverse('subjects-list')
+
+
+class SubjectView(DetailView):
+
+    model = Subject
+    template_name = 'subject.html'
+
+    def get_object(self, queryset=None):
+        obj = Subject.objects.get(id=self.kwargs['pk'])
+        return obj
 
 
 # Views for School Participation Records

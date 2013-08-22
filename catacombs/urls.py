@@ -48,6 +48,16 @@ urlpatterns = patterns('',
     url(r'^teachers/(?P<pk>\d+)/$', datacombo.views.TeacherView.as_view(),
         name='teachers-view',),
 
+    #Subjects
+    url(r'^subjects/$', datacombo.views.ListSubjectView.as_view(), name='subjects-list',),
+    url(r'^subjects/new$', datacombo.views.CreateSubjectView.as_view(), name='subjects-new',),
+    url(r'^subjects/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSubjectView.as_view(),
+        name='subjects-edit',),
+    url(r'^subjects/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSubjectView.as_view(),
+        name='subjects-delete',),
+    url(r'^subjects/(?P<pk>\d+)/$', datacombo.views.SubjectView.as_view(),
+        name='subjects-view',),
+
     #Surveys - We're gonna disable this for now
     #url(r'^surveys/$', datacombo.views.ListSurveyView.as_view(), name='surveys-list',),
     #url(r'^surveys/new$', datacombo.views.CreateSurveyView.as_view(), name='surveys-new',),

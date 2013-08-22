@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ subject }}</h1>
+
+<h2>Courses</h2>
+
+<p>Here's the list of courses for this subject.</p>
+
+<table class="table table-striped">
+  <tr>
+    <th>Course Name</th>
+    <th>Number of Students Enrolled</th>
+    <th>Action</th>
+  </tr>
+  
+  {% for c in subject.course_set.all %}
+  <tr>
+    <td><a href="{{ p.get_absolute_url }}">{{ c.name }}</a></td>
+    <td>{{ c.classroom_size }}</td>
+    <td>
+      <a href="" class="btn btn-default" disabled="disabled">Edit</a>
+      <a href="" class="btn btn-danger" disabled="disabled">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<p><a href="{% url "home-view" %}">Back to home</a></p>
+{% endblock %}

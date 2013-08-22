@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>All Subjects</h1>
+
+
+<table class="table table-striped">
+  <tr>
+    <th>Subject Name</th>
+    <th>Number of Teachers Teaching This Subject</th>
+    <th>Number of Courses Under This Subject</th>
+    <th>Action</th>
+  </tr>
+  
+  {% for subject in object_list %}
+  <tr class="subject">
+    <td><a href="{{ subject.get_absolute_url }}">{{ subject.name }}</a></td>
+    <td>{{ subject.teacher_count }}</td>
+    <td>{{ subject.course_count }}</td>
+    <td>
+      <a href="{% url "subjects-edit" pk=subject.id %}" class="btn btn-default">Edit</a>
+      <a href="{% url "subjects-delete" pk=subject.id %}" class="btn btn-danger">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<p><a href="{% url "subjects-new" %}">Add a new subject</a></p>
+
+<a href="{% url "home-view" %}">Back to home</a>
+{% endblock %}

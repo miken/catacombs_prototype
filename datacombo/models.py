@@ -192,6 +192,18 @@ class SchoolParticipation(models.Model):
 class Subject(models.Model):
     name = models.CharField(max_length=50)
 
+
+    def teacher_count(self):
+        count = Teacher.objects.filter(courses__in=self.course_set.all()).distinct().count()
+        return count
+
+    def course_count(self):
+        count = self.course_set.count()
+        return count
+
+    def get_absolute_url(self):
+        return reverse('subjects-view', kwargs={'pk': self.id})
+
     def __unicode__(self):
         return self.name
 
@@ -202,6 +214,9 @@ class Course(models.Model):
     classroom_size = models.PositiveSmallIntegerField(default=0)
     legacy_survey_key = models.CharField(max_length=255)
     imported_thru = models.ForeignKey(ImportSession, null=True)
+
+    class Meta:
+        ordering = ["name"]
 
     def student_count(self):
         count = self.student_set.count()
