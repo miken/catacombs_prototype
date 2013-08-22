@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if teacher.id %}
+  <h1>Edit Teacher</h1>
+{% else %}
+  <h1>Add Teacher</h1>
+{% endif %}
+
+{% if teacher.id %}
+  <p>School: <strong>{{ teacher.feedback_given_in.school.name }}</strong></p>
+  <p>Survey: <strong>{{ teacher.feedback_given_in.survey.name }}</strong></p>
+{% endif %}
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_teacher" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+<p><a href="{{ teacher.feedback_given_in.get_absolute_url }}">Back to {{ teacher.feedback_given_in.school.name }} ({{ teacher.feedback_given_in.month }}, {{ teacher.feedback_given_in.year }})</a></p>
+{% endblock %}

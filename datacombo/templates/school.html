@@ -15,6 +15,7 @@
     <th>Number of Student Responses Recorded</th>
     <th>Number of Teachers Receiving Feedback</th>
     <th>Note</th>
+    <th>Action</th>
   </tr>
   
   {% for p in school.schoolparticipation_set.all %}
@@ -25,11 +26,17 @@
     <td>{{ p.student_count }}</td>
     <td>{{ p.teacher_count }}</td>
     <td>{{ p.note }}</td>
+    <td>
+      <a href="{% url "schoolparticipations-edit" pk=p.id %}" class="btn btn-default">Edit</a>
+      <a href="{% url "schoolparticipations-delete" pk=p.id %}" class="btn btn-danger">Delete</a>
+    </td>
   </tr>
   {% endfor %}
 </table>
 
 <p>Are there missing records? You can add another record manually for this school here.</p>
+
+<p><a href="{% url "schoolparticipations-new" pk=school.id %}">Add a new record</a></p>
 
 <p><a href="{% url "home-view" %}">Back to home</a></p>
 {% endblock %}

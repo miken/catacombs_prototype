@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Delete Record</h1>
+
+<p>Are you sure you want to delete this teacher's record?</p>
+
+<h1>{{ teacher.feedback_given_in.school.name }}</h1>
+<h4>{{ teacher.feedback_given_in.survey.name }} - {{ teacher.feedback_given_in.month }}, {{ teacher.feedback_given_in.year }}</h4>
+
+<form action="{% url "teachers-delete" pk=teacher.id %}" method="POST">
+  {% csrf_token %}
+
+    <button type="submit" class="btn btn-large btn-danger">Yes, delete.</button>
+    <a href="{% url "schoolparticipations-view" pk=teacher.feedback_given_in.id %}" class="btn btn-large btn-success">No, cancel.</a>
+</form>
+
+{% endblock %}

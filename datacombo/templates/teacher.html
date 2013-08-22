@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ teacher.full_name }}</h1>
+<h4>{{ teacher.feedback_given_in.school.name }}</h4>
+<h4>{{ teacher.feedback_given_in.survey.name }} - {{ teacher.feedback_given_in.month }}, {{ teacher.feedback_given_in.year }}</h4>
+  
+<p>This page provides the record of {{ teacher.salute_name }} in {{ teacher.feedback_given_in.survey.name }} in {{ teacher.feedback_given_in.month }}, {{ teacher.feedback_given_in.year }}</p>
+
+<h2>Course Records</h2>
+
+<p>The following table lists all courses with student feedback received by this teacher.</p>
+
+<div class="row">
+  <div class="col-lg-8 col-lg-offset-2">
+    <table class="table table-striped">
+      <tr>
+        <th>Course Name</th>
+        <th>Subject</th>
+        <th>Number of Student Responses</th>
+        <th>Classroom Size</th>
+      </tr>
+      
+      {% for c in teacher.courses.all %}
+      <tr>
+        <td>{{ c.name }}</td>
+        <td>{{ c.subject.name }}</td>
+        <td>{{ c.student_count }}</td>
+        <td>{{ c.classroom_size }}</td>
+      </tr>
+      {% endfor %}
+    </table>    
+  </div>
+</div>
+
+<p><a href="{{ teacher.feedback_given_in.get_absolute_url }}">Back to {{ teacher.feedback_given_in.school.name }} ({{ teacher.feedback_given_in.month }}, {{ teacher.feedback_given_in.year }})</a></p>
+{% endblock %}

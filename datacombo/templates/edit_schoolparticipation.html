@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if schoolparticipation.id %}
+  <h1>Edit A Record</h1>
+{% else %}
+  <h1>Add A Record</h1>
+
+  <div class="alert alert-danger">
+      This is not working yet!
+    </div>
+{% endif %}
+
+{% if schoolparticipation.id %}
+  <p>School: <strong>{{ schoolparticipation.school.name }}</strong></p>
+  <p>Survey: <strong>{{ schoolparticipation.survey.name }}</strong></p>
+{% endif %}
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_school" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+{% if schoolparticipation.id %}
+  <a href="{% url "schools-view" pk=schoolparticipation.school.id %}">back to list</a>
+{% endif %}
+{% endblock %}

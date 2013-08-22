@@ -29,8 +29,24 @@ urlpatterns = patterns('',
         name='schools-delete',),
     url(r'^schools/(?P<pk>\d+)/$', datacombo.views.SchoolView.as_view(),
         name='schools-view',),
-    url(r'^schoolrecords/(?P<pk>\d+)/$', datacombo.views.SchoolParticipationView.as_view(),
+
+    #School Participations
+    # Creating new school participations record is not ready yet
+    url(r'^schools/(?P<pk>\d+)/records/new$', datacombo.views.CreateSchoolParticipationView.as_view(), name='schoolparticipations-new',),
+    url(r'^schools/records/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSchoolParticipationView.as_view(),
+        name='schoolparticipations-edit',),
+    url(r'^schools/records/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSchoolParticipationView.as_view(),
+        name='schoolparticipations-delete',),
+    url(r'^schools/records/(?P<pk>\d+)/$', datacombo.views.SchoolParticipationView.as_view(),
         name='schoolparticipations-view',),
+
+    #Teachers
+    #url(r'^teachers/$', datacombo.views.ListTeacherView.as_view(), name='teachers-list',),
+    #url(r'^teachers/new$', datacombo.views.CreateTeacherView.as_view(), name='teachers-new',),
+    url(r'^teachers/edit/(?P<pk>\d+)/$', datacombo.views.UpdateTeacherView.as_view(), name='teachers-edit',),
+    url(r'^teachers/delete/(?P<pk>\d+)/$', datacombo.views.DeleteTeacherView.as_view(), name='teachers-delete',),
+    url(r'^teachers/(?P<pk>\d+)/$', datacombo.views.TeacherView.as_view(),
+        name='teachers-view',),
 
     #Surveys - We're gonna disable this for now
     #url(r'^surveys/$', datacombo.views.ListSurveyView.as_view(), name='surveys-list',),

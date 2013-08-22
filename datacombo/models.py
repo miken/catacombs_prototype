@@ -199,8 +199,13 @@ class Subject(models.Model):
 class Course(models.Model):
     name = models.CharField(max_length=50, verbose_name=u'Course Name')
     subject = models.ForeignKey(Subject)
+    classroom_size = models.PositiveSmallIntegerField(default=0)
     legacy_survey_key = models.CharField(max_length=255)
     imported_thru = models.ForeignKey(ImportSession, null=True)
+
+    def student_count(self):
+        count = self.student_set.count()
+        return count
 
     def __unicode__(self):
         return self.name
@@ -224,6 +229,9 @@ class Teacher(models.Model):
     def salute_name(self):
         salute_name = u'{salute} {last}'.format(salute=self.salutation, last=self.last_name)
         return salute_name
+
+    def get_absolute_url(self):
+        return reverse('teachers-view', kwargs={'pk': self.id})
 
     def __unicode__(self):
         return self.full_name()

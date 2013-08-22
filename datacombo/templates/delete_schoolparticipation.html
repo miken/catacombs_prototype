@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Delete Record</h1>
+
+<p>Are you sure you want to delete this record?</p>
+
+<h4>{{ schoolparticipation.school.name }}</h4>
+<h4>{{ schoolparticipation.survey.name }} - {{ schoolparticipation.month }}, {{ schoolparticipation.year }}</h4>
+
+<p>This will also remove the following records:</p>
+
+<h4>Teachers and Courses</h4>
+
+<div class="row">
+  <div class="col-lg-4">
+    <table class="table table-striped table-condensed">
+      <tr>
+        <th>Teacher Name</th>
+        <th>Number of Courses</th>
+      </tr>
+      
+      {% for t in schoolparticipation.teacher_set.all %}
+      <tr>
+        <td><a href="{{ t.get_absolute_url }}">{{ t.full_name }}</a></td>
+        <td>{{ t.courses.count }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+<form action="{% url "schoolparticipations-delete" pk=schoolparticipation.id %}" method="POST">
+  {% csrf_token %}
+
+    <button type="submit" class="btn btn-large btn-danger">Yes, delete.</button>
+    <a href="{% url "schools-view" pk=schoolparticipation.school.id %}" class="btn btn-large btn-success">No, cancel.</a>
+</form>
+
+{% endblock %}

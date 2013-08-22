@@ -181,6 +181,7 @@ def upload_panel_data(newcsv, survey, session):
             new_courses_list = []
             # Obtain unique list of tuples of (School_Short, teacherfull) from the CSV file
             s_t_c_df = newcsv.groupby(['School_Short', 'teacherfull', 'subject', 'coursename']).size()
+            s_t_c_df.name = 'size'
             # Release the current index and construct a custom index instead
             s_t_c_df = s_t_c_df.reset_index()
             s_t_c_df['index'] = s_t_c_df['School_Short'] + ' - ' + s_t_c_df['teacherfull'] + ' - ' + s_t_c_df['coursename']
@@ -224,6 +225,7 @@ def upload_panel_data(newcsv, survey, session):
                         number_of_new_subjects += 1
                         new_subjects_list.append(s)
                     c.subject = s
+                    c.classroom_size = s_t_c_df.get_value(idx, 'size')
                     c.legacy_survey_key = idx
                     c.imported_thru = session
                     # Must save first before adding course

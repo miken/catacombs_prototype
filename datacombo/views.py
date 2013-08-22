@@ -1,6 +1,3 @@
-import datetime
-import pandas as pd
-
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
@@ -8,8 +5,8 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
-from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation
-from datacombo.forms import UploadFileForm
+from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher
+from datacombo.forms import UploadFileForm, SchoolParticipationForm
 from datacombo.upload import process_uploaded
 
 
@@ -127,11 +124,98 @@ class SchoolView(DetailView):
     model = School
     template_name = 'school.html'
 
+    def get_object(self, queryset=None):
+        obj = School.objects.get(id=self.kwargs['pk'])
+        return obj
+
+
+
+# Views for School Participation Records
+
+# TODO Figure how to wire new school participation record with school later
+class CreateSchoolParticipationView(CreateView):
+
+    model = SchoolParticipation
+    form_class = SchoolParticipationForm
+    template_name = 'edit_schoolparticipation.html'
+
+    def get_success_url(self):
+        return reverse('schools-view',
+                       kwargs={'pk': self.get_object().school.id})
+
+    def get_context_data(self, **kwargs):
+
+        context = super(CreateSchoolParticipationView, self).get_context_data(**kwargs)
+        context['action'] = reverse('schoolparticipations-new', kwargs={'pk': self.get_object().id})
+        return context
+
+
+class UpdateSchoolParticipationView(UpdateView):
+
+    model = SchoolParticipation
+    form_class = SchoolParticipationForm
+    template_name = 'edit_schoolparticipation.html'
+
+    def get_success_url(self):
+        return reverse('schools-view',
+                       kwargs={'pk': self.get_object().school.id})
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateSchoolParticipationView, self).get_context_data(**kwargs)
+        context['action'] = reverse('schoolparticipations-edit',
+                                    kwargs={'pk': self.get_object().id})
+
+        return context
+
+
+class DeleteSchoolParticipationView(DeleteView):
+
+    model = SchoolParticipation
+    template_name = 'delete_schoolparticipation.html'
+
+    def get_success_url(self):
+        return reverse('schools-list')
+
 
 class SchoolParticipationView(DetailView):
 
     model = SchoolParticipation
     template_name = 'schoolparticipation.html'
+
+
+# Views for Teacher
+class UpdateTeacherView(UpdateView):
+
+    model = Teacher
+    template_name = 'edit_teacher.html'
+
+    def get_success_url(self):
+        return reverse('teachers-list')
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateTeacherView, self).get_context_data(**kwargs)
+        context['action'] = reverse('teachers-edit',
+                                    kwargs={'pk': self.get_object().id})
+
+        return context
+
+
+class DeleteTeacherView(DeleteView):
+
+    model = Teacher
+    template_name = 'delete_teacher.html'
+
+    def get_success_url(self):
+        return reverse('teachers-list')
+
+
+class TeacherView(DetailView):
+
+    model = Teacher
+    template_name = 'teacher.html'
+
 
 
 #Views for Survey

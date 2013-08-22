@@ -1,5 +1,7 @@
 from django import forms
 
+from datacombo.models import SchoolParticipation
+
 
 class UploadFileForm(forms.Form):
     required_css_class = 'alert alert-danger'
@@ -12,3 +14,9 @@ class UploadFileForm(forms.Form):
         ('legacy', 'Legacy Data'),
     )
     file_type = forms.ChoiceField(choices=file_type_choices)
+
+
+class SchoolParticipationForm(forms.ModelForm):
+	class Meta:
+		model = SchoolParticipation
+		fields = ['survey', 'date_participated', 'legacy_school_short', 'note']

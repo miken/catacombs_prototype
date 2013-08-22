@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1>{{ schoolparticipation.school.name }}</h1>
-<h4>{{ schoolparticipation.month }}, {{ schoolparticipation.year }}</h4>
+<h4>{{ schoolparticipation.survey.name }} - {{ schoolparticipation.month }}, {{ schoolparticipation.year }}</h4>
   
 <p>This page provides the survey participation record of {{ schoolparticipation.school.name }}. This school participated in {{ schoolparticipation.survey.name }} in {{ schoolparticipation.month }}, {{ schoolparticipation.year }}</p>
 
@@ -17,16 +17,21 @@
 
 <div class="row">
   <div class="col-lg-8 col-lg-offset-2">
-    <table class="table table-striped">
+    <table class="table table-striped table-condensed">
       <tr>
         <th>Teacher Name</th>
         <th>Number of Courses</th>
+        <th>Action</th>
       </tr>
       
       {% for t in schoolparticipation.teacher_set.all %}
       <tr>
-        <td>{{ t.full_name }}</td>
+        <td><a href="{{ t.get_absolute_url }}">{{ t.full_name }}</a></td>
         <td>{{ t.courses.count }}</td>
+        <td>
+          <a href="{% url "teachers-edit" pk=t.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"></i></a>
+          <a href="{% url "teachers-delete" pk=t.id %}" class="btn btn-danger btn-xs"><i class="icon-trash icon-large "></i></a>
+        </td>
       </tr>
       {% endfor %}
     </table>    
