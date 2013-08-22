@@ -7,7 +7,6 @@ from datacombo.helpers import round_time_conversion
 
 def process_uploaded(file, filetype, survey, session_title):
     #Create context first to catch all message
-    
     try:
         #Load it as a CSV file
         newcsv = pd.read_csv(file)
@@ -30,7 +29,7 @@ def process_uploaded(file, filetype, survey, session_title):
         elif filetype == 'panel':
             context = upload_panel_data(newcsv, survey, session)
         elif filetype == 'raw':
-            pass
+            context = upload_raw_data(newcsv, survey, session)
         # If there's no context returned, then it's a file mismatch
         # Let the user know in the view
         context['filetype'] = filetype
@@ -47,81 +46,12 @@ def upload_panel_data(newcsv, survey, session):
     if not set(survey_csv_colspec).issubset(newcsv_col_set):
         context['not_csv_match'] = True
     else:
-        # First create an index in this panel file
-        newcsv['teacherfull'] = newcsv['teacherfirst'] + ' ' + newcsv['teacherlast']
-        school_short_name = newcsv.groupby(['School_Short', 'School_Name']).size()
-        school_short_name = school_short_name.reset_index()
-        surveycode = survey.alpha_suffix()
-        school_short_name['abbr'] = school_short_name['School_Short'].str[:-3]
-        school_short_name['alpha'] = school_short_name['abbr'] + '-' + surveycode
-
-        # Match & create new schools
-        number_of_new_schools = 0
-        new_schools_list = []
-        # First get a list of currently existing schools to match with the new list of schools
-        school_alphalist = School.objects.values_list('alpha', flat=True)
-        # Set alpha index for alpha matching
-        csv_alpha = school_short_name.set_index('alpha')
-        for a in csv_alpha.index:
-            if a in school_alphalist:
-                pass
-            else:
-                sch_obj = School()
-                sch_obj.abbrev_name = csv_alpha.get_value(a, 'abbr')
-                sch_obj.name = csv_alpha.get_value(a, 'School_Name')
-                sch_obj.alpha = a
-                sch_obj.imported_thru = session
-                # Append to object list for bulk create later
-                new_schools_list.append(sch_obj)
-                # Add up the tallies
-                number_of_new_schools += 1
-        # Bulk create new school objects
-        School.objects.bulk_create(new_schools_list)
-
-
-        # Match & create new school participation records
-        number_of_new_participations = 0
-        new_records_list = []
-        # Retrieve the current set of participation records for this survey
-        survey_record_list = survey.schoolparticipation_set.values('legacy_school_short', 'id')
-        survey_record_dict = {}
-        for valdict in survey_record_list:
-            ss = valdict['legacy_school_short']
-            i = valdict['id']
-            survey_record_dict[ss] = i
-        existing_record_ids = survey_record_dict.values()
-        # Get a new set of school records for lookup
-        survey_new_sch_list = School.objects.values('alpha', 'id')
-        survey_new_sch_dict = {}
-        for valdict in survey_new_sch_list:
-            abbr = valdict['alpha']
-            i = valdict['id']
-            survey_new_sch_dict[abbr] = i
-        # Set School_Short index for legacy_school_short matching
-        csv_sshort = school_short_name.set_index('School_Short')
-        for s in csv_sshort.index:
-            if s in survey_record_dict.keys():
-                pass
-            else:
-                pr_obj = SchoolParticipation()
-                alpha = csv_sshort.get_value(s, 'alpha')
-                pr_obj.school_id = survey_new_sch_dict[alpha]
-                pr_obj.survey = survey
-                survey_round = s[-3:]
-                pr_obj.date_participated = round_time_conversion[survey_round]
-                pr_obj.legacy_school_short = s
-                pr_obj.note = "Imported on {}".format(session.date_created)
-                pr_obj.imported_thru = session
-                number_of_new_participations += 1
-                # Append to object list for bulk create later
-                new_records_list.append(pr_obj)
-                # Add up the tallies
-                number_of_new_participations += 1
-        #Bulk create new participation objects
-        SchoolParticipation.objects.bulk_create(new_records_list)
+        new_schools_dict = match_and_create_schools(newcsv, survey, session)
+        new_schoolparticipations_dict = match_and_create_schoolparticipations(newcsv, survey, session)
 
         # If it's a teacher feedback survey, proceed with teacher & coursename creation
         if survey.is_teacher_feedback():
+            newcsv['teacherfull'] = newcsv['teacherfirst'] + ' ' + newcsv['teacherlast']
             # Match & create new teachers
             number_of_new_teachers = 0
             new_teachers_list = []
@@ -262,18 +192,57 @@ def upload_panel_data(newcsv, survey, session):
 
         #Assign everything to context
         context['number_of_rows'] = number_of_rows
-        context['number_of_new_schools'] = number_of_new_schools
-        context['number_of_new_participations'] = number_of_new_participations
+        context['number_of_new_schools'] = new_schools_dict['newcount']
+        context['number_of_new_participations'] = new_schoolparticipations_dict['newcount']
         if survey.is_teacher_feedback():
             context['number_of_new_teachers'] = number_of_new_teachers
             context['number_of_new_courses'] = number_of_new_courses
             context['number_of_new_subjects'] = number_of_new_subjects
+            added_teachers = Teacher.objects.filter(imported_thru=session).order_by('feedback_given_in__school__name', 'first_name', 'last_name')
+            context['added_teachers'] = added_teachers
+            context['added_subjects'] = new_subjects_list
         context['added_schools'] = School.objects.filter(imported_thru=session)
         context['added_records'] = SchoolParticipation.objects.filter(imported_thru=session)
-        added_teachers = Teacher.objects.filter(imported_thru=session).order_by('feedback_given_in__school__name', 'first_name', 'last_name')
-        context['added_subjects'] = new_subjects_list
-        # Sort this object list according 
-        context['added_teachers'] = added_teachers
+        context['session_id'] = session.id
+    return context
+
+
+def upload_raw_data(newcsv, survey, session):
+    context = {}
+    context['survey_name'] = survey.name
+    # Check that the user is uploading the correct CSV file
+    survey_csv_colspec = survey.raw_columns_for_csv_matching()
+    newcsv_col_set = set(newcsv.columns)
+    # If the CSV files don't have all the required column names, return None
+    if not set(survey_csv_colspec).issubset(newcsv_col_set):
+        context['not_csv_match'] = True
+    else:
+        new_schools_dict = match_and_create_schools(newcsv, survey, session)
+        new_schoolparticipations_dict = match_and_create_schoolparticipations(newcsv, survey, session)
+
+        # If it's a teacher feedback survey, convert_to_stack format for data import
+
+        # Get list of response_ids
+        csv_qid_list = newcsv['ResponseID'].tolist()
+        # Set ResponseID as index
+        newcsv = newcsv.set_index('ResponseID')
+        # Filter only for those Response IDs that don't exist in database
+        students_qid_matched = Student.objects.filter(response_id__in=csv_qid_list).values_list('response_id', flat=True)
+        # We'll create new student objects with these IDs
+        qid_to_create = [q for q in csv_qid_list if q not in students_qid_matched]
+        # Create student objects
+        number_of_new_students = 0
+        new_students_list = []
+        # For loop to create students here
+
+        number_of_rows = len(newcsv)
+
+        #Assign everything to context
+        context['number_of_rows'] = number_of_rows
+        context['number_of_new_schools'] = new_schools_dict['newcount']
+        context['number_of_new_participations'] = new_schoolparticipations_dict['newcount']
+        context['added_schools'] = School.objects.filter(imported_thru=session)
+        context['added_records'] = SchoolParticipation.objects.filter(imported_thru=session)
         context['session_id'] = session.id
     return context
 
@@ -472,3 +441,136 @@ def upload_legacy_data(newcsv, survey, session):
     context['participation_objects'] = SchoolParticipation.objects.filter(imported_thru=session)
     context['session_id'] = session.id
     return context
+
+
+def match_and_create_schools(newcsv, survey, session):
+    '''
+    newcsv: CSV file already converted to dataframe by pandas
+    survey: Survey object
+    session: ImportSession object
+    '''
+    d = {}
+    # Match & create new schools
+    number_of_new_schools = 0
+    new_schools_list = []
+    # First get a list of currently existing schools to match with the new list of schools
+    school_alphalist = School.objects.values_list('alpha', flat=True)
+
+    # Group and set alpha index for alpha matching
+    school_short_name = group_sshort_and_sname(newcsv, survey)
+    csv_alpha = school_short_name.set_index('alpha')
+
+    for a in csv_alpha.index:
+        if a in school_alphalist:
+            pass
+        else:
+            sch_obj = School()
+            sch_obj.abbrev_name = csv_alpha.get_value(a, 'abbr')
+            sch_obj.name = csv_alpha.get_value(a, 'School_Name')
+            sch_obj.alpha = a
+            sch_obj.imported_thru = session
+            # Append to object list for bulk create later
+            new_schools_list.append(sch_obj)
+            # Add up the tallies
+            number_of_new_schools += 1
+    # Bulk create new school objects
+    School.objects.bulk_create(new_schools_list)
+    d['newcount'] = number_of_new_schools
+    d['obj_list'] = new_schools_list
+    return d
+
+def match_and_create_schoolparticipations(newcsv, survey, session):
+    '''
+    newcsv: CSV file already converted to dataframe by pandas
+    survey: Survey object
+    session: ImportSession object
+    '''
+    d = {}
+    # Match & create new school participation records
+    number_of_new_participations = 0
+    new_records_list = []
+
+    # Retrieve the current set of participation records for this survey
+    survey_record_list = survey.schoolparticipation_set.values('legacy_school_short', 'id')
+    survey_record_dict = {}
+    for valdict in survey_record_list:
+        ss = valdict['legacy_school_short']
+        i = valdict['id']
+        survey_record_dict[ss] = i
+    existing_record_ids = survey_record_dict.values()
+    
+    # Get a new set of school records for lookup
+    survey_new_sch_list = School.objects.values('alpha', 'id')
+    survey_new_sch_dict = {}
+    for valdict in survey_new_sch_list:
+        abbr = valdict['alpha']
+        i = valdict['id']
+        survey_new_sch_dict[abbr] = i
+    
+    # Set School_Short index for legacy_school_short matching
+    school_short_name = group_sshort_and_sname(newcsv, survey)
+    csv_sshort = school_short_name.set_index('School_Short')
+    for s in csv_sshort.index:
+        if s in survey_record_dict.keys():
+            pass
+        else:
+            pr_obj = SchoolParticipation()
+            alpha = csv_sshort.get_value(s, 'alpha')
+            pr_obj.school_id = survey_new_sch_dict[alpha]
+            pr_obj.survey = survey
+            survey_round = s[-3:]
+            pr_obj.date_participated = round_time_conversion[survey_round]
+            pr_obj.legacy_school_short = s
+            pr_obj.note = "Imported on {}".format(session.date_created)
+            pr_obj.imported_thru = session
+            number_of_new_participations += 1
+            # Append to object list for bulk create later
+            new_records_list.append(pr_obj)
+            # Add up the tallies
+            number_of_new_participations += 1
+    #Bulk create new participation objects
+    SchoolParticipation.objects.bulk_create(new_records_list)
+    d['newcount'] = number_of_new_participations
+    d['obj_list'] = new_records_list
+    return d
+
+def group_sshort_and_sname(newcsv, survey):
+    school_short_name = newcsv.groupby(['School_Short', 'School_Name']).size()
+    school_short_name = school_short_name.reset_index()
+    surveycode = survey.alpha_suffix()
+    school_short_name['abbr'] = school_short_name['School_Short'].str[:-3]
+    school_short_name['alpha'] = school_short_name['abbr'] + '-' + surveycode
+    return school_short_name
+
+
+def convert_raw_to_stack(newcsv, survey):
+    cols_to_retain = []
+    left_cols = survey.raw_columns_for_csv_matching
+    # Retrieve all variables for 
+    right_cols = survey.variable_set.values_list('name', flat=True)
+    stackcols = left_cols + right_cols + ['ID_insert']
+    left = newcsv[left_cols]
+    raw_stack = pd.DataFrame(columns=stackcols)
+    # Loop from course 1 to course 5
+    iterlist = [str(i) for i in range(1, 6)]
+    for i in iterlist:
+        varcols = ['{var}({i})'.format(var=varname, i=i) for c in right_cols]
+        likert_data = newcsv[varcols]
+        # Rename the columns so that they conform to right_cols
+
+    raw = pd.read_csv(os.path.join(sql_dir, 'raw.csv'))
+    retain_list = raw.columns[:22].tolist()                                 # in console, check that the columns run from 'ID' to 'm_gender'
+    stack_list = survey_meta + varlist
+    stackcols = retain_list + stack_list + ['ID_insert']
+    student_meta = raw[retain_list]
+    raw_stack = pd.DataFrame(columns=stackcols)
+    iterlist = [str(i) for i in range(1, 5)]                                # Loop from course 1 to course 4
+    for i in iterlist:
+        varcols = [varname+i for varname in stack_list]
+        likert_data = raw[varcols]                                          # Extract survey data for this course first
+        likert_data.columns = stack_list                                    # Rename the columns so that they conform to stack_list
+        data_tostack = student_meta.join(likert_data)
+        data_tostack['ID_insert'] = data_tostack['ID'] + ' - ' + i
+        raw_stack = raw_stack.append(data_tostack)
+    raw_stack.to_csv(os.path.join(combo_dir, 'raw_stack.csv'), index=False)
+    print 'Raw data saved as stacked format in raw_stack.csv'

@@ -35,9 +35,9 @@ class Survey(models.Model):
         Use this list to determine whether a new raw CSV file is a match
         '''
         if self.is_teacher_feedback():
-            return ['ExternalDataReference', 'School_Short', 'SchoolName', 'teachersalutation1', 'teacherfirst1', 'teacherlast1', 'coursename1', 'subject1']
+            return ['V4', 'V1', 'School_Short', 'School_Name', 'teachersalutation1', 'teacherfirst1', 'teacherlast1', 'coursename1', 'subject1']
         else:
-            return ['ExternalDataReference', 'School_Short', 'SchoolName']
+            return ['V4', 'V1', 'School_Short', 'School_Name']
 
     def alpha_suffix(self):
         '''
@@ -121,6 +121,8 @@ class Variable(models.Model):
     survey = models.ForeignKey(Survey)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
+    qraw = models.CharField(max_length=50, blank=True, null=True)
+    inloop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
     active = models.BooleanField()
 
     class Meta:
@@ -138,7 +140,7 @@ class School(models.Model):
     surveys = models.ManyToManyField(Survey, through='SchoolParticipation')
     q_code = models.CharField(max_length=10, blank=True, default='', verbose_name=u'Code used in Qualtrics logins')
     #When the ImportSession is deleted, this school will become "orphaned" and need to be removed individually
-    imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
+    imported_thru = models.ForeignKey(ImportSession, null=True)
 
     class Meta:
         ordering = ["name"]
@@ -162,7 +164,7 @@ class SchoolParticipation(models.Model):
     legacy_school_short = models.CharField(max_length=50, blank=True, default='', verbose_name=u'Legacy School_Short notation')
     note = models.CharField(max_length=100, blank=True, default='')
     #When the ImportSession is deleted, this participation record will become "orphaned" and need to be removed individually
-    imported_thru = models.ForeignKey(ImportSession, on_delete=models.SET_NULL, null=True)
+    imported_thru = models.ForeignKey(ImportSession, null=True)
 
     class Meta:
         ordering = ["date_participated"]
