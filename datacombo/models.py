@@ -7,9 +7,6 @@ class Survey(models.Model):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=10, unique=True)
 
-    class Meta:
-        ordering = ["code"]
-
     def is_teacher_feedback(self):
         '''
         Determines whether a survey is a teacher feedback survey
@@ -34,10 +31,7 @@ class Survey(models.Model):
         '''
         Use this list to determine whether a new raw CSV file is a match
         '''
-        if self.is_teacher_feedback():
-            return ['V4', 'V1', 'School_Short', 'School_Name', 'teachersalutation1', 'teacherfirst1', 'teacherlast1', 'coursename1', 'subject1']
-        else:
-            return ['V4', 'V1', 'School_Short', 'School_Name']
+        return ['V4', 'V1', 'School_Short', 'School_Name']
 
     def alpha_suffix(self):
         '''
@@ -60,11 +54,10 @@ class Survey(models.Model):
         count = Teacher.objects.filter(feedback_given_in__in=self.schoolparticipation_set.distinct()).count()
         return count
 
-
     def student_count(self):
         # Use distinct, since a school can participate in the same survey multiple times
         # We care about the number of distinct schools, instead of particpation records
-        count = Student.objects.filter(surveyed_in__in=self.schoolparticipation_set.distinct()).count()
+        count = Student.objects.filter(surveyed_thru__in=self.schoolparticipation_set.distinct()).count()
         return count
 
     def get_absolute_url(self):
@@ -122,7 +115,8 @@ class Variable(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     qraw = models.CharField(max_length=50, blank=True, null=True)
-    inloop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
+    in_loop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
+    in_report = models.BooleanField(verbose_name=u'Will this variable be used in reporting?')
     active = models.BooleanField()
 
     class Meta:
@@ -177,7 +171,8 @@ class SchoolParticipation(models.Model):
         return self.date_participated.strftime("%Y")
 
     def student_count(self):
-        count = self.student_set.count()
+        student_ids = self.response_set.values_list('student__id', flat=True)
+        count = Student.objects.filter(id__in=student_ids).distinct().count()
         return count
 
     def teacher_count(self):
@@ -193,7 +188,6 @@ class SchoolParticipation(models.Model):
 
 class Subject(models.Model):
     name = models.CharField(max_length=50)
-
 
     def teacher_count(self):
         count = Teacher.objects.filter(courses__in=self.course_set.all()).distinct().count()
@@ -214,14 +208,15 @@ class Course(models.Model):
     name = models.CharField(max_length=50, verbose_name=u'Course Name')
     subject = models.ForeignKey(Subject)
     classroom_size = models.PositiveSmallIntegerField(default=0)
-    legacy_survey_key = models.CharField(max_length=255)
+    legacy_survey_index = models.CharField(max_length=255, default='', verbose_name=u'Index generated from School_Short, Full_Name, and Course_Name')
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
     class Meta:
         ordering = ["name"]
 
     def student_count(self):
-        count = self.student_set.count()
+        student_ids = self.response_set.values_list('student__id', flat=True)
+        count = Student.objects.filter(id__in=student_ids).distinct().count()
         return count
 
     def __unicode__(self):
@@ -234,10 +229,11 @@ class Teacher(models.Model):
     salutation = models.CharField(max_length=10, default='', verbose_name=u'Salutation')
     feedback_given_in = models.ForeignKey(SchoolParticipation)
     courses = models.ManyToManyField(Course)
+    legacy_survey_index = models.CharField(max_length=255, default='', verbose_name=u'Index generated from School_Short and Full_Name')
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
     class Meta:
-        ordering = ["first_name", "last_name"]
+        ordering = ["legacy_survey_index"]
 
     def full_name(self):
         full_name = u'{first} {last}'.format(first=self.first_name, last=self.last_name)
@@ -253,12 +249,11 @@ class Teacher(models.Model):
     def __unicode__(self):
         return self.full_name()
 
+
 class Student(models.Model):
     pin = models.CharField(max_length=50, verbose_name=u'YouthTruth PIN used')
     response_id = models.CharField(max_length=50, verbose_name=u'Response ID recorded by Qualtrics')
-    course = models.ForeignKey(Course, null=True)
-    teacher = models.ForeignKey(Teacher, null=True)
-    surveyed_in = models.ForeignKey(SchoolParticipation)
+    surveyed_thru = models.ForeignKey(SchoolParticipation)
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
 
@@ -270,6 +265,6 @@ class Response(models.Model):
     #Set null=True for student because of a future possibility of surveying teachers and parents etc.
     student = models.ForeignKey(Student, null=True)
     #Indicates whether the answer was for a course or for a school-overall
-    on_course = models.ForeignKey(Course, null=True)
-    on_school = models.ForeignKey(School, null=True)
+    on_course = models.ForeignKey(Course, null=True, verbose_name=u'Feedback for which course?')
+    on_schoolrecord = models.ForeignKey(SchoolParticipation, null=True, verbose_name=u'Feedback for which school record?')
     imported_thru = models.ForeignKey(ImportSession, null=True)

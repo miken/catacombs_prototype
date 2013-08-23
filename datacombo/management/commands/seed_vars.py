@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from datacombo.models import Survey, Variable
 
+
 class Command(BaseCommand):
     help = 'Seed a set of sample variables for import testing'
 
@@ -11,7 +12,7 @@ class Command(BaseCommand):
         cmd_dir = os.path.join(root_dir, 'datacombo', 'management', 'commands')
         os.chdir(cmd_dir)
         #Import vars.csv
-        varlist = pd.read_csv('vars.csv', index_col=['surveycode', 'varname'])                
+        varlist = pd.read_csv('vars.csv', index_col=['surveycode', 'varname'])
 
         surveycode_list = varlist.index.get_level_values(0).unique().tolist()
 
@@ -27,9 +28,14 @@ class Command(BaseCommand):
                 dj_var.qraw = var_df.get_value(var, 'qraw')
                 inloop = var_df.get_value(var, 'inloop')
                 if inloop == 1:
-                    dj_var.inloop = True
+                    dj_var.in_loop = True
                 else:
-                    dj_var.inloop = False
+                    dj_var.in_loop = False
+                in_report = var_df.get_value(var, 'in_report')
+                if in_report == 1:
+                    dj_var.in_report = True
+                else:
+                    dj_var.in_report = False
                 dj_var.active = True
                 dj_var.save()
 
