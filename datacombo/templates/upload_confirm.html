@@ -208,8 +208,8 @@
     <p>A total of {{ number_of_new_students }} new students were recorded from your file.</p>  
   {% endif %}
 
-  {% if filetype == 'legacy' %}
-    <p>{{ number_of_datapoints }} data points were recorded from your file.</p>  
+  {% if filetype == 'raw' %}
+    <p>{{ number_of_new_datapoints }} data points were recorded from your file.</p>  
   {% endif %}
 
   <p>If this all looks good, press the big button below to confirm data import.<br />

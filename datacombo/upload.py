@@ -95,22 +95,38 @@ def upload_raw_data(newcsv, survey, session):
             # If we're importing raw data, we need to
             # convert newcsv to stackformat first
             csv_stacked = convert_raw_to_stack(newcsv, survey)
-
+            # Add a new column for this table
+            csv_stacked['s_t_c'] = (csv_stacked['School_Short'] +
+                                    ' - ' +
+                                    csv_stacked['teacherfirst'] +
+                                    ' ' +
+                                    csv_stacked['teacherlast'] +
+                                    ' - ' +
+                                    csv_stacked['coursename']
+                                    )
+            # Set 'ID_insert', created with convert_raw_to_stack(), as index
+            csv_stacked = csv_stacked.set_index('ID_insert')
             fresh_precords_dict = get_precords_dict(survey)
             # With a fresh list of PartipationRecords, mix & match teachers, subjects, and courses
             s_t_df = group_teacher_level(csv_stacked)
             s_t_c_df = group_course_level(csv_stacked)
-            new_teachers_dict = match_and_create_teachers(s_t_df, survey, session, fresh_precords_dict)
-            new_subjects_and_courses_dict = match_and_create_subjects_and_courses(s_t_c_df, survey, session, fresh_precords_dict)
+            new_teachers_dict = match_and_create_teachers(s_t_df, session, fresh_precords_dict)
+            new_subjects_and_courses_dict = match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict)
             # Pair the new courses with teachers
-            pair_new_courses_with_teachers(s_t_c_df, survey, session, fresh_precords_dict)
+            pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict)
             context['number_of_new_teachers'] = new_teachers_dict['newcount']
             context['added_teachers'] = Teacher.objects.filter(imported_thru=session)
             context['number_of_new_subjects'] = new_subjects_and_courses_dict['newcount_subject']
             context['added_subjects'] = new_subjects_and_courses_dict['subj_list']
             context['number_of_new_courses'] = new_subjects_and_courses_dict['newcount_course']
-        new_students_dict = match_and_create_students(newcsv, survey, session, fresh_precords_dict)
+        new_students_dict = match_and_create_students(newcsv, session, fresh_precords_dict)
         context['number_of_new_students'] = new_students_dict['newcount']
+        # Add responses
+        if survey.is_teacher_feedback():
+            new_responses_dict = match_and_create_responses(csv_stacked, survey, session, fresh_precords_dict)
+        else:
+            new_responses_dict = match_and_create_responses(newcsv, survey, session, fresh_precords_dict)
+        context['number_of_new_datapoints'] = new_responses_dict['newcount_dpoints']
     return context
 
 
@@ -161,37 +177,14 @@ def upload_legacy_data(newcsv, survey, session):
     return context
 
 
-    # Create/update student records
-    # Get the list of student records that are related to the currently existing
-    # school participation records, prior to the bulk_add command
-    survey_students = Student.objects.filter(surveyed_in_id__in=survey_record_dict.values())
-    # Retrieve the list of existing student PINs from that list
-    survey_student_pin_list = survey_students.values_list('pin', flat=True)
-    # Get a fresh set of participation records after bulk creation
-    survey_new_pr_list = SchoolParticipation.objects.values('legacy_school_short', 'id', 'school')
-    survey_new_pr_dict = {}
-    for valdict in survey_new_pr_list:
-        ss = valdict['legacy_school_short']
-        i = valdict['id']
-        sch_id = valdict['school']
-        survey_new_pr_dict[ss] = (i, sch_id)
-    for p in csv_pin.index:
-        # If the PIN in the CSV file matches the current PIN list, do not create a new student
-        if p in survey_student_pin_list:
-            pass
-        else:
-            std_obj = Student()
-            std_obj.pin = p
-            std_obj.response_id = csv_pin.get_value(p, 'ID')
-            schshort = csv_pin.get_value(p, 'School_Short')
-            std_obj.surveyed_in_id = survey_record_dict[schshort]
-            std_obj.imported_thru = session
-            # Append to object list for bulk create later
-            new_students_list.append(std_obj)
-            # Add up the tallies
-            number_of_new_students += 1
-    # Bulk create new student objects
-    Student.objects.bulk_create(new_students_list)
+def match_and_create_responses(newcsv, survey, session, fresh_precords_dict):
+    d = {}
+    # Match & create new teachers
+    number_of_new_datapoints = 0
+    new_responses_list = []
+    fresh_courses_dict = get_courses_dict(fresh_precords_dict)
+    fresh_students_dict = get_students_dict(fresh_precords_dict)
+    existing_responses_dict = get_responses_dict(survey)
 
     # Create/update response records
     survey_varlist = survey.variable_set.values('name', 'id')
@@ -200,67 +193,62 @@ def upload_legacy_data(newcsv, survey, session):
         varname = valdict['name']
         varid = valdict['id']
         survey_vardict[varname] = varid
-    # Get the list of PRecord IDs from the fresh set of participation records
-    survey_new_pr_id_list = [tpl[0] for tpl in survey_new_pr_dict.values()]
-    # Get the fresh set of student records from this "fresh" set of participation records
-    # This will include the new student objects that have been added
-    survey_new_std = Student.objects.filter(surveyed_in_id__in=survey_new_pr_id_list)
-    survey_new_std_list = survey_new_std.values('pin', 'id')
-    survey_new_std_dict = {}
-    for valdict in survey_new_std_list:
-        pin = valdict['pin']
-        i = valdict['id']
-        survey_new_std_dict[pin] = i
 
     # Now create a dictionary with key as the variable name from survey_varlist
     # and value as status of whether that variable exists in the CSV file
     var_status = {}
     for var in survey_vardict.keys():
-        if var in csv_columns:
+        if var in newcsv.columns:
             var_status[var] = 1
         else:
             var_status[var] = 0
         for i in newcsv.index:
             row = newcsv.ix[i]
-            a = row[var]
-            if pd.isnull(a):
+            if survey.is_teacher_feedback() and pd.isnull(row['coursename']):
                 pass
             else:
-                resp = Response()
-                resp.question_id = survey_vardict[var]
-                resp.survey = survey
-                resp.answer = a
-                pin = row['PIN']
-                resp.student_id = survey_new_std_dict[pin]
-                # resp.on_course = cse_obj
-                # Assign response to school
-                schshort = csv_pin.get_value(pin, 'School_Short')
-                resp.on_school_id = survey_new_pr_dict[schshort][1]
-                resp.imported_thru = session
-                # Append to object list for bulk create later
-                new_responses_list.append(resp)
-                # Add up the tallies
-                number_of_datapoints += 1
-            # If the list of responses reach 500, we'll do bulk create and reset the list
-            if len(new_responses_list) == 500:
-                Response.objects.bulk_create(new_responses_list)
-                new_responses_list = []
-    # Bulk create new response objects
+                a = row[var]
+                if pd.isnull(a):
+                    pass
+                else:
+                    idx_str_list = []
+                    if survey.is_teacher_feedback():
+                        idx_str_list.append(row['s_t_c'])
+                    else:
+                        idx_str_list.append(row['School_Short'])
+                    idx_str_list.append(var)
+                    idx = ' - '.join(idx_str_list)
+                    if idx in existing_responses_dict.keys():
+                        pass
+                    else:
+                        resp = Response()
+                        resp.question_id = survey_vardict[var]
+                        resp.survey = survey
+                        resp.answer = a
+                        pin = row['V4']
+                        resp.student_id = fresh_students_dict[pin]
+                        # Assign response to either course or school
+                        if survey.is_teacher_feedback():
+                            s_t_c_index = newcsv.get_value(i, 's_t_c')
+                            resp.on_course_id = fresh_courses_dict[s_t_c_index]
+                        else:
+                            schshort = newcsv.get_value(i, 'School_Short')
+                            resp.on_schoolrecord_id = fresh_precords_dict[schshort]
+                        resp.legacy_survey_index = idx
+                        resp.imported_thru = session
+                        # Append to object list for bulk create later
+                        new_responses_list.append(resp)
+                        # Add up the tallies
+                        number_of_new_datapoints += 1
+        # If the list of responses reach 500, we'll do bulk create and reset the list
+        if len(new_responses_list) > 500:
+            Response.objects.bulk_create(new_responses_list)
+            new_responses_list = []
+    # Bulk create new response objects and flush out the list
     Response.objects.bulk_create(new_responses_list)
     new_responses_list = []
-
-    # Load all variables into the context for view rendering
-    context['survey_name'] = survey.name
-    context['number_of_rows'] = number_of_rows
-    context['number_of_datapoints'] = number_of_datapoints
-    context['var_status_dict'] = var_status
-    context['number_of_new_schools'] = number_of_new_schools
-    context['number_of_new_participations'] = number_of_new_participations
-    context['number_of_new_students'] = number_of_new_students
-    context['sch_objects'] = School.objects.filter(imported_thru=session)
-    context['participation_objects'] = SchoolParticipation.objects.filter(imported_thru=session)
-    context['session_id'] = session.id
-    return context
+    d['newcount_dpoints'] = number_of_new_datapoints
+    return d
 
 
 def match_and_create_schools(newcsv, survey, session):
@@ -350,7 +338,112 @@ def match_and_create_schoolparticipations(newcsv, survey, session):
     return d
 
 
-def match_and_create_students(csv, survey, session, fresh_precords_dict):
+def match_and_create_teachers(s_t_df, session, fresh_precords_dict):
+    '''
+    s_t_df: CSV file grouped by School_Short and Teacher_Full_Name
+    session: ImportSession object
+    fresh_precords_dict: List of IDs of ParticipationRecords, including the new ones
+                         Create this by using get_precords_dict() after bulk_create
+                         the new school participation records
+    '''
+    d = {}
+    # Match & create new teachers
+    number_of_new_teachers = 0
+    new_teachers_list = []
+    existing_teachers_dict = get_teachers_dict(fresh_precords_dict)
+
+    for idx in s_t_df.index:
+        if idx in existing_teachers_dict.keys():
+            pass
+        else:
+            t = Teacher()
+            t.first_name = s_t_df.get_value(idx, 'teacherfirst')
+            t.last_name = s_t_df.get_value(idx, 'teacherlast')
+            t.salutation = s_t_df.get_value(idx, 'teachersalutation')
+            schshort = s_t_df.get_value(idx, 'School_Short')
+            t.feedback_given_in_id = fresh_precords_dict[schshort]
+            t.legacy_survey_index = idx
+            t.imported_thru = session
+            # Append to object list for bulk create later
+            new_teachers_list.append(t)
+            # Add up the tallies
+            number_of_new_teachers += 1
+    #Bulk create new participation objects
+    Teacher.objects.bulk_create(new_teachers_list)
+
+    d['newcount'] = number_of_new_teachers
+    d['obj_list'] = new_teachers_list
+    return d
+
+
+def match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict):
+    '''
+    s_t_df: CSV file grouped by School_Short and Teacher_Full_Name
+    session: ImportSession object
+    '''
+    d = {}
+    # Match & create new courses and subjects
+    number_of_new_subjects = 0
+    new_subjects_list = []
+    number_of_new_courses = 0
+    new_courses_list = []
+    existing_courses_dict = get_courses_dict(fresh_precords_dict)
+    for idx in s_t_c_df.index:
+        if idx in existing_courses_dict.keys():
+            pass
+        else:
+            c = Course()
+            coursename = s_t_c_df.get_value(idx, 'coursename')
+            c.name = coursename
+            # Was there a subject that already exists? If not, add it
+            subject_name = s_t_c_df.get_value(idx, 'subject')
+            try:
+                s = Subject.objects.get(name=subject_name)
+            except Subject.DoesNotExist:
+                s = Subject()
+                s.name = subject_name
+                s.save()
+                number_of_new_subjects += 1
+                new_subjects_list.append(s)
+            c.subject = s
+            c.classroom_size = s_t_c_df.get_value(idx, 'size')
+            c.legacy_survey_index = idx
+            c.imported_thru = session
+            # Must save first before adding course
+            # We'll take care of this record matching later
+            # Append to object list for bulk create later
+            new_courses_list.append(c)
+            # Add up the tallies
+            number_of_new_courses += 1
+    #Bulk create new participation objects
+    Course.objects.bulk_create(new_courses_list)
+    d['newcount_course'] = number_of_new_courses
+    d['newcount_subject'] = number_of_new_subjects
+    d['subj_list'] = new_subjects_list
+    return d
+
+
+def pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict):
+    '''
+    Match up teachers with their corresponding courses
+    Do this for just the new courses, we don't connect old courses
+    with newly imported teachers, i.e., teachers don't teach courses
+    that existed in the past
+    '''
+    # Get a fresh set of teachers to pair with new courses
+    # after bulk_create command
+    fresh_teachers_dict = get_teachers_dict(fresh_precords_dict)
+    added_courses = Course.objects.filter(imported_thru=session)
+    for c in added_courses:
+        idx = c.legacy_survey_index
+        # Find the teacher_id with this key
+        s_t_index = s_t_c_df.get_value(idx, 's_t_index')
+        teacher_id = fresh_teachers_dict[s_t_index]
+        teacher = Teacher.objects.get(id=teacher_id)
+        c.teacher_set.add(teacher)
+
+
+def match_and_create_students(csv, session, fresh_precords_dict):
     '''
     use get_precords_dict() to retrieve a new paired set of ID and School_Short
     '''
@@ -387,112 +480,6 @@ def match_and_create_students(csv, survey, session, fresh_precords_dict):
     return d
 
 
-def match_and_create_teachers(s_t_df, survey, session, fresh_precords_dict):
-    '''
-    s_t_df: CSV file grouped by School_Short and Teacher_Full_Name
-    survey: current survey
-    session: ImportSession object
-    fresh_precords_dict: List of IDs of ParticipationRecords, including the new ones
-                         Create this by using get_precords_dict() after bulk_create
-                         the new school participation records
-    '''
-    d = {}
-    # Match & create new teachers
-    number_of_new_teachers = 0
-    new_teachers_list = []
-    existing_teachers_dict = get_teachers_dict(survey, fresh_precords_dict)
-
-    for idx in s_t_df.index:
-        if idx in existing_teachers_dict.keys():
-            pass
-        else:
-            t = Teacher()
-            t.first_name = s_t_df.get_value(idx, 'teacherfirst')
-            t.last_name = s_t_df.get_value(idx, 'teacherlast')
-            t.salutation = s_t_df.get_value(idx, 'teachersalutation')
-            schshort = s_t_df.get_value(idx, 'School_Short')
-            t.feedback_given_in_id = fresh_precords_dict[schshort]
-            t.legacy_survey_index = idx
-            t.imported_thru = session
-            # Append to object list for bulk create later
-            new_teachers_list.append(t)
-            # Add up the tallies
-            number_of_new_teachers += 1
-    #Bulk create new participation objects
-    Teacher.objects.bulk_create(new_teachers_list)
-
-    d['newcount'] = number_of_new_teachers
-    d['obj_list'] = new_teachers_list
-    return d
-
-
-def match_and_create_subjects_and_courses(s_t_c_df, survey, session, fresh_precords_dict):
-    '''
-    s_t_df: CSV file grouped by School_Short and Teacher_Full_Name
-    session: ImportSession object
-    '''
-    d = {}
-    # Match & create new courses and subjects
-    number_of_new_subjects = 0
-    new_subjects_list = []
-    number_of_new_courses = 0
-    new_courses_list = []
-    existing_courses_dict = get_courses_dict(survey, fresh_precords_dict)
-    for idx in s_t_c_df.index:
-        if idx in existing_courses_dict.keys():
-            pass
-        else:
-            c = Course()
-            coursename = s_t_c_df.get_value(idx, 'coursename')
-            c.name = coursename
-            # Was there a subject that already exists? If not, add it
-            subject_name = s_t_c_df.get_value(idx, 'subject')
-            try:
-                s = Subject.objects.get(name=subject_name)
-            except Subject.DoesNotExist:
-                s = Subject()
-                s.name = subject_name
-                s.save()
-                number_of_new_subjects += 1
-                new_subjects_list.append(s)
-            c.subject = s
-            c.classroom_size = s_t_c_df.get_value(idx, 'size')
-            c.legacy_survey_index = idx
-            c.imported_thru = session
-            # Must save first before adding course
-            # We'll take care of this record matching later
-            # Append to object list for bulk create later
-            new_courses_list.append(c)
-            # Add up the tallies
-            number_of_new_courses += 1
-    #Bulk create new participation objects
-    Course.objects.bulk_create(new_courses_list)
-    d['newcount_course'] = number_of_new_courses
-    d['newcount_subject'] = number_of_new_subjects
-    d['subj_list'] = new_subjects_list
-    return d
-
-
-def pair_new_courses_with_teachers(s_t_c_df, survey, session, fresh_precords_dict):
-    '''
-    Match up teachers with their corresponding courses
-    Do this for just the new courses, we don't connect old courses
-    with newly imported teachers, i.e., teachers don't teach courses
-    that existed in the past
-    '''
-    # Get a fresh set of teachers to pair with new courses
-    # after bulk_create command
-    fresh_teachers_dict = get_teachers_dict(survey, fresh_precords_dict)
-    added_courses = Course.objects.filter(imported_thru=session)
-    for c in added_courses:
-        idx = c.legacy_survey_index
-        # Find the teacher_id with this key
-        s_t_index = s_t_c_df.get_value(idx, 's_t_index')
-        teacher_id = fresh_teachers_dict[s_t_index]
-        teacher = Teacher.objects.get(id=teacher_id)
-        c.teacher_set.add(teacher)
-
-
 def get_precords_dict(survey):
     # Retrieve the current set of participation records for this survey
     survey_record_list = survey.schoolparticipation_set.values('legacy_school_short', 'id')
@@ -504,7 +491,7 @@ def get_precords_dict(survey):
     return survey_record_dict
 
 
-def get_teachers_dict(survey, precords_dict):
+def get_teachers_dict(precords_dict):
     '''
     precords_dict can be obtained by running get_precords_dict
     Create a dict of teacher metainfo
@@ -518,7 +505,7 @@ def get_teachers_dict(survey, precords_dict):
     return teachers_dict
 
 
-def get_courses_dict(survey, precords_dict):
+def get_courses_dict(precords_dict):
     '''
     precords_dict can be obtained by running get_precords_dict
     Create a dict of courses metainfo
@@ -537,6 +524,34 @@ def get_courses_dict(survey, precords_dict):
             else:
                 courses_dict[idx] = c.id
     return courses_dict
+
+
+def get_students_dict(precords_dict):
+    '''
+    precords_dict can be obtained by running get_precords_dict
+    Create a dict of students metainfo
+    key is YouthTruth Login PIN
+    value is student_id in database
+    '''
+    precords_ids = precords_dict.values()
+    fresh_students = Student.objects.filter(surveyed_thru_id__in=precords_ids)
+    students_list = fresh_students.values('pin', 'id')
+    students_dict = {}
+    for valdict in students_list:
+        pin = valdict['pin']
+        i = valdict['id']
+        students_dict[pin] = i
+    return students_dict
+
+
+def get_responses_dict(survey):
+    survey_responses_list = survey.response_set.values('legacy_survey_index', 'id')
+    responses_dict = {}
+    for resp in survey_responses_list:
+        idx = resp['legacy_survey_index']
+        i = resp['id']
+        responses_dict[idx] = i
+    return responses_dict
 
 
 def group_sshort_and_sname(newcsv, survey):
@@ -624,5 +639,5 @@ def convert_raw_to_stack(newcsv, survey):
             data_tostack = left_middle.join([meta, right])
             data_tostack['ID_insert'] = data_tostack['V1'] + ' - ' + i
             raw_stack = raw_stack.append(data_tostack)
-    raw_stack.to_csv('test.csv')
+    # raw_stack.to_csv('test.csv')
     return raw_stack

@@ -267,4 +267,5 @@ class Response(models.Model):
     #Indicates whether the answer was for a course or for a school-overall
     on_course = models.ForeignKey(Course, null=True, verbose_name=u'Feedback for which course?')
     on_schoolrecord = models.ForeignKey(SchoolParticipation, null=True, verbose_name=u'Feedback for which school record?')
+    legacy_survey_index = models.CharField(max_length=255, default='', verbose_name=u'Index generated from School_Short & (Teacher_Name & Course_Name) & Login PIN & varname')
     imported_thru = models.ForeignKey(ImportSession, null=True)
