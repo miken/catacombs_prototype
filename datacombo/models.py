@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.core.urlresolvers import reverse
 
@@ -110,13 +112,24 @@ class ImportSession(models.Model):
         return self.title
 
 
+class SummaryMeasure(models.Model):
+    survey = models.ForeignKey(Survey)
+    name = models.CharField(max_length=50)
+    label = models.CharField(max_length=100)
+
+    def __unicode__(self):
+        return self.name
+
+
 class Variable(models.Model):
     survey = models.ForeignKey(Survey)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     qraw = models.CharField(max_length=50, blank=True, null=True)
+    demographic = models.BooleanField(verbose_name=u'Is this a demographic variable, e.g., race, gender, grade level?')
     in_loop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
     in_report = models.BooleanField(verbose_name=u'Will this variable be used in reporting?')
+    summary_measure = models.ForeignKey(SummaryMeasure, null=True)
     active = models.BooleanField()
 
     class Meta:
@@ -218,6 +231,25 @@ class Course(models.Model):
         student_ids = self.response_set.values_list('student__id', flat=True)
         count = Student.objects.filter(id__in=student_ids).distinct().count()
         return count
+
+    def rr_raw(self):
+        resp_count = self.student_count()
+        if self.classroom_size > 0 and resp_count:
+            rr = Decimal(resp_count) / Decimal(self.classroom_size)
+            return rr
+        else:
+            return 0
+
+    def rr_string(self):
+        rr_raw = self.rr_raw()
+        rr_str = "{0:.0f}%".format(rr_raw * 100)
+        return rr_str
+
+    def is_below_cutoff(self):
+        if self.rr_raw() < 0.6 or self.classroom_size < 5:
+            return True
+        else:
+            return False
 
     def __unicode__(self):
         return self.name

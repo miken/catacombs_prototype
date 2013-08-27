@@ -60,10 +60,10 @@ def upload_panel_data(newcsv, survey, session):
             # With a fresh list of PartipationRecords, mix & match teachers, subjects, and courses
             s_t_df = group_teacher_level(newcsv)
             s_t_c_df = group_course_level(newcsv)
-            new_teachers_dict = match_and_create_teachers(s_t_df, survey, session, fresh_precords_dict)
-            new_subjects_and_courses_dict = match_and_create_subjects_and_courses(s_t_c_df, survey, session, fresh_precords_dict)
+            new_teachers_dict = match_and_create_teachers(s_t_df, session, fresh_precords_dict)
+            new_subjects_and_courses_dict = match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict)
             # Pair the new courses with teachers
-            pair_new_courses_with_teachers(s_t_c_df, survey, session, fresh_precords_dict)
+            pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict)
             context['number_of_new_teachers'] = new_teachers_dict['newcount']
             context['added_teachers'] = Teacher.objects.filter(imported_thru=session)
             context['number_of_new_subjects'] = new_subjects_and_courses_dict['newcount_subject']

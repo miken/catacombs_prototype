@@ -20,6 +20,7 @@
         <th>Subject</th>
         <th>Number of Student Responses</th>
         <th>Classroom Size</th>
+        <th>Response Rate</th>
       </tr>
       
       {% for c in teacher.courses.all %}
@@ -28,6 +29,7 @@
         <td>{{ c.subject.name }}</td>
         <td>{{ c.student_count }}</td>
         <td>{{ c.classroom_size }}</td>
+        <td>{{ c.rr_string }}</td>
       </tr>
       {% endfor %}
     </table>    
