@@ -4,6 +4,8 @@
 
 <h1>{{ survey.name }}</h1>
 
+<h2>Participants Overview</h2>
+
 <table class="table table-striped">
   <tr>
     <th>School Name</th>
@@ -18,12 +20,18 @@
   {% endfor %}
 </table>
 
-<h1>Upload Data</h1>
+<h2>Data Management</h2>
 
 <p>
   <form action="{% url "surveys-upload" pk=survey.id %}" method="POST">
     {% csrf_token %}
       <button type="submit" class="btn btn-large btn-default"><i class="icon-upload"> </i>Upload CSV to This Survey</button>
+  </form>
+</p>
+<p>
+  <form action="{% url "surveys-clean" pk=survey.id %}" method="POST">
+    {% csrf_token %}
+      <button type="submit" class="btn btn-large btn-default"><i class="icon-sort-by-attributes"> </i>Clean Survey Data</button>
   </form>
 </p>
 <p><a href="{% url "home-view" %}">Back to home</a></p>

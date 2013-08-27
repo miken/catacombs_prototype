@@ -137,21 +137,27 @@
     {% else %}
 
       <p>A total of {{ number_of_new_teachers }} teachers were added to the database. The following table lists all new teachers:</p>
-        <table class="table table-striped table-condensed">
-          <tr>
-            <th>School</th>
-            <th>Full Name</th>
-            <th>Number of Courses Created</th>
-          </tr>
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-6 col-lg-offset-3">
+              <table class="table table-striped table-condensed">
+                <tr>
+                  <th>School</th>
+                  <th>Full Name</th>
+                  <th>Number of Courses Created</th>
+                </tr>
 
-          {% for t in added_teachers %}
-          <tr>
-            <td>{{ t.feedback_given_in.school.abbrev_name }}</td>
-            <td>{{ t.full_name }}</td>
-            <td>{{ t.courses.count }}</td>
-          </tr>
-          {% endfor %}
-        </table>
+                {% for t in added_teachers %}
+                <tr>
+                  <td>{{ t.feedback_given_in.school.abbrev_name }}</td>
+                  <td>{{ t.full_name }}</td>
+                  <td>{{ t.courses.count }}</td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+        </div>
     {% endif %}
 
   {% endif %}

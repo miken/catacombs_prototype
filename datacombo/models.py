@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import models
+from django.db.models import Avg
 from django.core.urlresolvers import reverse
 
 
@@ -56,11 +57,33 @@ class Survey(models.Model):
         count = Teacher.objects.filter(feedback_given_in__in=self.schoolparticipation_set.distinct()).count()
         return count
 
+    def course_count(self):
+        # Use distinct, since a school can participate in the same survey multiple times
+        # We care about the number of distinct schools, instead of particpation records
+        count = Course.objects.filter(feedback_given_in__in=self.schoolparticipation_set.distinct()).count()
+        return count
+
     def student_count(self):
         # Use distinct, since a school can participate in the same survey multiple times
         # We care about the number of distinct schools, instead of particpation records
         count = Student.objects.filter(surveyed_thru__in=self.schoolparticipation_set.distinct()).count()
         return count
+
+    def courses_below_cutoff(self):
+        '''
+        This function returns a list of course objects that do not meet
+        required response count of 5 or response rate of 60 and above
+        '''
+        # First get all teachers that belong to this survey
+        teachers = Teacher.objects.filter(feedback_given_in__in=self.schoolparticipation_set.distinct())
+        # Then get all courses that belong to these teachers
+        courses = Course.objects.filter(teacher__id__in=teachers)
+        courses_to_cut = []
+        for c in courses:
+            if c.is_below_cutoff():
+                courses_to_cut.append(c)
+        return courses_to_cut
+
 
     def get_absolute_url(self):
         return reverse('surveys-view', kwargs={'pk': self.id})
@@ -98,6 +121,10 @@ class ImportSession(models.Model):
 
     def teacher_count(self):
         count = self.teacher_set.count()
+        return count
+
+    def course_count(self):
+        count = self.course_set.count()
         return count
 
     def student_count(self):
@@ -222,6 +249,7 @@ class Course(models.Model):
     subject = models.ForeignKey(Subject)
     classroom_size = models.PositiveSmallIntegerField(default=0)
     legacy_survey_index = models.CharField(max_length=255, default='', verbose_name=u'Index generated from School_Short, Full_Name, and Course_Name')
+    feedback_given_in = models.ForeignKey(SchoolParticipation)
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
     class Meta:
@@ -251,6 +279,27 @@ class Course(models.Model):
         else:
             return False
 
+    def rating(self, var):
+        '''
+        Return the average rating for a given variable
+        var here is an instance of the Variable model
+        '''
+        course_varset = self.feedback_given_in.survey.variable_set
+        if var not in course_varset.all():
+            return 'N/A'
+        else:
+            # Find all responses for this course
+            course_resp = self.response_set.filter(question=var)
+            # Take the average
+            avg_dict = course_resp.aggregate(Avg('answer'))
+            rating = avg_dict['answer__avg']
+            # Round it up to two decimal digits
+            rating = round(rating, 2)
+            return rating
+
+    def get_absolute_url(self):
+        return reverse('courses-view', kwargs={'pk': self.id})
+
     def __unicode__(self):
         return self.name
 
@@ -274,6 +323,29 @@ class Teacher(models.Model):
     def salute_name(self):
         salute_name = u'{salute} {last}'.format(salute=self.salutation, last=self.last_name)
         return salute_name
+
+
+    def rating(self, var):
+        '''
+        Return the average rating for a given variable
+        var here is an instance of the Variable model
+        '''
+        teacher_varset = self.feedback_given_in.survey.variable_set
+        if var not in teacher_varset.all():
+            return 'N/A'
+        else:
+            # Find all responses for this teacher
+            # Filter for just responses belonging to these courses
+            responses = Response.objects.filter(on_course__in=self.courses.all())
+            # Now filter for just responses with this variable
+            var_responses = responses.filter(question=var)
+            # Take the average
+            avg_dict = var_responses.aggregate(Avg('answer'))
+            rating = avg_dict['answer__avg']
+            # Round it up to two decimal digits
+            rating = round(rating, 2)
+            return rating
+
 
     def get_absolute_url(self):
         return reverse('teachers-view', kwargs={'pk': self.id})

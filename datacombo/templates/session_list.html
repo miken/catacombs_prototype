@@ -8,16 +8,17 @@
 
 <p>The downside of this approach is that when you delete an import session in this table, all data points, e.g., schools, teachers, students, and response records, "hooked" to that session will be deleted from the database too. Removing import session should only be the last resort. You have the option to delete schools and their participation records individually. Always check the number of "hooked" data points in this table to have a sense of what will be affected when you delete the session.</p>
 
-<table class="table table-striped">
+<table class="table table-striped table-condensed">
   <tr>
     <th>Session Title</th>
     <th>Type</th>
     <th>For Which Survey?</th>
-    <th>Schools "Hooked To"</th>
-    <th>School Participations "Hooked To"</th>
-    <th>Teachers "Hooked To"</th>
-    <th>Student Responses "Hooked To"</th>
-    <th>Data Points "Hooked To"</th>
+    <th>Schools Added</th>
+    <th>School Participations Added</th>
+    <th>Teachers Added</th>
+    <th>Courses Added</th>
+    <th>Student Responses Added</th>
+    <th>Data Points Added</th>
     <th>Uploaded On</th>
     <th>Action</th>
   </tr>
@@ -30,12 +31,13 @@
     <td>{{ session.school_count }}</td>
     <td>{{ session.pr_count }}</td>
     <td>{{ session.teacher_count }}</td>
+    <td>{{ session.course_count }}</td>
     <td>{{ session.student_count }}</td>
     <td>{{ session.response_count }}</td>
     <td>{{ session.date_created }}</td>
     <td>
-      <a href="{% url "sessions-edit" pk=session.id %}" class="btn btn-default">Edit</a>
-      <a href="{% url "sessions-delete" pk=session.id %}" class="btn btn-danger">Delete</a>
+      <a href="{% url "sessions-edit" pk=session.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"></i></a>
+      <a href="{% url "sessions-delete" pk=session.id %}" class="btn btn-danger btn-xs"><i class="icon-trash icon-large "></i></a>
     </td>
   </tr>
   {% endfor %}

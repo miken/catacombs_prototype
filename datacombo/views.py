@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
-from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject
+from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course
 from datacombo.forms import UploadFileForm, SchoolParticipationForm
 from datacombo.upload import process_uploaded
 
@@ -275,6 +275,17 @@ class TeacherView(DetailView):
     template_name = 'teacher.html'
 
 
+# Views for Course
+class CourseView(DetailView):
+
+    model = Course
+    template_name = 'course.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CourseView, self).get_context_data(**kwargs)
+        return context
+
+
 
 #Views for Survey
 class ListSurveyView(ListView):
@@ -329,7 +340,7 @@ class SurveyView(DetailView):
     template_name = 'survey.html'
 
 
-#View functions for handling file uploads
+# View functions for handling file uploads
 def upload_file(request, pk):
     # Read survey ID from parsed pk
     survey_id = pk
@@ -341,6 +352,7 @@ def upload_file(request, pk):
             newfile = request.FILES['file']
             file_type = request.POST['file_type']
             session_title = request.POST['title']
+            # Process the uploaded data using a helper function in upload.py
             context = process_uploaded(newfile, file_type, survey, session_title)
             # Redirect to upload summary after POST
             response = SimpleTemplateResponse('upload_confirm.html', context=context)
@@ -357,6 +369,14 @@ def delete_session(request, pk):
         return HttpResponseRedirect(reverse('sessions-list'))
     else:
         return render(request, 'delete_session.html', {'session': session})
+
+
+# View functions for cleaning survey data
+def clean_survey(request, pk):
+    # Read survey ID from parsed pk
+    survey_id = pk
+    survey = Survey.objects.get(id=survey_id)
+    return render_to_response('clean_survey.html', {'survey': survey}, context_instance=RequestContext(request))
 
 
 #Views for Import Session

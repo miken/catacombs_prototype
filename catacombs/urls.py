@@ -12,7 +12,7 @@ urlpatterns = patterns('',
     url(r'^$', datacombo.views.HomeView.as_view(), name='home-view'),
     url(r'^upload/$', datacombo.views.upload_file, name='upload'),
 
-    #Variables
+    # Variables
     url(r'^vars/$', datacombo.views.ListVariableView.as_view(), name='variables-list',),
     url(r'^vars/new$', datacombo.views.CreateVariableView.as_view(), name='variables-new',),
     url(r'^vars/edit/(?P<pk>\d+)/$', datacombo.views.UpdateVariableView.as_view(),
@@ -20,7 +20,7 @@ urlpatterns = patterns('',
     url(r'^vars/delete/(?P<pk>\d+)/$', datacombo.views.DeleteVariableView.as_view(),
         name='variables-delete',),
 
-    #Schools
+    # Schools
     url(r'^schools/$', datacombo.views.ListSchoolView.as_view(), name='schools-list',),
     url(r'^schools/new$', datacombo.views.CreateSchoolView.as_view(), name='schools-new',),
     url(r'^schools/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSchoolView.as_view(),
@@ -30,7 +30,7 @@ urlpatterns = patterns('',
     url(r'^schools/(?P<pk>\d+)/$', datacombo.views.SchoolView.as_view(),
         name='schools-view',),
 
-    #School Participations
+    # School Participations
     # Creating new school participations record is not ready yet
     url(r'^schools/(?P<pk>\d+)/records/new$', datacombo.views.CreateSchoolParticipationView.as_view(), name='schoolparticipations-new',),
     url(r'^schools/records/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSchoolParticipationView.as_view(),
@@ -40,7 +40,7 @@ urlpatterns = patterns('',
     url(r'^schools/records/(?P<pk>\d+)/$', datacombo.views.SchoolParticipationView.as_view(),
         name='schoolparticipations-view',),
 
-    #Teachers
+    # Teachers
     #url(r'^teachers/$', datacombo.views.ListTeacherView.as_view(), name='teachers-list',),
     #url(r'^teachers/new$', datacombo.views.CreateTeacherView.as_view(), name='teachers-new',),
     url(r'^teachers/edit/(?P<pk>\d+)/$', datacombo.views.UpdateTeacherView.as_view(), name='teachers-edit',),
@@ -48,7 +48,7 @@ urlpatterns = patterns('',
     url(r'^teachers/(?P<pk>\d+)/$', datacombo.views.TeacherView.as_view(),
         name='teachers-view',),
 
-    #Subjects
+    # Subjects
     url(r'^subjects/$', datacombo.views.ListSubjectView.as_view(), name='subjects-list',),
     url(r'^subjects/new$', datacombo.views.CreateSubjectView.as_view(), name='subjects-new',),
     url(r'^subjects/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSubjectView.as_view(),
@@ -58,6 +58,9 @@ urlpatterns = patterns('',
     url(r'^subjects/(?P<pk>\d+)/$', datacombo.views.SubjectView.as_view(),
         name='subjects-view',),
 
+    # Courses
+    url(r'^courses/(?P<pk>\d+)/$', datacombo.views.CourseView.as_view(), name='courses-view',),
+
     #Surveys - We're gonna disable this for now
     #url(r'^surveys/$', datacombo.views.ListSurveyView.as_view(), name='surveys-list',),
     #url(r'^surveys/new$', datacombo.views.CreateSurveyView.as_view(), name='surveys-new',),
@@ -65,6 +68,8 @@ urlpatterns = patterns('',
     #url(r'^surveys/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSurveyView.as_view(), name='surveys-delete',),
     url(r'^surveys/(?P<pk>\d+)/upload$', datacombo.views.upload_file,
         name='surveys-upload',),
+    url(r'^surveys/(?P<pk>\d+)/clean$', datacombo.views.clean_survey,
+        name='surveys-clean',),
     url(r'^surveys/(?P<pk>\d+)/$', datacombo.views.SurveyView.as_view(),
         name='surveys-view',),
 

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% load template_filters %}
+
+{% block content %}
+
+<h1>{{ course.name }}</h1>
+
+{% for t in course.teacher_set.all %}
+  <h4>{{ t.full_name }}</h4>
+{% endfor %}
+<h4>{{ course.feedback_given_in.school.name }}</h4>
+<h4>{{ course.feedback_given_in.survey.name }} - {{ course.feedback_given_in.month }}, {{ course.feedback_given_in.year }}</h4>
+
+<h2>Overall Information</h2>
+
+<div class="row">
+  <div class="col-lg-6 col-lg-offset-3">
+    <table class="table table-striped">      
+      <tr>
+        <td>Number of Responses</td>
+        <td>{{ course.student_count }}</td>
+      </tr>
+      <tr>
+        <td>Classroom Size</td>
+        <td>{{ course.classroom_size }}</td>
+      </tr>
+      <tr>
+        <td>Response Rate</td>
+        <td>{{ course.rr_string }}</td>
+      </tr>
+    </table>    
+  </div>
+</div>
+
+{% if course.student_count > 0 %}
+  <h2>Results Summary</h2>
+
+  {% for factor in course.feedback_given_in.survey.summarymeasure_set.all %}
+  <h3>{{ factor.label }}</h3>
+
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2">
+      <table class="table table-striped">
+        <tr>
+          <th>Question</td>
+          <th>Rating</th>
+        </tr>      
+        {% for v in factor.variable_set.all %}
+          <tr>
+            <td>{{ v.description }}</td>
+            <td>{{ course|calculate_average:v }}</td>
+          </tr>        
+        {% endfor %}
+      </table>    
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}
+
+{{ test }}
+
+<p><a href="{{ course.feedback_given_in.get_absolute_url }}">Back to {{ course.feedback_given_in.school.name }} ({{ course.feedback_given_in.month }}, {{ course.feedback_given_in.year }})</a></p>
+{% endblock %}
