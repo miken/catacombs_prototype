@@ -2,8 +2,9 @@ from django.core.management.base import BaseCommand, CommandError
 import os
 
 root_dir = os.getcwd()
-cmd_dir = os.path.join(root_dir, 'datacombo', 'management', 'commands')
+cmd_dir = os.path.join(root_dir, 'seeds')
 os.chdir(cmd_dir)
+
 
 def seed_surveys():
     from datacombo.models import Survey
@@ -41,7 +42,6 @@ def seed_factors():
         new_factor.label = factors.get_value(idx_tuple, 'label')
         new_factor.save()
     print "Summary Measures seeded."
-        
 
 
 def seed_vars():
