@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-lg-8 col-lg-offset-2 text-center">
+    <p class="top-padding">Welcome to Catacombs. Please sign in to continue.</p>
+    <form action="{% url "login-view" %}" class="form-inline top-padding" role="form" method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="hidden" name="next" value="{{ next }}" />
+      <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

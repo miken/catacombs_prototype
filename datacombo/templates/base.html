@@ -30,10 +30,19 @@
 
       <div class="row">
         <div class="col-md-12">
+          {% if user.is_authenticated %}
+            <p class="pull-right">Welcome {{ user.username }}! <a href="{% url "logout" %}">Logout</a></p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
           {% block content %}
           {% endblock %}
         </div>
       </div>
+
       <div class="row">
         <div class="col-md-12 text-center top-padding">
           <p>Copyright &copy; 2013 <a href="//www.youthtruthsurvey.org">YouthTruth Survey</a></p>

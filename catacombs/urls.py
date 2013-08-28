@@ -9,7 +9,10 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    url(r'^$', datacombo.views.HomeView.as_view(), name='home-view'),
+    url(r'^$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name='login-view'),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name='login-view'),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
+    url(r'^home/$', datacombo.views.HomeView.as_view(), name='home-view'),
     url(r'^upload/$', datacombo.views.upload_file, name='upload'),
 
     # Variables

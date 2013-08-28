@@ -3,6 +3,8 @@ from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
 from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course
@@ -19,6 +21,10 @@ class HomeView(TemplateView):
         context = super(HomeView, self).get_context_data(**kwargs)
         context['all_surveys'] = Survey.objects.all()
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(HomeView, self).dispatch(*args, **kwargs)
 
 
 #Views for Variable

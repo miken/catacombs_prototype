@@ -136,6 +136,7 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'crispy_forms',
     #'south',
     'datacombo',
 )
@@ -171,6 +172,7 @@ LOGGING = {
 
 # Parse database configuration from $DATABASE_URL
 
+LOGIN_REDIRECT_URL = '/home'
 
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()

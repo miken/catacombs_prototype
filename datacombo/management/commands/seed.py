@@ -6,6 +6,18 @@ cmd_dir = os.path.join(root_dir, 'seeds')
 os.chdir(cmd_dir)
 
 
+def seed_users():
+    # Create login accounts for Nathan, Caredwen, and An-Li
+    from django.contrib.auth.models import User
+    caredwen = User.objects.create_user('caredwenf', 'caredwenf@youthtruthsurvey.org', 'password')
+    nathan = User.objects.create_user('nathanh', 'nathanh@youthtruthsurvey.org', 'password')
+    anli = User.objects.create_user('an-lih', 'an-lih@youthtruthsurvey.org', 'password')
+    caredwen.save()
+    nathan.save()
+    anli.save()
+    print "Seeded accounts for Nathan, An-Li, and Caredwen."
+
+
 def seed_surveys():
     from datacombo.models import Survey
     tchhs = Survey(name='HS Teacher Feedback Survey',
@@ -87,6 +99,7 @@ class Command(BaseCommand):
     help = 'Set up surveys and variables for testing'
 
     def handle(self, *args, **options):
+        seed_users()
         seed_surveys()
         seed_factors()
         seed_vars()
