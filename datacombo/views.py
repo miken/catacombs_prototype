@@ -33,6 +33,10 @@ class ListVariableView(ListView):
     model = Variable
     template_name = 'variable_list.html'
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ListVariableView, self).dispatch(*args, **kwargs)
+
 
 class CreateVariableView(CreateView):
 
@@ -46,8 +50,11 @@ class CreateVariableView(CreateView):
 
         context = super(CreateVariableView, self).get_context_data(**kwargs)
         context['action'] = reverse('variables-new')
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CreateVariableView, self).dispatch(*args, **kwargs)
 
 
 class UpdateVariableView(UpdateView):
@@ -63,8 +70,11 @@ class UpdateVariableView(UpdateView):
         context = super(UpdateVariableView, self).get_context_data(**kwargs)
         context['action'] = reverse('variables-edit',
                                     kwargs={'pk': self.get_object().id})
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateVariableView, self).dispatch(*args, **kwargs)
 
 
 class DeleteVariableView(DeleteView):
@@ -75,12 +85,20 @@ class DeleteVariableView(DeleteView):
     def get_success_url(self):
         return reverse('variables-list')
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteVariableView, self).dispatch(*args, **kwargs)
+
 
 #Views for School
 class ListSchoolView(ListView):
 
     model = School
     template_name = 'school_list.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ListSchoolView, self).dispatch(*args, **kwargs)
 
 
 class CreateSchoolView(CreateView):
@@ -95,8 +113,11 @@ class CreateSchoolView(CreateView):
 
         context = super(CreateSchoolView, self).get_context_data(**kwargs)
         context['action'] = reverse('schools-new')
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CreateSchoolView, self).dispatch(*args, **kwargs)
 
 
 class UpdateSchoolView(UpdateView):
@@ -112,8 +133,11 @@ class UpdateSchoolView(UpdateView):
         context = super(UpdateSchoolView, self).get_context_data(**kwargs)
         context['action'] = reverse('schools-edit',
                                     kwargs={'pk': self.get_object().id})
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateSchoolView, self).dispatch(*args, **kwargs)
 
 
 class DeleteSchoolView(DeleteView):
@@ -123,6 +147,10 @@ class DeleteSchoolView(DeleteView):
 
     def get_success_url(self):
         return reverse('schools-list')
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteSchoolView, self).dispatch(*args, **kwargs)
 
 
 class SchoolView(DetailView):
@@ -134,12 +162,20 @@ class SchoolView(DetailView):
         obj = School.objects.get(id=self.kwargs['pk'])
         return obj
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SchoolView, self).dispatch(*args, **kwargs)
+
 
 #Views for Subject
 class ListSubjectView(ListView):
 
     model = Subject
     template_name = 'subject_list.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ListSubjectView, self).dispatch(*args, **kwargs)
 
 
 class CreateSubjectView(CreateView):
@@ -154,8 +190,11 @@ class CreateSubjectView(CreateView):
 
         context = super(CreateSubjectView, self).get_context_data(**kwargs)
         context['action'] = reverse('subjects-new')
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CreateSubjectView, self).dispatch(*args, **kwargs)
 
 
 class UpdateSubjectView(UpdateView):
@@ -171,8 +210,11 @@ class UpdateSubjectView(UpdateView):
         context = super(UpdateSubjectView, self).get_context_data(**kwargs)
         context['action'] = reverse('subjects-edit',
                                     kwargs={'pk': self.get_object().id})
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateSubjectView, self).dispatch(*args, **kwargs)
 
 
 class DeleteSubjectView(DeleteView):
@@ -183,6 +225,10 @@ class DeleteSubjectView(DeleteView):
     def get_success_url(self):
         return reverse('subjects-list')
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteSubjectView, self).dispatch(*args, **kwargs)
+
 
 class SubjectView(DetailView):
 
@@ -192,6 +238,10 @@ class SubjectView(DetailView):
     def get_object(self, queryset=None):
         obj = Subject.objects.get(id=self.kwargs['pk'])
         return obj
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SubjectView, self).dispatch(*args, **kwargs)
 
 
 # Views for School Participation Records
@@ -213,6 +263,10 @@ class CreateSchoolParticipationView(CreateView):
         context['action'] = reverse('schoolparticipations-new', kwargs={'pk': self.get_object().id})
         return context
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CreateSchoolParticipationView, self).dispatch(*args, **kwargs)
+
 
 class UpdateSchoolParticipationView(UpdateView):
 
@@ -232,6 +286,10 @@ class UpdateSchoolParticipationView(UpdateView):
 
         return context
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateSchoolParticipationView, self).dispatch(*args, **kwargs)
+
 
 class DeleteSchoolParticipationView(DeleteView):
 
@@ -241,11 +299,19 @@ class DeleteSchoolParticipationView(DeleteView):
     def get_success_url(self):
         return reverse('schools-list')
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteSchoolParticipationView, self).dispatch(*args, **kwargs)
+
 
 class SchoolParticipationView(DetailView):
 
     model = SchoolParticipation
     template_name = 'schoolparticipation.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SchoolParticipationView, self).dispatch(*args, **kwargs)
 
 
 # Views for Teacher
@@ -262,9 +328,11 @@ class UpdateTeacherView(UpdateView):
         context = super(UpdateTeacherView, self).get_context_data(**kwargs)
         context['action'] = reverse('teachers-edit',
                                     kwargs={'pk': self.get_object().id})
-
         return context
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateTeacherView, self).dispatch(*args, **kwargs)
 
 class DeleteTeacherView(DeleteView):
 
@@ -274,12 +342,19 @@ class DeleteTeacherView(DeleteView):
     def get_success_url(self):
         return reverse('teachers-list')
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteTeacherView, self).dispatch(*args, **kwargs)
+
 
 class TeacherView(DetailView):
 
     model = Teacher
     template_name = 'teacher.html'
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(TeacherView, self).dispatch(*args, **kwargs)
 
 # Views for Course
 class CourseView(DetailView):
@@ -291,6 +366,10 @@ class CourseView(DetailView):
         context = super(CourseView, self).get_context_data(**kwargs)
         return context
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CourseView, self).dispatch(*args, **kwargs)
+
 
 
 #Views for Survey
@@ -298,6 +377,10 @@ class ListSurveyView(ListView):
 
     model = Survey
     template_name = 'survey_list.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ListSurveyView, self).dispatch(*args, **kwargs)
 
 
 class CreateSurveyView(CreateView):
@@ -312,8 +395,11 @@ class CreateSurveyView(CreateView):
 
         context = super(CreateSurveyView, self).get_context_data(**kwargs)
         context['action'] = reverse('surveys-new')
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CreateSurveyView, self).dispatch(*args, **kwargs)
 
 
 class UpdateSurveyView(UpdateView):
@@ -330,6 +416,10 @@ class UpdateSurveyView(UpdateView):
                                     kwargs={'pk': self.get_object().id})
         return context
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateSurveyView, self).dispatch(*args, **kwargs)
+
 
 class DeleteSurveyView(DeleteView):
 
@@ -339,14 +429,22 @@ class DeleteSurveyView(DeleteView):
     def get_success_url(self):
         return reverse('surveys-list')
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteSurveyView, self).dispatch(*args, **kwargs)
 
 class SurveyView(DetailView):
 
     model = Survey
     template_name = 'survey.html'
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SurveyView, self).dispatch(*args, **kwargs)
+
 
 # View functions for handling file uploads
+@login_required
 def upload_file(request, pk):
     # Read survey ID from parsed pk
     survey_id = pk
@@ -367,7 +465,7 @@ def upload_file(request, pk):
         form = UploadFileForm()
     return render_to_response('upload.html', {'form': form, 'survey': survey}, context_instance=RequestContext(request))
 
-
+@login_required
 def delete_session(request, pk):
     session = get_object_or_404(ImportSession, pk=pk)
     if request.method == 'POST':
@@ -378,6 +476,7 @@ def delete_session(request, pk):
 
 
 # View functions for cleaning survey data
+@login_required
 def clean_survey(request, pk):
     # Read survey ID from parsed pk
     survey_id = pk
@@ -390,6 +489,10 @@ class ListSessionView(ListView):
 
     model = ImportSession
     template_name = 'session_list.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ListSessionView, self).dispatch(*args, **kwargs)
 
 
 class UpdateSessionView(UpdateView):
@@ -405,5 +508,8 @@ class UpdateSessionView(UpdateView):
         context = super(UpdateSessionView, self).get_context_data(**kwargs)
         context['action'] = reverse('sessions-edit',
                                     kwargs={'pk': self.get_object().id})
-
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateSessionView, self).dispatch(*args, **kwargs)
