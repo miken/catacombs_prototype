@@ -1,0 +1,13 @@
+surveycode,varname,label
+tch-hs,sum_eng,Student Engagement
+tch-hs,sum_expec,Academic Rigor & Expectations
+tch-hs,sum_rele,Relevance
+tch-hs,sum_met,Instructional Methods
+tch-hs,sum_rel,Personal Relationships
+tch-hs,sum_env,Classroom Culture
+tch-ms,m_sum_eng,Student Engagement
+tch-ms,m_sum_expec,Academic Rigor & Expectations
+tch-ms,m_sum_rele,Relevance
+tch-ms,m_sum_met,Instructional Methods
+tch-ms,m_sum_rel,Personal Relationships
+tch-ms,m_sum_env,Classroom Culture
