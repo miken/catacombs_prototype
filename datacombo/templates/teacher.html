@@ -38,7 +38,7 @@
   </div>
 </div>
 
-<h2>Results Summary</h2>
+<h2>Teacher Ratings</h2>
 
 {% for factor in teacher.feedback_given_in.survey.summarymeasure_set.all %}
 <h3>{{ factor.label }}</h3>
@@ -47,8 +47,8 @@
   <div class="col-lg-8 col-lg-offset-2">
     <table class="table table-striped">
       <tr>
-        <th>Question</td>
-        <th>Rating</th>
+        <th class="col-lg-10">Question</td>
+        <th class="col-lg-2">Rating</th>
       </tr>      
       {% for v in factor.variable_set.all %}
         <tr>

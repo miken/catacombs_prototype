@@ -1,0 +1,47 @@
+.container-big {
+  background-color: white;
+  opacity: 0.9;
+}
+
+.top-padding {
+  margin-top: 6em;
+}
+
+.img-centered {
+  display: block;
+  margin-top: 15px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.img-right {
+  margin-top: 3.5em;
+  float: right;
+}
+
+.title {
+  margin-top: 0.3em;
+  float: left;
+  font-family: 'UnifrakturMaguntia', cursive, Arial, serif;
+  font-size: 600%;
+  font-weight: 400; 
+}
+
+
+h1 {
+    font-family: 'Lobster', Georgia, Times, serif;
+    font-size: 70px;
+    line-height: 100px;
+}
+
+h2, h3, h4, h5, h6 {
+    font-family: 'Lobster', Georgia, Times, serif;
+}
+
+p, a, ul, button, table {
+    font-family: 'Droid Sans', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 25px;
+}
+
+

@@ -3,18 +3,46 @@
 <html lang="en">
   <head>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-wip/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static "custom.css" %}">
+    <link href='http://fonts.googleapis.com/css?family=UnifrakturMaguntia' rel='stylesheet' type='text/css'>
+    <link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Droid+Sans" rel="stylesheet" type="text/css">
     <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
   </head>
 
   <body>
-    <div class="container">
+    <div class="container container-big">
+      <div class="row">
+        <div class="col-lg-5 text-center" >
+          <a href="{% url "home-view" %}">
+            <img src="{% static "ytlogo.png" %}" class="img-responsive img-right" alt="YouthTruth logo" />
+          </a>
+        </div>
+        <div class="col-lg-2 text-center" >
+          <a href="{% url "home-view" %}">
+            <img src="{% static "mike.jpg" %}" class="img-circle img-responsive img-centered" alt="Mike" />
+          </a>
+        </div>
+        <div class="col-lg-5 text-center" >
+          <div class="title">catacombs</div>
+        </div>
+      </div>
+
       <div class="row">
         <div class="col-md-12">
           {% block content %}
           {% endblock %}
         </div>
       </div>
+      <div class="row">
+        <div class="col-md-12 text-center top-padding">
+          <p>Copyright &copy; 2013 <a href="//www.youthtruthsurvey.org">YouthTruth Survey</a></p>
+        </div>
+      </div>
     </div>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-wip/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-backstretch/2.0.4/jquery.backstretch.min.js"></script>
+    <script src="{% static "custom.js" %}"></script>
   </body>
 </html>

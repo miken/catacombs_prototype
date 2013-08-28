@@ -11,10 +11,10 @@
 
 <table class="table table-striped">
   <tr>
-    <th>Survey Name</th>
-    <th>Number of Schools Received Feedback</th>
-    <th>Number of Teachers Received Feedback</th>
-    <th>Number of Students Surveyed</th>
+    <th class="col-lg-4">Survey Name</th>
+    <th>No. of Schools Received Feedback</th>
+    <th>No. of Teachers Received Feedback</th>
+    <th>No. of Students Surveyed</th>
   </tr>
   
   {% for survey in all_surveys %}
@@ -32,20 +32,16 @@
 <p>Use these options to manage the overall records of these objects in the database.</p>
 
 <ul class="list-inline">
-  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default">Manage Schools</a></li>
-  <li><a href="{% url "variables-list" %}" class="btn btn-large btn-default">Manage Survey Variables</a></li>
-  <li><a href="{% url "subjects-list" %}" class="btn btn-large btn-default">Manage Academic Subjects</a></li>
+  <li><a href="{% url "schools-list" %}" class="btn btn-lg btn-default">Manage Schools</a></li>
+  <li><a href="{% url "variables-list" %}" class="btn btn-lg btn-default">Manage Survey Variables</a></li>
+  <li><a href="{% url "subjects-list" %}" class="btn btn-lg btn-default">Manage Academic Subjects</a></li>
 </ul>
 
 <h2>Data Troubleshooting</h2>
 
 <p>Having data issues? Use this option for troubleshooting issues with data. You can browse through the import sessions and look at "orphaned" objects in the database, e.g., schools that have no participation records, teachers with no course names, or students with no recorded responses.</p>
 <ul class="list-inline">
-  <li><a href="{% url "sessions-list" %}" class="btn btn-large btn-default"><i class="icon-th-list"> </i>Manage Import Sessions</a></li>
-  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Schools</a></li>
-  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Schools</a></li>
-  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Teachers</a></li>
-  <li><a href="{% url "schools-list" %}" class="btn btn-large btn-default" disabled="disabled">Find "Orphaned" Students</a></li>
+  <li><a href="{% url "sessions-list" %}" class="btn btn-lg btn-default"><i class="icon-th-list"> </i>Manage Import Sessions</a></li>
 </ul>
 
 {% endblock %}

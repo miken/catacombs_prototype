@@ -4,35 +4,39 @@
 
 <h1>{{ survey.name }}</h1>
 
-<h2>Participants Overview</h2>
 
-<table class="table table-striped">
-  <tr>
-    <th>School Name</th>
-    <th>Times Participated in YT</th>
-  </tr>
-  
-  {% for school in survey.school_set.distinct %}
-  <tr class="school">
-    <td><a href="{{ school.get_absolute_url }}">{{ school.name }}</a></td>
-    <td>{{ school.repeat_count }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="row">
+  <div class="col-lg-8">
+    <h2>Participants Overview</h2>
 
-<h2>Data Management</h2>
-
-<p>
-  <form action="{% url "surveys-upload" pk=survey.id %}" method="POST">
-    {% csrf_token %}
-      <button type="submit" class="btn btn-large btn-default"><i class="icon-upload"> </i>Upload CSV to This Survey</button>
-  </form>
-</p>
-<p>
-  <form action="{% url "surveys-clean" pk=survey.id %}" method="POST">
-    {% csrf_token %}
-      <button type="submit" class="btn btn-large btn-default"><i class="icon-sort-by-attributes"> </i>Clean Survey Data</button>
-  </form>
-</p>
+    <table class="table table-striped">
+      <tr>
+        <th>School Name</th>
+        <th>Times Participated in YT</th>
+      </tr>
+      
+      {% for school in survey.school_set.distinct %}
+      <tr class="school">
+        <td><a href="{{ school.get_absolute_url }}">{{ school.name }}</a></td>
+        <td>{{ school.repeat_count }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="col-lg-4 top-padding">
+    <p>
+      <form action="{% url "surveys-upload" pk=survey.id %}" method="POST">
+        {% csrf_token %}
+          <button type="submit" class="btn btn-lg btn-default"><i class="icon-upload"> </i>Upload CSV to This Survey</button>
+      </form>
+    </p>
+    <p>
+      <form action="{% url "surveys-clean" pk=survey.id %}" method="POST">
+        {% csrf_token %}
+          <button type="submit" class="btn btn-lg btn-default"><i class="icon-sort-by-attributes"> </i>Clean Survey Data</button>
+      </form>
+    </p>
+  </div>
+</div>
 <p><a href="{% url "home-view" %}">Back to home</a></p>
 {% endblock %}

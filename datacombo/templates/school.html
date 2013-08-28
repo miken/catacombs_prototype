@@ -9,13 +9,12 @@
 <h2>Participation Records</h2>
 <table class="table table-striped">
   <tr>
-    <th>Survey Period</th>
-    <th>Survey Title</th>
-    <th>Legacy School Short</th>
-    <th>Number of Student Responses Recorded</th>
-    <th>Number of Teachers Receiving Feedback</th>
-    <th>Note</th>
-    <th>Action</th>
+    <th class="col-lg-2">Survey Period</th>
+    <th class="col-lg-3">Survey Title</th>
+    <th class="col-lg-2">Legacy School Short</th>
+    <th>No. of Student Responses</th>
+    <th>No. of Teachers With Feedback</th>
+    <th class="col-lg-1">Action</th>
   </tr>
   
   {% for p in school.schoolparticipation_set.all %}
@@ -25,10 +24,9 @@
     <td>{{ p.legacy_school_short }}</td>
     <td>{{ p.student_count }}</td>
     <td>{{ p.teacher_count }}</td>
-    <td>{{ p.note }}</td>
     <td>
-      <a href="{% url "schoolparticipations-edit" pk=p.id %}" class="btn btn-default">Edit</a>
-      <a href="{% url "schoolparticipations-delete" pk=p.id %}" class="btn btn-danger">Delete</a>
+      <a href="{% url "schoolparticipations-edit" pk=p.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"></i></a>
+      <a href="{% url "schoolparticipations-delete" pk=p.id %}" class="btn btn-danger btn-xs"><i class="icon-trash icon-large"></i></a>
     </td>
   </tr>
   {% endfor %}

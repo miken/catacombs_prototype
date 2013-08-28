@@ -34,7 +34,7 @@
 </div>
 
 {% if course.student_count > 0 %}
-  <h2>Results Summary</h2>
+  <h2>Course Ratings</h2>
 
   {% for factor in course.feedback_given_in.survey.summarymeasure_set.all %}
   <h3>{{ factor.label }}</h3>
