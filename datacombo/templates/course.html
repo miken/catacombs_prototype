@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 
-{% load template_filters %}
-
 {% block content %}
 
 <h1>{{ course.name }}</h1>
 
 {% for t in course.teacher_set.all %}
-  <h4>{{ t.full_name }}</h4>
+  <h2>{{ t.full_name }}</h2>
 {% endfor %}
 <h4>{{ course.feedback_given_in.school.name }}</h4>
 <h4>{{ course.feedback_given_in.survey.name }} - {{ course.feedback_given_in.month }}, {{ course.feedback_given_in.year }}</h4>
@@ -34,28 +32,10 @@
 </div>
 
 {% if course.student_count > 0 %}
+
   <h2>Course Ratings</h2>
+  {% include "results.html" with group=course factors=course.feedback_given_in.survey.summarymeasure_set.all %}
 
-  {% for factor in course.feedback_given_in.survey.summarymeasure_set.all %}
-  <h3>{{ factor.label }}</h3>
-
-  <div class="row">
-    <div class="col-lg-8 col-lg-offset-2">
-      <table class="table table-striped">
-        <tr>
-          <th>Question</td>
-          <th>Rating</th>
-        </tr>      
-        {% for v in factor.variable_set.all %}
-          <tr>
-            <td>{{ v.description }}</td>
-            <td>{{ course|calculate_average:v }}</td>
-          </tr>        
-        {% endfor %}
-      </table>    
-    </div>
-  </div>
-  {% endfor %}
 {% endif %}
 
 {{ test }}

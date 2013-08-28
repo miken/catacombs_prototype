@@ -1,19 +1,19 @@
-<h2>Results Summary</h2>
+{% load template_filters %}
 
-{% for factor in survey.summarymeasure_set.all %}
+{% for factor in factors %}
 <h3>{{ factor.label }}</h3>
 
 <div class="row">
   <div class="col-lg-8 col-lg-offset-2">
     <table class="table table-striped">
       <tr>
-        <th>Question</td>
-        <th>Rating</th>
+        <th class="col-lg-10">Question</td>
+        <th class="col-lg-2">Rating</th>
       </tr>      
       {% for v in factor.variable_set.all %}
         <tr>
           <td>{{ v.description }}</td>
-          <td>test</td>
+          <td>{{ group|display_rating:v }}</td>
         </tr>        
       {% endfor %}
     </table>    

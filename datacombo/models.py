@@ -281,21 +281,20 @@ class Course(models.Model):
 
     def rating(self, var):
         '''
-        Return the average rating for a given variable
+        Return the average rating in numeric format for a given variable
         var here is an instance of the Variable model
         '''
         course_varset = self.feedback_given_in.survey.variable_set
         if var not in course_varset.all():
-            return 'N/A'
+            pass
         else:
             # Find all responses for this course
             course_resp = self.response_set.filter(question=var)
             # Take the average
             avg_dict = course_resp.aggregate(Avg('answer'))
             rating = avg_dict['answer__avg']
-            # Round it up to two decimal digits
-            rating = round(rating, 2)
             return rating
+
 
     def get_absolute_url(self):
         return reverse('courses-view', kwargs={'pk': self.id})
@@ -332,7 +331,7 @@ class Teacher(models.Model):
         '''
         teacher_varset = self.feedback_given_in.survey.variable_set
         if var not in teacher_varset.all():
-            return 'N/A'
+            pass
         else:
             # Find all responses for this teacher
             # Filter for just responses belonging to these courses
@@ -342,8 +341,6 @@ class Teacher(models.Model):
             # Take the average
             avg_dict = var_responses.aggregate(Avg('answer'))
             rating = avg_dict['answer__avg']
-            # Round it up to two decimal digits
-            rating = round(rating, 2)
             return rating
 
 
