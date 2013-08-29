@@ -151,7 +151,7 @@ class SummaryMeasure(models.Model):
 class Variable(models.Model):
     survey = models.ForeignKey(Survey)
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=100)
+    description = models.CharField(max_length=200)
     qraw = models.CharField(max_length=50, blank=True, null=True)
     demographic = models.BooleanField(verbose_name=u'Is this a demographic variable, e.g., race, gender, grade level?')
     in_loop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
