@@ -1,63 +1,63 @@
 surveycode,factor,varname,label,qraw,demographic,in_loop,in_report
-tch-hs,sum_eng,ts_enjoy,I enjoy coming to class most of the time,,,1,1
-tch-hs,sum_eng,ts_expbest,My teacher's expectations make me want to do my best,,,1,1
-tch-hs,sum_eng,ts_pride,I take pride in my class work,,,1,1
-tch-hs,sum_eng,ts_trybest,I try to do my best in this class,,,1,1
-tch-hs,sum_eng,ts_helpout,What I learn in this class helps me outside of school,,,1,1
-tch-hs,sum_expec,ts_fulleffort,"In this class, my teacher accepts nothing less than our full effort",,,1,1
-tch-hs,sum_expec,ts_nogiveup,My teacher doesn't let people give up when the work gets hard  ,,,1,1
-tch-hs,sum_expec,ts_nomem,"My teacher wants us to use our thinking skills, not just memorize things",,,1,1
-tch-hs,sum_expec,ts_learnlot,"In this class, we learn a lot almost every day",,,1,1
-tch-hs,sum_rele,ts_think,The work that I do for my class makes me really think,,,1,1
-tch-hs,sum_rele,ts_teachundr,I can tell that my teacher understands the subject that (s)he is teaching ,,,1,1
-tch-hs,sum_rele,ts_teachassign,My teacher gives me assignments that help me better understand the subject,,,1,1
-tch-hs,sum_rele,ts_connect,My teacher makes connections between what I'm learning in class and life outside the classroom,,,1,1
-tch-hs,sum_met,ts_askqns,My teacher asks questions to be sure we are following along when (s)he is teaching,,,1,1
-tch-hs,sum_met,ts_tryexp,"If someone doesn't understand something, my teacher explains it another way",,,1,1
-tch-hs,sum_met,ts_askexpl,My teacher asks students to explain more about answers they give,,,1,1
-tch-hs,sum_met,ts_explain,My teacher wants me to explain my answers - why I think what I think,,,1,1
-tch-hs,sum_met,ts_correct,"In this class, we learn to correct our mistakes",,,1,1
-tch-hs,sum_rel,ts_fair,My teacher tries to be fair,,,1,1
-tch-hs,sum_rel,ts_under,My teacher makes an effort to understand what my life is like outside of school,,,1,1
-tch-hs,sum_rel,ts_extra,My teacher is willing to give extra help on school work if I need it,,,1,1
-tch-hs,sum_rel,ts_believe,My teacher believes I can get a good grade if I try,,,1,1
-tch-hs,sum_rel,ts_feelcare,My teacher makes me feel that (s)he really cares about me ,,,1,1
-tch-hs,sum_env,ts_dowell,Students in this class want to do well,,,1,1
-tch-hs,sum_env,ts_studresp,Students in this class treat the teacher with respect  ,,,1,1
-tch-hs,sum_env,ts_adultresp,My teacher treats students in this class with respect,,,1,1
-tch-hs,sum_env,ts_discipline,Discipline in this class is fair,,,1,1
-tch-hs,sum_env,ts_classbusy,Our class stays busy and does not waste time,,,1,1
-tch-hs,sum_env,ts_bevcontrol,Student behavior in this class is under control,,,1,1
-tch-hs,sum_env,ts_bevwants,My classmates behave the way my teacher wants them to,,,1,1
+tch-hs,sum_eng,ts_expbest,How much do your teacher's expectations make you want to do your best?,,,1,1
+tch-hs,sum_eng,ts_pride,How much pride do you take in your class work?,,,1,1
+tch-hs,sum_eng,ts_trybest,How much do you try to do your best in this class?,,,1,1
+tch-hs,sum_eng,ts_enjoy,How often do you enjoy coming to this class?,,,1,1
+tch-hs,sum_expec,ts_teachassign,How well do your teacher's assignments help you better understand the subject?,,,1,1
+tch-hs,sum_expec,ts_learnlot,"In this class, how much do you learn every day?",,,1,1
+tch-hs,sum_expec,ts_think,How much does the work that you do for your class make you really think?,,,1,1
+tch-hs,sum_expec,ts_teachundr,How well does your teacher understand the subject that (s)he is teaching?,,,1,1
+tch-hs,sum_expec,ts_fulleffort,How much effort does your teacher expect you to give in class?,,,1,1
+tch-hs,sum_expec,ts_nomem,"How much does your teacher want you to use your thinking skills, not just memorize things?",,,1,1
+tch-hs,sum_expec,ts_nogiveup,"When the work gets difficult, how hard does your teacher expect you to try?",,,1,1
+tch-hs,sum_rele,ts_under,How much does your teacher try to understand what your life is like outside of school?,,,1,1
+tch-hs,sum_rele,ts_feelcare,How much do you think your teacher cares about you?,,,1,1
+tch-hs,sum_rele,ts_helpout,How much does what you learn in this class help you outside of school?,,,1,1
+tch-hs,sum_rele,ts_connect,How well does your teacher connect what you're learning in class with your life outside of school?,,,1,1
+tch-hs,sum_met,ts_askexpl,How often does your teacher ask students to explain more about answers they give?,,,1,1
+tch-hs,sum_met,ts_explain,How often does your teacher want you to explain your answers - why you think what you think?,,,1,1
+tch-hs,sum_met,ts_askqns,How often does your teacher ask questions to be sure that you and your classmates are following along when (s)he is teaching?,,,1,1
+tch-hs,sum_met,ts_tryexp,"If someone doesn't understand something, how often does your teacher explain it another way?",,,1,1
+tch-hs,sum_met,ts_correct,"In this class, how much have you learned to correct your mistakes?",,,1,1
+tch-hs,sum_rel,ts_fair,How fair is your teacher?,,,1,1
+tch-hs,sum_rel,ts_adultresp,How respectful is your teacher to students in this class?,,,1,1
+tch-hs,sum_rel,ts_believe,How much does your teacher believe that you can get a good grade if you try?,,,1,1
+tch-hs,sum_rel,ts_extra,How willing is your teacher to give extra help on school work if you need it?,,,1,1
+tch-hs,sum_rel,ts_discipline,How fair is discipline in this class?,,,1,1
+tch-hs,sum_env,ts_bevwants,How many of your classmates behave the way your teacher wants them to?,,,1,1
+tch-hs,sum_env,ts_bevcontrol,How under control is student behavior in this classroom?,,,1,1
+tch-hs,sum_env,ts_studresp,How respectful are students to the teacher in this class?,,,1,1
+tch-hs,sum_env,ts_classbusy,How often does your class stay busy and not waste time?,,,1,1
+tch-hs,sum_env,ts_dowell,How many students in this class want to do well?,,,1,1
 tch-ms,,m_grade,Grade Level,m_grade,1,,1
 tch-ms,,m_gender,Gender,m_gender,1,,1
-tch-ms,m_sum_eng,m_ts_enjoy,I enjoy coming to class most of the time,,,1,1
-tch-ms,m_sum_eng,m_ts_expbest,My teacher's expectations make me want to do my best,,,1,1
-tch-ms,m_sum_eng,m_ts_pride,I take pride in my class work,,,1,1
-tch-ms,m_sum_eng,m_ts_trybest,I try to do my best in this class,,,1,1
-tch-ms,m_sum_eng,m_ts_helpout,What I learn in this class helps me outside of school,,,1,1
-tch-ms,m_sum_expec,m_ts_fulleffort,"In this class, my teacher accepts nothing less than our full effort",,,1,1
-tch-ms,m_sum_expec,m_ts_nogiveup,My teacher doesn't let people give up when the work gets hard  ,,,1,1
-tch-ms,m_sum_expec,m_ts_nomem,"My teacher wants us to use our thinking skills, not just memorize things",,,1,1
-tch-ms,m_sum_expec,m_ts_learnlot,"In this class, we learn a lot almost every day",,,1,1
-tch-ms,m_sum_rele,m_ts_think,The work that I do for my class makes me really think,,,1,1
-tch-ms,m_sum_rele,m_ts_teachundr,I can tell that my teacher understands the subject that (s)he is teaching ,,,1,1
-tch-ms,m_sum_rele,m_ts_teachassign,My teacher gives me assignments that help me better understand the subject,,,1,1
-tch-ms,m_sum_rele,m_ts_connect,My teacher makes connections between what I'm learning in class and life outside the classroom,,,1,1
-tch-ms,m_sum_met,m_ts_askqns,My teacher asks questions to be sure we are following along when (s)he is teaching,,,1,1
-tch-ms,m_sum_met,m_ts_tryexp,"If someone doesn't understand something, my teacher explains it another way",,,1,1
-tch-ms,m_sum_met,m_ts_askexpl,My teacher asks students to explain more about answers they give,,,1,1
-tch-ms,m_sum_met,m_ts_explain,My teacher wants me to explain my answers - why I think what I think,,,1,1
-tch-ms,m_sum_met,m_ts_correct,"In this class, we learn to correct our mistakes",,,1,1
-tch-ms,m_sum_rel,m_ts_fair,My teacher tries to be fair,,,1,1
-tch-ms,m_sum_rel,m_ts_under,My teacher makes an effort to understand what my life is like outside of school,,,1,1
-tch-ms,m_sum_rel,m_ts_extra,My teacher is willing to give extra help on school work if I need it,,,1,1
-tch-ms,m_sum_rel,m_ts_believe,My teacher believes I can get a good grade if I try,,,1,1
-tch-ms,m_sum_rel,m_ts_feelcare,My teacher makes me feel that (s)he really cares about me ,,,1,1
-tch-ms,m_sum_env,m_ts_dowell,Students in this class want to do well,,,1,1
-tch-ms,m_sum_env,m_ts_studresp,Students in this class treat the teacher with respect  ,,,1,1
-tch-ms,m_sum_env,m_ts_adultresp,My teacher treats students in this class with respect,,,1,1
-tch-ms,m_sum_env,m_ts_discipline,Discipline in this class is fair,,,1,1
-tch-ms,m_sum_env,m_ts_classbusy,Our class stays busy and does not waste time,,,1,1
-tch-ms,m_sum_env,m_ts_bevcontrol,Student behavior in this class is under control,,,1,1
-tch-ms,m_sum_env,m_ts_bevwants,My classmates behave the way my teacher wants them to,,,1,1
+tch-ms,m_sum_eng,m_ts_expbest,How much do your teacher's expectations make you want to do your best?,,,1,1
+tch-ms,m_sum_eng,m_ts_pride,How much pride do you take in your class work?,,,1,1
+tch-ms,m_sum_eng,m_ts_trybest,How much do you try to do your best in this class?,,,1,1
+tch-ms,m_sum_eng,m_ts_enjoy,How often do you enjoy coming to this class?,,,1,1
+tch-ms,m_sum_expec,m_ts_teachassign,How well do your teacher's assignments help you better understand the subject?,,,1,1
+tch-ms,m_sum_expec,m_ts_learnlot,"In this class, how much do you learn every day?",,,1,1
+tch-ms,m_sum_expec,m_ts_think,How much does the work that you do for your class make you really think?,,,1,1
+tch-ms,m_sum_expec,m_ts_teachundr,How well does your teacher understand the subject that (s)he is teaching?,,,1,1
+tch-ms,m_sum_expec,m_ts_fulleffort,How much effort does your teacher expect you to give in class?,,,1,1
+tch-ms,m_sum_expec,m_ts_nomem,"How much does your teacher want you to use your thinking skills, not just memorize things?",,,1,1
+tch-ms,m_sum_expec,m_ts_nogiveup,"When the work gets difficult, how hard does your teacher expect you to try?",,,1,1
+tch-ms,m_sum_rele,m_ts_under,How much does your teacher try to understand what your life is like outside of school?,,,1,1
+tch-ms,m_sum_rele,m_ts_feelcare,How much do you think your teacher cares about you?,,,1,1
+tch-ms,m_sum_rele,m_ts_helpout,How much does what you learn in this class help you outside of school?,,,1,1
+tch-ms,m_sum_rele,m_ts_connect,How well does your teacher connect what you're learning in class with your life outside of school?,,,1,1
+tch-ms,m_sum_met,m_ts_askexpl,How often does your teacher ask students to explain more about answers they give?,,,1,1
+tch-ms,m_sum_met,m_ts_explain,How often does your teacher want you to explain your answers - why you think what you think?,,,1,1
+tch-ms,m_sum_met,m_ts_askqns,How often does your teacher ask questions to be sure that you and your classmates are following along when (s)he is teaching?,,,1,1
+tch-ms,m_sum_met,m_ts_tryexp,"If someone doesn't understand something, how often does your teacher explain it another way?",,,1,1
+tch-ms,m_sum_met,m_ts_correct,"In this class, how much have you learned to correct your mistakes?",,,1,1
+tch-ms,m_sum_rel,m_ts_fair,How fair is your teacher?,,,1,1
+tch-ms,m_sum_rel,m_ts_adultresp,How respectful is your teacher to students in this class?,,,1,1
+tch-ms,m_sum_rel,m_ts_believe,How much does your teacher believe that you can get a good grade if you try?,,,1,1
+tch-ms,m_sum_rel,m_ts_extra,How willing is your teacher to give extra help on school work if you need it?,,,1,1
+tch-ms,m_sum_rel,m_ts_discipline,How fair is discipline in this class?,,,1,1
+tch-ms,m_sum_env,m_ts_bevwants,How many of your classmates behave the way your teacher wants them to?,,,1,1
+tch-ms,m_sum_env,m_ts_bevcontrol,How under control is student behavior in this classroom?,,,1,1
+tch-ms,m_sum_env,m_ts_studresp,How respectful are students to the teacher in this class?,,,1,1
+tch-ms,m_sum_env,m_ts_classbusy,How often does your class stay busy and not waste time?,,,1,1
+tch-ms,m_sum_env,m_ts_dowell,How many students in this class want to do well?,,,1,1

@@ -365,6 +365,38 @@ class TeacherView(DetailView):
         return super(TeacherView, self).dispatch(*args, **kwargs)
 
 # Views for Course
+class UpdateCourseView(UpdateView):
+
+    model = Course
+    template_name = 'edit_course.html'
+
+    def get_success_url(self):
+        return reverse('teachers-view', kwargs={'pk': self.get_object().teacher_set.all()[0].id})
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateCourseView, self).get_context_data(**kwargs)
+        context['action'] = reverse('courses-edit',
+                                    kwargs={'pk': self.get_object().id})
+        return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateCourseView, self).dispatch(*args, **kwargs)
+
+class DeleteCourseView(DeleteView):
+
+    model = Course
+    template_name = 'delete_course.html'
+
+    def get_success_url(self):
+        return reverse('courses-list')
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteCourseView, self).dispatch(*args, **kwargs)
+
+
 class CourseView(DetailView):
 
     model = Course

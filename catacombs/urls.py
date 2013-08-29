@@ -62,6 +62,8 @@ urlpatterns = patterns('',
         name='subjects-view',),
 
     # Courses
+    url(r'^courses/edit/(?P<pk>\d+)/$', datacombo.views.UpdateCourseView.as_view(), name='courses-edit',),
+    url(r'^courses/delete/(?P<pk>\d+)/$', datacombo.views.DeleteCourseView.as_view(), name='courses-delete',),
     url(r'^courses/(?P<pk>\d+)/$', datacombo.views.CourseView.as_view(), name='courses-view',),
 
     #Surveys - We're gonna disable this for now

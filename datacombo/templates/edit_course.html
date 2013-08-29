@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if course.id %}
+  <h1>Edit Course</h1>
+{% else %}
+  <h1>Add Course</h1>
+{% endif %}
+
+<h2>{{ course.name }}</h2>
+
+{% if course.id %}
+  {% for t in course.teacher_set.all %}
+    <h3>{{ t.full_name }}</h3>
+  {% endfor %}
+  <p>School: <strong>{{ course.feedback_given_in.school.name }}</strong></p>
+  <p>Survey: <strong>{{ course.feedback_given_in.survey.name }}</strong></p>
+{% endif %}
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_course" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+<p><a href="{{ course.feedback_given_in.get_absolute_url }}">Back to {{ course.feedback_given_in.school.name }} ({{ course.feedback_given_in.month }}, {{ course.feedback_given_in.year }})</a></p>
+{% endblock %}

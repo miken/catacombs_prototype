@@ -31,8 +31,8 @@
               <td>{{ c.classroom_size }}</td>
               <td>{{ c.rr_string }}</td>
               <td>
-                <a href="" class="btn btn-default" disabled="disabled">Edit</a>
-                <a href="" class="btn btn-danger" disabled="disabled">Delete</a>
+                <a href="{% url "courses-edit" pk=c.id %}" class="btn btn-default">Edit</a>
+                <a href="{% url "courses-delete" pk=c.id %}" class="btn btn-danger">Delete</a>
               </td>
             </tr>          
           {% endfor %}
