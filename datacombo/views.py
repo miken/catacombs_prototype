@@ -2,7 +2,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
-from django.shortcuts import render, render_to_response, get_object_or_404
+from django.shortcuts import render, render_to_response, get_object_or_404, redirect
+from django.contrib.auth.views import login
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
@@ -13,6 +14,13 @@ from datacombo.upload import process_uploaded
 
 
 #Index View
+def home_or_login(request):
+    if request.user.is_authenticated():
+        return redirect('home-view')
+    else:
+        return redirect('login-view')
+
+
 class HomeView(TemplateView):
 
     template_name = "index.html"
@@ -465,15 +473,6 @@ def upload_file(request, pk):
         form = UploadFileForm()
     return render_to_response('upload.html', {'form': form, 'survey': survey}, context_instance=RequestContext(request))
 
-@login_required
-def delete_session(request, pk):
-    session = get_object_or_404(ImportSession, pk=pk)
-    if request.method == 'POST':
-        session.delete()
-        return HttpResponseRedirect(reverse('sessions-list'))
-    else:
-        return render(request, 'delete_session.html', {'session': session})
-
 
 # View functions for cleaning survey data
 @login_required
@@ -513,3 +512,13 @@ class UpdateSessionView(UpdateView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(UpdateSessionView, self).dispatch(*args, **kwargs)
+
+
+@login_required
+def delete_session(request, pk):
+    session = get_object_or_404(ImportSession, pk=pk)
+    if request.method == 'POST':
+        session.delete()
+        return HttpResponseRedirect(reverse('sessions-list'))
+    else:
+        return render(request, 'delete_session.html', {'session': session})
