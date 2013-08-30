@@ -166,6 +166,19 @@ class Variable(models.Model):
         return self.name
 
 
+class VarMap(models.Model):
+    '''
+    This model instructs how to convert variable in the raw survey data files
+    to the existing Variable in the database
+    '''
+    raw_name = models.CharField(max_length=50, verbose_name=u'Raw Variable Name in Qualtrics')
+    variable = models.ForeignKey(Variable)
+    survey = models.ForeignKey(Survey)
+
+    def __unicode__(self):
+        return self.raw_name
+
+
 class School(models.Model):
     #This field is used to match with schoolparticipation.legacy_school_short
     alpha = models.CharField(max_length=50, verbose_name=u'Legacy School_Alpha')
