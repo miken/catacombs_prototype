@@ -411,7 +411,6 @@ class CourseView(DetailView):
         return super(CourseView, self).dispatch(*args, **kwargs)
 
 
-
 #Views for Survey
 class ListSurveyView(ListView):
 
@@ -483,6 +482,7 @@ class SurveyView(DetailView):
         return super(SurveyView, self).dispatch(*args, **kwargs)
 
 
+
 # View functions for handling file uploads
 @login_required
 def upload_file(request, pk):
@@ -512,7 +512,23 @@ def clean_survey(request, pk):
     # Read survey ID from parsed pk
     survey_id = pk
     survey = Survey.objects.get(id=survey_id)
-    return render_to_response('survey/clean_survey.html', {'survey': survey}, context_instance=RequestContext(request))
+    if request.method == 'POST':
+        context = {}
+        context['survey'] = survey
+        # Delete courses below response rate cutoff
+        courses_below_cutoff = survey.courses_below_cutoff()
+        if len(courses_below_cutoff) > 0:
+            for c in survey.courses_below_cutoff():
+                c.delete()
+            context['courses_deleted'] = 'Courses deleted from database.'
+        # Delete orphaned teachers
+        orphaned_teachers = survey.orphaned_teachers()
+        if orphaned_teachers.count() > 0:
+            orphaned_teachers.delete()
+            context['teachers_deleted'] = 'Teachers deleted from database.'
+        return render_to_response('survey/clean_survey.html', context, context_instance=RequestContext(request))
+    else:
+        return render_to_response('survey/clean_survey.html', {'survey': survey}, context_instance=RequestContext(request))
 
 
 #Views for Import Session

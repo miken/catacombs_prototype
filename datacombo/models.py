@@ -84,6 +84,16 @@ class Survey(models.Model):
                 courses_to_cut.append(c)
         return courses_to_cut
 
+    def orphaned_teachers(self):
+        '''
+        This function returns a QuerySet of teachers who do not have
+        related course / student / response data for deletion
+        '''
+        # First get all teachers that have no attached records - bebause its faster
+        all_orphaned = Teacher.objects.filter(courses__isnull=True)
+        # Then get those for this 
+        survey_orphaned = all_orphaned.filter(feedback_given_in__in=self.schoolparticipation_set.distinct())
+        return survey_orphaned
 
     def get_absolute_url(self):
         return reverse('surveys-view', kwargs={'pk': self.id})

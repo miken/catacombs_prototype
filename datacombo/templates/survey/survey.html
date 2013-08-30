@@ -31,10 +31,7 @@
       </form>
     </p>
     <p>
-      <form action="{% url "surveys-clean" pk=survey.id %}" method="POST">
-        {% csrf_token %}
-          <button type="submit" class="btn btn-lg btn-default"><i class="icon-sort-by-attributes"> </i>Clean Survey Data</button>
-      </form>
+      <a href="{% url "surveys-clean" pk=survey.id %}" class="btn btn-lg btn-default"><i class="icon-sort-by-attributes"> </i>Clean Survey Data</a>
     </p>
   </div>
 </div>
