@@ -39,7 +39,7 @@ class HomeView(TemplateView):
 class ListVariableView(ListView):
 
     model = Variable
-    template_name = 'variable_list.html'
+    template_name = 'variable/variable_list.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -49,7 +49,7 @@ class ListVariableView(ListView):
 class CreateVariableView(CreateView):
 
     model = Variable
-    template_name = 'edit_variable.html'
+    template_name = 'variable/edit_variable.html'
 
     def get_success_url(self):
         return reverse('variables-list')
@@ -68,7 +68,7 @@ class CreateVariableView(CreateView):
 class UpdateVariableView(UpdateView):
 
     model = Variable
-    template_name = 'edit_variable.html'
+    template_name = 'variable/edit_variable.html'
 
     def get_success_url(self):
         return reverse('variables-list')
@@ -88,7 +88,7 @@ class UpdateVariableView(UpdateView):
 class DeleteVariableView(DeleteView):
 
     model = Variable
-    template_name = 'delete_variable.html'
+    template_name = 'variable/delete_variable.html'
 
     def get_success_url(self):
         return reverse('variables-list')
@@ -102,7 +102,7 @@ class DeleteVariableView(DeleteView):
 class ListSchoolView(ListView):
 
     model = School
-    template_name = 'school_list.html'
+    template_name = 'school/school_list.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -112,7 +112,7 @@ class ListSchoolView(ListView):
 class CreateSchoolView(CreateView):
 
     model = School
-    template_name = 'edit_school.html'
+    template_name = 'school/edit_school.html'
 
     def get_success_url(self):
         return reverse('schools-list')
@@ -131,7 +131,7 @@ class CreateSchoolView(CreateView):
 class UpdateSchoolView(UpdateView):
 
     model = School
-    template_name = 'edit_school.html'
+    template_name = 'school/edit_school.html'
 
     def get_success_url(self):
         return reverse('schools-list')
@@ -151,7 +151,7 @@ class UpdateSchoolView(UpdateView):
 class DeleteSchoolView(DeleteView):
 
     model = School
-    template_name = 'delete_school.html'
+    template_name = 'school/delete_school.html'
 
     def get_success_url(self):
         return reverse('schools-list')
@@ -164,7 +164,7 @@ class DeleteSchoolView(DeleteView):
 class SchoolView(DetailView):
 
     model = School
-    template_name = 'school.html'
+    template_name = 'school/school.html'
 
     def get_object(self, queryset=None):
         obj = School.objects.get(id=self.kwargs['pk'])
@@ -179,7 +179,7 @@ class SchoolView(DetailView):
 class ListSubjectView(ListView):
 
     model = Subject
-    template_name = 'subject_list.html'
+    template_name = 'subject/subject_list.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -189,7 +189,7 @@ class ListSubjectView(ListView):
 class CreateSubjectView(CreateView):
 
     model = Subject
-    template_name = 'edit_subject.html'
+    template_name = 'subject/edit_subject.html'
 
     def get_success_url(self):
         return reverse('subjects-list')
@@ -208,7 +208,7 @@ class CreateSubjectView(CreateView):
 class UpdateSubjectView(UpdateView):
 
     model = Subject
-    template_name = 'edit_subject.html'
+    template_name = 'subject/edit_subject.html'
 
     def get_success_url(self):
         return reverse('subjects-list')
@@ -228,7 +228,7 @@ class UpdateSubjectView(UpdateView):
 class DeleteSubjectView(DeleteView):
 
     model = Subject
-    template_name = 'delete_subject.html'
+    template_name = 'subject/delete_subject.html'
 
     def get_success_url(self):
         return reverse('subjects-list')
@@ -241,7 +241,7 @@ class DeleteSubjectView(DeleteView):
 class SubjectView(DetailView):
 
     model = Subject
-    template_name = 'subject.html'
+    template_name = 'subject/subject.html'
 
     def get_object(self, queryset=None):
         obj = Subject.objects.get(id=self.kwargs['pk'])
@@ -259,7 +259,7 @@ class CreateSchoolParticipationView(CreateView):
 
     model = SchoolParticipation
     form_class = SchoolParticipationForm
-    template_name = 'edit_schoolparticipation.html'
+    template_name = 'schoolparticipation/edit_schoolparticipation.html'
 
     def get_success_url(self):
         return reverse('schools-view',
@@ -280,7 +280,7 @@ class UpdateSchoolParticipationView(UpdateView):
 
     model = SchoolParticipation
     form_class = SchoolParticipationForm
-    template_name = 'edit_schoolparticipation.html'
+    template_name = 'schoolparticipation/edit_schoolparticipation.html'
 
     def get_success_url(self):
         return reverse('schools-view',
@@ -302,7 +302,7 @@ class UpdateSchoolParticipationView(UpdateView):
 class DeleteSchoolParticipationView(DeleteView):
 
     model = SchoolParticipation
-    template_name = 'delete_schoolparticipation.html'
+    template_name = 'schoolparticipation/delete_schoolparticipation.html'
 
     def get_success_url(self):
         return reverse('schools-list')
@@ -315,7 +315,7 @@ class DeleteSchoolParticipationView(DeleteView):
 class SchoolParticipationView(DetailView):
 
     model = SchoolParticipation
-    template_name = 'schoolparticipation.html'
+    template_name = 'schoolparticipation/schoolparticipation.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -326,7 +326,7 @@ class SchoolParticipationView(DetailView):
 class UpdateTeacherView(UpdateView):
 
     model = Teacher
-    template_name = 'edit_teacher.html'
+    template_name = 'teacher/edit_teacher.html'
 
     def get_success_url(self):
         return reverse('teachers-list')
@@ -345,7 +345,7 @@ class UpdateTeacherView(UpdateView):
 class DeleteTeacherView(DeleteView):
 
     model = Teacher
-    template_name = 'delete_teacher.html'
+    template_name = 'teacher/delete_teacher.html'
 
     def get_success_url(self):
         return reverse('teachers-list')
@@ -358,7 +358,7 @@ class DeleteTeacherView(DeleteView):
 class TeacherView(DetailView):
 
     model = Teacher
-    template_name = 'teacher.html'
+    template_name = 'teacher/teacher.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -368,7 +368,7 @@ class TeacherView(DetailView):
 class UpdateCourseView(UpdateView):
 
     model = Course
-    template_name = 'edit_course.html'
+    template_name = 'course/edit_course.html'
 
     def get_success_url(self):
         return reverse('teachers-view', kwargs={'pk': self.get_object().teacher_set.all()[0].id})
@@ -387,7 +387,7 @@ class UpdateCourseView(UpdateView):
 class DeleteCourseView(DeleteView):
 
     model = Course
-    template_name = 'delete_course.html'
+    template_name = 'course/delete_course.html'
 
     def get_success_url(self):
         return reverse('courses-list')
@@ -400,7 +400,7 @@ class DeleteCourseView(DeleteView):
 class CourseView(DetailView):
 
     model = Course
-    template_name = 'course.html'
+    template_name = 'course/course.html'
 
     def get_context_data(self, **kwargs):
         context = super(CourseView, self).get_context_data(**kwargs)
@@ -416,7 +416,7 @@ class CourseView(DetailView):
 class ListSurveyView(ListView):
 
     model = Survey
-    template_name = 'survey_list.html'
+    template_name = 'survey/survey_list.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -426,7 +426,7 @@ class ListSurveyView(ListView):
 class CreateSurveyView(CreateView):
 
     model = Survey
-    template_name = 'edit_survey.html'
+    template_name = 'survey/edit_survey.html'
 
     def get_success_url(self):
         return reverse('surveys-list')
@@ -445,7 +445,7 @@ class CreateSurveyView(CreateView):
 class UpdateSurveyView(UpdateView):
 
     model = Survey
-    template_name = 'update_survey.html'
+    template_name = 'survey/update_survey.html'
 
     def get_success_url(self):
         return reverse('surveys-list')
@@ -464,7 +464,7 @@ class UpdateSurveyView(UpdateView):
 class DeleteSurveyView(DeleteView):
 
     model = Survey
-    template_name = 'delete_survey.html'
+    template_name = 'survey/delete_survey.html'
 
     def get_success_url(self):
         return reverse('surveys-list')
@@ -476,7 +476,7 @@ class DeleteSurveyView(DeleteView):
 class SurveyView(DetailView):
 
     model = Survey
-    template_name = 'survey.html'
+    template_name = 'survey/survey.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -499,11 +499,11 @@ def upload_file(request, pk):
             # Process the uploaded data using a helper function in upload.py
             context = process_uploaded(newfile, file_type, survey, session_title)
             # Redirect to upload summary after POST
-            response = SimpleTemplateResponse('upload_confirm.html', context=context)
+            response = SimpleTemplateResponse('survey/upload_confirm.html', context=context)
             return response
     else:
         form = UploadFileForm()
-    return render_to_response('upload.html', {'form': form, 'survey': survey}, context_instance=RequestContext(request))
+    return render_to_response('survey/upload.html', {'form': form, 'survey': survey}, context_instance=RequestContext(request))
 
 
 # View functions for cleaning survey data
@@ -512,14 +512,14 @@ def clean_survey(request, pk):
     # Read survey ID from parsed pk
     survey_id = pk
     survey = Survey.objects.get(id=survey_id)
-    return render_to_response('clean_survey.html', {'survey': survey}, context_instance=RequestContext(request))
+    return render_to_response('survey/clean_survey.html', {'survey': survey}, context_instance=RequestContext(request))
 
 
 #Views for Import Session
 class ListSessionView(ListView):
 
     model = ImportSession
-    template_name = 'session_list.html'
+    template_name = 'session/session_list.html'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -529,7 +529,7 @@ class ListSessionView(ListView):
 class UpdateSessionView(UpdateView):
 
     model = ImportSession
-    template_name = 'edit_session.html'
+    template_name = 'session/edit_session.html'
 
     def get_success_url(self):
         return reverse('sessions-list')
@@ -553,4 +553,4 @@ def delete_session(request, pk):
         session.delete()
         return HttpResponseRedirect(reverse('sessions-list'))
     else:
-        return render(request, 'delete_session.html', {'session': session})
+        return render(request, 'session/delete_session.html', {'session': session})
