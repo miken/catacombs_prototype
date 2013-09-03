@@ -13,8 +13,8 @@
   <ul>
     {{ form.as_p }}
   </ul>
-  <button id="save_variable" type="submit" class="btn btn-primary btn-large">Save</button>
+  <button id="save_variable" type="submit" class="btn btn-primary btn-lg">Save</button>
 </form>
 
-<a href="{% url "variables-list" %}">back to list</a>
+<a href="{% url "surveys-view" pk=variable.survey.id %}">Back to {{ variable.survey.name }}</a>
 {% endblock %}

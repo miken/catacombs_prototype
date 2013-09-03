@@ -1,5 +1,5 @@
 from django.contrib import admin
-from datacombo.models import Survey, School, SchoolParticipation, Variable
+from datacombo.models import Survey, School, SchoolParticipation, Variable, VarMap
 
 
 class VariableInline(admin.TabularInline):
@@ -7,9 +7,14 @@ class VariableInline(admin.TabularInline):
     extra = 1
 
 
+class VarMapInline(admin.TabularInline):
+	model = VarMap
+	extra = 1
+
+
 class SurveyAdmin(admin.ModelAdmin):
     fields = ['name', 'code']
-    inlines = [VariableInline]
+    inlines = [VariableInline, VarMapInline]
 
 admin.site.register(Survey, SurveyAdmin)
 

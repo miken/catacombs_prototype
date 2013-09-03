@@ -9,8 +9,8 @@
 <form action="{% url "variables-delete" pk=variable.id %}" method="POST">
   {% csrf_token %}
 
-    <button type="submit" class="btn btn-large btn-danger">Yes, delete.</button>
-    <a href="{% url "surveys-view" pk=variable.survey.id %}" class="btn btn-large btn-success">No, cancel.</a>
+    <button type="submit" class="btn btn-lg btn-danger">Yes, delete.</button>
+    <a href="{% url "surveys-view" pk=variable.survey.id %}" class="btn btn-lg btn-success">No, cancel.</a>
 </form>
 
 {% endblock %}

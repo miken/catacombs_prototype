@@ -337,7 +337,9 @@ class UpdateTeacherView(UpdateView):
     template_name = 'teacher/edit_teacher.html'
 
     def get_success_url(self):
-        return reverse('teachers-list')
+        return reverse('schoolparticipations-view',
+            kwargs={'pk': self.get_object().feedback_given_in.id},
+        )
 
     def get_context_data(self, **kwargs):
 
@@ -356,7 +358,13 @@ class DeleteTeacherView(DeleteView):
     template_name = 'teacher/delete_teacher.html'
 
     def get_success_url(self):
-        return reverse('teachers-list')
+        return reverse('schoolparticipations-view',
+            kwargs={'pk': self.schoolparticipation_id},
+        )
+
+    def delete(self, request, *args, **kwargs):
+        self.schoolparticipation_id = self.get_object().feedback_given_in.id
+        return super(DeleteTeacherView, self).delete(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -372,6 +380,7 @@ class TeacherView(DetailView):
     def dispatch(self, *args, **kwargs):
         return super(TeacherView, self).dispatch(*args, **kwargs)
 
+
 # Views for Course
 class UpdateCourseView(UpdateView):
 
@@ -379,7 +388,9 @@ class UpdateCourseView(UpdateView):
     template_name = 'course/edit_course.html'
 
     def get_success_url(self):
-        return reverse('teachers-view', kwargs={'pk': self.get_object().teacher_set.all()[0].id})
+        return reverse('teachers-view',
+            kwargs={'pk': self.get_object().teacher_set.all()[0].id}
+        )
 
     def get_context_data(self, **kwargs):
 
@@ -388,9 +399,11 @@ class UpdateCourseView(UpdateView):
                                     kwargs={'pk': self.get_object().id})
         return context
 
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(UpdateCourseView, self).dispatch(*args, **kwargs)
+
 
 class DeleteCourseView(DeleteView):
 
@@ -398,7 +411,14 @@ class DeleteCourseView(DeleteView):
     template_name = 'course/delete_course.html'
 
     def get_success_url(self):
-        return reverse('courses-list')
+        return reverse('teachers-view',
+            kwargs={'pk': self.teacher_id}
+        )
+
+    def delete(self, request, *args, **kwargs):
+        primary_teacher = self.get_object().teacher_set.all()[0]
+        self.teacher_id = primary_teacher.id
+        return super(DeleteTeacherView, self).delete(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -420,70 +440,15 @@ class CourseView(DetailView):
 
 
 #Views for Survey
-class ListSurveyView(ListView):
-
-    model = Survey
-    template_name = 'survey/survey_list.html'
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ListSurveyView, self).dispatch(*args, **kwargs)
-
-
-class CreateSurveyView(CreateView):
-
-    model = Survey
-    template_name = 'survey/edit_survey.html'
-
-    def get_success_url(self):
-        return reverse('surveys-list')
-
-    def get_context_data(self, **kwargs):
-
-        context = super(CreateSurveyView, self).get_context_data(**kwargs)
-        context['action'] = reverse('surveys-new')
-        return context
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(CreateSurveyView, self).dispatch(*args, **kwargs)
-
-
-class UpdateSurveyView(UpdateView):
-
-    model = Survey
-    template_name = 'survey/update_survey.html'
-
-    def get_success_url(self):
-        return reverse('surveys-list')
-
-    def get_context_data(self, **kwargs):
-        context = super(UpdateSurveyView, self).get_context_data(**kwargs)
-        context['action'] = reverse('surveys-list',
-                                    kwargs={'pk': self.get_object().id})
-        return context
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(UpdateSurveyView, self).dispatch(*args, **kwargs)
-
-
-class DeleteSurveyView(DeleteView):
-
-    model = Survey
-    template_name = 'survey/delete_survey.html'
-
-    def get_success_url(self):
-        return reverse('surveys-list')
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(DeleteSurveyView, self).dispatch(*args, **kwargs)
-
 class SurveyView(DetailView):
 
     model = Survey
     template_name = 'survey/survey.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SurveyView, self).get_context_data(**kwargs)
+        context['variables'] = self.get_object().variable_set.order_by('summary_measure', 'demographic', 'name')
+        return context
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -640,6 +605,6 @@ def delete_session(request, pk):
     session = get_object_or_404(ImportSession, pk=pk)
     if request.method == 'POST':
         session.delete()
-        return HttpResponseRedirect(reverse('sessions-list'))
+        return redirect('sessions-list')
     else:
         return render(request, 'session/delete_session.html', {'session': session})
