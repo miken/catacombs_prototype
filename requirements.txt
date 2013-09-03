@@ -1,10 +1,5 @@
-CoffeeScript==1.0.5
 Django==1.5.2
-Flask==0.9
-Jinja2==2.6
-PyExecJS==1.0.4
 South==0.8.2
-Werkzeug==0.8.3
 distribute==0.6.34
 dj-database-url==0.2.2
 dj-static==0.0.5
