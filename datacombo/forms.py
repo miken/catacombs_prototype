@@ -1,6 +1,6 @@
 from django import forms
 
-from datacombo.models import SchoolParticipation
+from datacombo.models import SchoolParticipation, Variable, VarMap
 
 
 class UploadFileForm(forms.Form):
@@ -20,3 +20,15 @@ class SchoolParticipationForm(forms.ModelForm):
 	class Meta:
 		model = SchoolParticipation
 		fields = ['survey', 'date_participated', 'legacy_school_short', 'note']
+
+
+class VarMapForm(forms.ModelForm):
+    class Meta:
+        model = VarMap
+        fields = ['raw_name', 'variable']
+
+
+class VarForm(forms.ModelForm):
+    class Meta:
+        model = Variable
+        fields = ['name', 'description', 'demographic', 'in_loop', 'summary_measure', 'active']

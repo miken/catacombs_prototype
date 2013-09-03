@@ -10,7 +10,7 @@
   {% csrf_token %}
 
     <button type="submit" class="btn btn-large btn-danger">Yes, delete.</button>
-    <a href="{% url "variables-list" %}" class="btn btn-large btn-success">No, cancel.</a>
+    <a href="{% url "surveys-view" pk=variable.survey.id %}" class="btn btn-large btn-success">No, cancel.</a>
 </form>
 
 {% endblock %}

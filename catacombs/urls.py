@@ -15,6 +15,19 @@ urlpatterns = patterns('',
     url(r'^home/$', datacombo.views.HomeView.as_view(), name='home-view'),
     url(r'^upload/$', datacombo.views.upload_file, name='upload'),
 
+    # ===== SURVEY WORK =====
+    # Surveys can only be added, edited, or deleted via the admin interface
+    url(r'^surveys/(?P<pk>\d+)/$', datacombo.views.SurveyView.as_view(), name='surveys-view',),
+    # Upload new CSV data to survey
+    url(r'^surveys/(?P<pk>\d+)/upload$', datacombo.views.upload_file, name='surveys-upload',),
+    # Clean school / course records below reporting thresholds
+    url(r'^surveys/(?P<pk>\d+)/clean$', datacombo.views.clean_survey, name='surveys-clean',),
+    # Variable Mapping
+    url(r'^surveys/(?P<pk>\d+)/map$', datacombo.views.variable_map, name='surveys-map',),
+    # Add a new variable to survey
+    url(r'^surveys/(?P<pk>\d+)/vars/add$', datacombo.views.add_var, name='var-add',),
+    # Add a new variable map
+    url(r'^surveys/(?P<pk>\d+)/map/add$', datacombo.views.add_varmap, name='varmap-add',),
     # Variables
     url(r'^vars/$', datacombo.views.ListVariableView.as_view(), name='variables-list',),
     url(r'^vars/new$', datacombo.views.CreateVariableView.as_view(), name='variables-new',),
@@ -35,7 +48,7 @@ urlpatterns = patterns('',
 
     # School Participations
     # Creating new school participations record is not ready yet
-    url(r'^schools/(?P<pk>\d+)/records/new$', datacombo.views.CreateSchoolParticipationView.as_view(), name='schoolparticipations-new',),
+    url(r'^schools/(?P<pk>\d+)/records/new$', datacombo.views.add_school_record, name='schoolparticipations-new',),
     url(r'^schools/records/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSchoolParticipationView.as_view(),
         name='schoolparticipations-edit',),
     url(r'^schools/records/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSchoolParticipationView.as_view(),
@@ -66,24 +79,13 @@ urlpatterns = patterns('',
     url(r'^courses/delete/(?P<pk>\d+)/$', datacombo.views.DeleteCourseView.as_view(), name='courses-delete',),
     url(r'^courses/(?P<pk>\d+)/$', datacombo.views.CourseView.as_view(), name='courses-view',),
 
-    #Surveys - We're gonna disable this for now
-    #url(r'^surveys/$', datacombo.views.ListSurveyView.as_view(), name='surveys-list',),
-    #url(r'^surveys/new$', datacombo.views.CreateSurveyView.as_view(), name='surveys-new',),
-    #url(r'^surveys/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSurveyView.as_view(), name='surveys-edit',),
-    #url(r'^surveys/delete/(?P<pk>\d+)/$', datacombo.views.DeleteSurveyView.as_view(), name='surveys-delete',),
-    url(r'^surveys/(?P<pk>\d+)/upload$', datacombo.views.upload_file,
-        name='surveys-upload',),
-    url(r'^surveys/(?P<pk>\d+)/clean$', datacombo.views.clean_survey,
-        name='surveys-clean',),
-    url(r'^surveys/(?P<pk>\d+)/$', datacombo.views.SurveyView.as_view(),
-        name='surveys-view',),
-
     #Import Sessions
     url(r'^sessions/$', datacombo.views.ListSessionView.as_view(), name='sessions-list',),
     url(r'^sessions/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSessionView.as_view(),
         name='sessions-edit',),
     url(r'^sessions/delete/(?P<pk>\d+)/$', datacombo.views.delete_session,
         name='sessions-delete',),
+
     # Uncomment the admin/doc line below to enable admin documentation:
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

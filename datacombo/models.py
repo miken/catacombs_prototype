@@ -162,15 +162,13 @@ class Variable(models.Model):
     survey = models.ForeignKey(Survey)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
-    qraw = models.CharField(max_length=50, blank=True, null=True)
     demographic = models.BooleanField(verbose_name=u'Is this a demographic variable, e.g., race, gender, grade level?')
     in_loop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
-    in_report = models.BooleanField(verbose_name=u'Will this variable be used in reporting?')
     summary_measure = models.ForeignKey(SummaryMeasure, null=True)
     active = models.BooleanField()
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["demographic", "name"]
 
     def __unicode__(self):
         return self.name
@@ -182,7 +180,7 @@ class VarMap(models.Model):
     to the existing Variable in the database
     '''
     raw_name = models.CharField(max_length=50, verbose_name=u'Raw Variable Name in Qualtrics')
-    variable = models.ForeignKey(Variable)
+    variable = models.ForeignKey(Variable, verbose_name=u'Database Variable to map to')
     survey = models.ForeignKey(Survey)
 
     def __unicode__(self):
@@ -220,7 +218,6 @@ class SchoolParticipation(models.Model):
     date_participated = models.DateField()
     legacy_school_short = models.CharField(max_length=50, blank=True, default='', verbose_name=u'Legacy School_Short notation')
     note = models.CharField(max_length=100, blank=True, default='')
-    #When the ImportSession is deleted, this participation record will become "orphaned" and need to be removed individually
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
     class Meta:
@@ -234,8 +231,13 @@ class SchoolParticipation(models.Model):
         return self.date_participated.strftime("%Y")
 
     def student_count(self):
-        student_ids = self.response_set.values_list('student__id', flat=True)
-        count = Student.objects.filter(id__in=student_ids).distinct().count()
+        # If it's a teacher feedback survey record, use student_set.count() directly
+        # Since student responses are cleaned at the course level
+        if self.survey.is_teacher_feedback():
+            count = self.student_set.count()
+        else:
+            student_ids = self.response_set.values_list('student__id', flat=True)
+            count = Student.objects.filter(id__in=student_ids).distinct().count()
         return count
 
     def teacher_count(self):

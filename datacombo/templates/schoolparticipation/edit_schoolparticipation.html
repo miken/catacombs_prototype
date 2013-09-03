@@ -6,10 +6,10 @@
   <h1>Edit A Record</h1>
 {% else %}
   <h1>Add A Record</h1>
+{% endif %}
 
-  <div class="alert alert-danger">
-      This is not working yet!
-    </div>
+{% if school.id %}
+  <p>Adding a new participation record for: <strong>{{ school.name }}</strong></p>
 {% endif %}
 
 {% if schoolparticipation.id %}
@@ -22,10 +22,12 @@
   <ul>
     {{ form.as_p }}
   </ul>
-  <button id="save_school" type="submit" class="btn btn-primary btn-large">Save</button>
+  <button id="save_school" type="submit" class="btn btn-primary btn-lg">Save</button>
 </form>
 
 {% if schoolparticipation.id %}
   <a href="{% url "schools-view" pk=schoolparticipation.school.id %}">back to list</a>
+{% elif school.id %}
+  <a href="{% url "schools-view" pk=school.id %}">back to list</a>
 {% endif %}
 {% endblock %}

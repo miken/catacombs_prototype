@@ -3,13 +3,14 @@ from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404, redirect
-from django.contrib.auth.views import login
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
-from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course
-from datacombo.forms import UploadFileForm, SchoolParticipationForm
+# These two are used for user authentication
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure
+from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm
 from datacombo.upload import process_uploaded
 
 
@@ -253,27 +254,31 @@ class SubjectView(DetailView):
 
 
 # Views for School Participation Records
-
-# TODO Figure how to wire new school participation record with school later
-class CreateSchoolParticipationView(CreateView):
-
-    model = SchoolParticipation
-    form_class = SchoolParticipationForm
-    template_name = 'schoolparticipation/edit_schoolparticipation.html'
-
-    def get_success_url(self):
-        return reverse('schools-view',
-                       kwargs={'pk': self.get_object().school.id})
-
-    def get_context_data(self, **kwargs):
-
-        context = super(CreateSchoolParticipationView, self).get_context_data(**kwargs)
-        context['action'] = reverse('schoolparticipations-new', kwargs={'pk': self.get_object().id})
-        return context
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(CreateSchoolParticipationView, self).dispatch(*args, **kwargs)
+# Use a function to add a record to school
+@login_required
+def add_school_record(request, pk):
+    # Read school ID from parsed pk
+    school_id = pk
+    school = School.objects.get(id=school_id)
+    context = {}
+    if request.method == 'POST':
+        form = SchoolParticipationForm(request.POST)
+        if form.is_valid():
+            # Create a new record object
+            p = SchoolParticipation()
+            p.school = school
+            p.survey = form.cleaned_data['survey']
+            p.date_participated = form.cleaned_data['date_participated']
+            p.legacy_school_short = form.cleaned_data['legacy_school_short']
+            p.note = form.cleaned_data['note']
+            p.save()
+            return redirect('schools-view', pk=p.school.id)
+    else:
+        form = SchoolParticipationForm()
+    context['form'] = form
+    context['school'] = school
+    context['action'] = reverse('schoolparticipations-new', kwargs={'pk': pk})
+    return render_to_response('schoolparticipation/edit_schoolparticipation.html', context, context_instance=RequestContext(request))
 
 
 class UpdateSchoolParticipationView(UpdateView):
@@ -283,8 +288,7 @@ class UpdateSchoolParticipationView(UpdateView):
     template_name = 'schoolparticipation/edit_schoolparticipation.html'
 
     def get_success_url(self):
-        return reverse('schools-view',
-                       kwargs={'pk': self.get_object().school.id})
+        return reverse('schools-view', kwargs={'pk': self.get_object().school.id})
 
     def get_context_data(self, **kwargs):
 
@@ -305,7 +309,11 @@ class DeleteSchoolParticipationView(DeleteView):
     template_name = 'schoolparticipation/delete_schoolparticipation.html'
 
     def get_success_url(self):
-        return reverse('schools-list')
+        return reverse('schools-view', kwargs={'pk': self.school_id})
+
+    def delete(self, request, *args, **kwargs):
+        self.school_id = self.get_object().school.id
+        return super(DeleteSchoolParticipationView, self).delete(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -506,29 +514,94 @@ def upload_file(request, pk):
     return render_to_response('survey/upload.html', {'form': form, 'survey': survey}, context_instance=RequestContext(request))
 
 
-# View functions for cleaning survey data
+# View function for cleaning survey data
 @login_required
 def clean_survey(request, pk):
     # Read survey ID from parsed pk
     survey_id = pk
     survey = Survey.objects.get(id=survey_id)
+    context = {}
+    context['survey'] = survey
     if request.method == 'POST':
-        context = {}
-        context['survey'] = survey
         # Delete courses below response rate cutoff
         courses_below_cutoff = survey.courses_below_cutoff()
         if len(courses_below_cutoff) > 0:
             for c in survey.courses_below_cutoff():
                 c.delete()
             context['courses_deleted'] = 'Courses deleted from database.'
+
         # Delete orphaned teachers
         orphaned_teachers = survey.orphaned_teachers()
         if orphaned_teachers.count() > 0:
             orphaned_teachers.delete()
             context['teachers_deleted'] = 'Teachers deleted from database.'
-        return render_to_response('survey/clean_survey.html', context, context_instance=RequestContext(request))
+    return render_to_response('survey/clean_survey.html', context, context_instance=RequestContext(request))
+
+# View function for mapping variables from raw data to database
+@login_required
+def variable_map(request, pk):
+    # Read survey ID from parsed pk
+    survey_id = pk
+    survey = Survey.objects.get(id=survey_id)
+    context = {}
+    context['survey'] = survey
+    return render_to_response('varmap/variable_map.html', context, context_instance=RequestContext(request))
+
+
+@login_required
+def add_var(request, pk):
+    # Read survey ID from parsed pk
+    survey_id = pk
+    survey = Survey.objects.get(id=survey_id)
+    context = {}
+    context['survey'] = survey
+    if request.method == 'POST':
+        form = VarForm(request.POST)
+        if form.is_valid():
+            # Create a new variable mapping object
+            v = Variable()
+            v.survey = survey
+            v.name = form.cleaned_data['name']
+            v.description = form.cleaned_data['description']
+            v.demographic = form.cleaned_data['demographic']
+            v.in_loop = form.cleaned_data['in_loop']
+            v.summary_measure = form.cleaned_data['summary_measure']
+            v.active = form.cleaned_data['active']
+            v.save()
+            return redirect('surveys-view', pk=survey_id)
     else:
-        return render_to_response('survey/clean_survey.html', {'survey': survey}, context_instance=RequestContext(request))
+        form = VarForm()
+        # Filter for the variables available to this survey
+        form.fields['summary_measure'].queryset = SummaryMeasure.objects.filter(survey=survey)
+    context['form'] = form
+    context['action'] = reverse('var-add', kwargs={'pk': pk})
+    return render_to_response('variable/edit_variable.html', context, context_instance=RequestContext(request))
+
+
+@login_required
+def add_varmap(request, pk):
+    # Read survey ID from parsed pk
+    survey_id = pk
+    survey = Survey.objects.get(id=survey_id)
+    context = {}
+    context['survey'] = survey
+    if request.method == 'POST':
+        form = VarMapForm(request.POST)
+        if form.is_valid():
+            # Create a new variable mapping object
+            v = VarMap()
+            v.raw_name = form.cleaned_data['raw_name']
+            v.variable = form.cleaned_data['variable']
+            v.survey = form.cleaned_data['survey']
+            v.save()
+            return redirect('surveys-view', pk=survey_id)
+    else:
+        form = VarMapForm()
+        # Filter for the variables available to this survey
+        form.fields['variable'].queryset = Variable.objects.filter(survey=survey)
+    context['form'] = form
+    context['action'] = reverse('varmap-add', kwargs={'pk': pk})
+    return render_to_response('varmap/edit_varmap.html', context, context_instance=RequestContext(request))
 
 
 #Views for Import Session

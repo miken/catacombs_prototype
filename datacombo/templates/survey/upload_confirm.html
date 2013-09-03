@@ -189,18 +189,23 @@
     {% else %}
 
       <p>A total of {{ number_of_new_subjects }} subjects were added to the database.</p>
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-6 col-lg-offset-3">
+              <table class="table table-striped">
+                <tr>
+                  <th>Subject Name</th>
+                </tr>
 
-        <table class="table table-striped">
-          <tr>
-            <th>Subject Name</th>
-          </tr>
-
-          {% for s in added_subjects %}
-          <tr>
-            <td>{{ s.name }}</td>
-          </tr>
-          {% endfor %}
-        </table>
+                {% for s in added_subjects %}
+                <tr>
+                  <td>{{ s.name }}</td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+        </div>
         
     {% endif %}
 
