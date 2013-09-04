@@ -8,6 +8,15 @@
     <h1>Add Variable</h1>
 {% endif %}
 
+{% if survey.id %}
+  <p>Adding a new variable for: <strong>{{ survey.name }}</strong></p>
+{% endif %}
+
+{% if variable.id %}
+  <p>Survey: <strong>{{ variable.survey.name }}</strong></p>
+  <p>Variable Name: <strong>{{ variable.name }}</strong></p>
+{% endif %}
+
 <form action="{{ action }}" method="POST">
   {% csrf_token %}
   <ul>
@@ -16,5 +25,10 @@
   <button id="save_variable" type="submit" class="btn btn-primary btn-lg">Save</button>
 </form>
 
-<a href="{% url "surveys-view" pk=variable.survey.id %}">Back to {{ variable.survey.name }}</a>
+{% if varmap.id %}
+  <p><a href="{% url "surveys-view" pk=variable.survey.id %}">Back to {{ variable.survey.name }}</a></p>
+{% elif survey.id %}
+  <p><a href="{% url "surveys-view" pk=survey.id %}">Back to {{ survey.name }}</a></p>
+{% endif %}
+
 {% endblock %}

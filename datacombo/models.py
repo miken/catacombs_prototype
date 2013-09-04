@@ -164,11 +164,23 @@ class Variable(models.Model):
     description = models.CharField(max_length=200)
     demographic = models.BooleanField(verbose_name=u'Is this a demographic variable, e.g., race, gender, grade level?')
     in_loop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
-    summary_measure = models.ForeignKey(SummaryMeasure, null=True)
+    summary_measure = models.ForeignKey(SummaryMeasure, blank=True, null=True)
     active = models.BooleanField()
 
     class Meta:
         ordering = ["demographic", "name"]
+
+    def vmap_list(self):
+        '''
+        Returns a list of raw Qualtrics variable mapped to this variable
+        So we can do a join in the view template
+        '''
+        l = self.varmap_set.values_list('raw_name', flat=True)
+        if not l:
+            pass
+        else:
+            return l
+
 
     def __unicode__(self):
         return self.name
