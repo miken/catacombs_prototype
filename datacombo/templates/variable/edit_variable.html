@@ -25,7 +25,7 @@
   <button id="save_variable" type="submit" class="btn btn-primary btn-lg">Save</button>
 </form>
 
-{% if varmap.id %}
+{% if variable.id %}
   <p><a href="{% url "surveys-view" pk=variable.survey.id %}">Back to {{ variable.survey.name }}</a></p>
 {% elif survey.id %}
   <p><a href="{% url "surveys-view" pk=survey.id %}">Back to {{ survey.name }}</a></p>

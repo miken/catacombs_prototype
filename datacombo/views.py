@@ -53,7 +53,9 @@ class CreateVariableView(CreateView):
     template_name = 'variable/edit_variable.html'
 
     def get_success_url(self):
-        return reverse('variables-list')
+        return reverse('surveys-view',
+            kwargs={'pk': self.get_object().survey.id}
+        )
 
     def get_context_data(self, **kwargs):
 
@@ -72,7 +74,9 @@ class UpdateVariableView(UpdateView):
     template_name = 'variable/edit_variable.html'
 
     def get_success_url(self):
-        return reverse('variables-list')
+        return reverse('surveys-view',
+            kwargs={'pk': self.get_object().survey.id}
+        )
 
     def get_context_data(self, **kwargs):
 
@@ -92,7 +96,13 @@ class DeleteVariableView(DeleteView):
     template_name = 'variable/delete_variable.html'
 
     def get_success_url(self):
-        return reverse('variables-list')
+        return reverse('surveys-view',
+            kwargs={'pk': self.survey_id}
+        )
+
+    def delete(self, request, *args, **kwargs):
+        self.survey_id = self.get_object().survey.id
+        return super(DeleteVariableView, self).delete(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -418,7 +428,7 @@ class DeleteCourseView(DeleteView):
     def delete(self, request, *args, **kwargs):
         primary_teacher = self.get_object().teacher_set.all()[0]
         self.teacher_id = primary_teacher.id
-        return super(DeleteTeacherView, self).delete(request, *args, **kwargs)
+        return super(DeleteCourseView, self).delete(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -447,7 +457,7 @@ class SurveyView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(SurveyView, self).get_context_data(**kwargs)
-        context['variables'] = self.get_object().variable_set.order_by('summary_measure', 'demographic', 'name')
+        context['variables'] = self.get_object().variable_set.order_by('summary_measure', 'name')
         return context
 
     @method_decorator(login_required)
@@ -513,6 +523,49 @@ def variable_map(request, pk):
     return render_to_response('varmap/variable_map.html', context, context_instance=RequestContext(request))
 
 
+class UpdateVarMapView(UpdateView):
+
+    model = VarMap
+    form_class = VarMapForm
+    template_name = 'varmap/edit_varmap.html'
+
+    def get_success_url(self):
+        return reverse('surveys-view',
+            kwargs={'pk': self.get_object().survey.id}
+        )
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateVarMapView, self).get_context_data(**kwargs)
+        context['action'] = reverse('varmap-edit',
+                                    kwargs={'pk': self.get_object().id})
+        return context
+
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateVarMapView, self).dispatch(*args, **kwargs)
+
+
+class DeleteVarMapView(DeleteView):
+
+    model = VarMap
+    template_name = 'varmap/delete_varmap.html'
+
+    def get_success_url(self):
+        return reverse('surveys-view',
+            kwargs={'pk': self.survey_id}
+        )
+
+    def delete(self, request, *args, **kwargs):
+        self.survey_id = self.get_object().survey.id
+        return super(DeleteVarMapView, self).delete(request, *args, **kwargs)
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteVarMapView, self).dispatch(*args, **kwargs)
+
+
 @login_required
 def add_var(request, pk):
     # Read survey ID from parsed pk
@@ -528,7 +581,6 @@ def add_var(request, pk):
             v.survey = survey
             v.name = form.cleaned_data['name']
             v.description = form.cleaned_data['description']
-            v.demographic = form.cleaned_data['demographic']
             v.in_loop = form.cleaned_data['in_loop']
             v.summary_measure = form.cleaned_data['summary_measure']
             v.active = form.cleaned_data['active']
@@ -543,6 +595,7 @@ def add_var(request, pk):
     return render_to_response('variable/edit_variable.html', context, context_instance=RequestContext(request))
 
 
+# Views for VarMap
 @login_required
 def add_varmap(request, pk):
     # Read survey ID from parsed pk
@@ -557,7 +610,7 @@ def add_varmap(request, pk):
             v = VarMap()
             v.raw_name = form.cleaned_data['raw_name']
             v.variable = form.cleaned_data['variable']
-            v.survey = form.cleaned_data['survey']
+            v.survey = survey
             v.save()
             return redirect('surveys-view', pk=survey_id)
     else:

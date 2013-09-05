@@ -31,4 +31,4 @@ class VarMapForm(forms.ModelForm):
 class VarForm(forms.ModelForm):
     class Meta:
         model = Variable
-        fields = ['name', 'description', 'demographic', 'in_loop', 'summary_measure', 'active']
+        fields = ['name', 'description', 'in_loop', 'summary_measure', 'active']

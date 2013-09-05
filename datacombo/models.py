@@ -162,25 +162,12 @@ class Variable(models.Model):
     survey = models.ForeignKey(Survey)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
-    demographic = models.BooleanField(verbose_name=u'Is this a demographic variable, e.g., race, gender, grade level?')
     in_loop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
     summary_measure = models.ForeignKey(SummaryMeasure, blank=True, null=True)
     active = models.BooleanField()
 
     class Meta:
-        ordering = ["demographic", "name"]
-
-    def vmap_list(self):
-        '''
-        Returns a list of raw Qualtrics variable mapped to this variable
-        So we can do a join in the view template
-        '''
-        l = self.varmap_set.values_list('raw_name', flat=True)
-        if not l:
-            pass
-        else:
-            return l
-
+        ordering = ["name"]
 
     def __unicode__(self):
         return self.name
@@ -194,6 +181,9 @@ class VarMap(models.Model):
     raw_name = models.CharField(max_length=50, verbose_name=u'Raw Variable Name in Qualtrics')
     variable = models.ForeignKey(Variable, verbose_name=u'Database Variable to map to')
     survey = models.ForeignKey(Survey)
+
+    def get_absolute_url(self):
+        return reverse('varmap-edit', kwargs={'pk': self.id})
 
     def __unicode__(self):
         return self.raw_name

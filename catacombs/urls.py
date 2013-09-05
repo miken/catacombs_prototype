@@ -28,6 +28,8 @@ urlpatterns = patterns('',
     url(r'^surveys/(?P<pk>\d+)/vars/add$', datacombo.views.add_var, name='var-add',),
     # Add a new variable map
     url(r'^surveys/(?P<pk>\d+)/map/add$', datacombo.views.add_varmap, name='varmap-add',),
+    # Edit a variable map
+    url(r'^vars/maps/(?P<pk>\d+)/$', datacombo.views.UpdateVarMapView.as_view(), name='varmap-edit',),
     # Variables
     url(r'^vars/$', datacombo.views.ListVariableView.as_view(), name='variables-list',),
     url(r'^vars/new$', datacombo.views.CreateVariableView.as_view(), name='variables-new',),

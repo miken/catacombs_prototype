@@ -1,7 +1,7 @@
 # Django settings for catacombs project.
 import os
 import dj_database_url
-#from whichcomp import sqlite_path
+# from whichcomp import sqlite_path
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -17,7 +17,7 @@ if 'DATABASE_URL' not in os.environ.keys():
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'catacombs',                      # Or path to database file if using sqlite3.
+            'NAME': 'catacombs',
             # The following settings are not used with sqlite3:
             'USER': 'youthtruth',
             'PASSWORD': 'yob1llgates',
@@ -136,7 +136,7 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'south',
+    #'south',
     'datacombo',
 )
 

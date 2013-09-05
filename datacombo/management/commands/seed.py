@@ -1,105 +1,23 @@
 from django.core.management.base import BaseCommand, CommandError
 import os
+import sys
 
 root_dir = os.getcwd()
 cmd_dir = os.path.join(root_dir, 'seeds')
 os.chdir(cmd_dir)
+# Add to PATH for importing files
+sys.path.insert(0, cmd_dir)
 
+import seed_users, seed_surveys, seed_factors, seed_vars, seed_varmaps
 
-def seed_users():
-    # Create login accounts for Nathan, Caredwen, and An-Li
-    from django.contrib.auth.models import User
-    caredwen = User.objects.create_user('caredwenf', 'caredwenf@youthtruthsurvey.org', 'password')
-    nathan = User.objects.create_user('nathanh', 'nathanh@youthtruthsurvey.org', 'password')
-    anli = User.objects.create_user('an-lih', 'an-lih@youthtruthsurvey.org', 'password')
-    caredwen.save()
-    nathan.save()
-    anli.save()
-    print "Seeded accounts for Nathan, An-Li, and Caredwen."
-
-
-def seed_surveys():
-    from datacombo.models import Survey
-    tchhs = Survey(name='HS Teacher Feedback Survey',
-                   code='tch-hs')
-    tchhs.save()
-    tchms = Survey(name='MS Teacher Feedback Survey',
-                   code='tch-ms')
-    tchms.save()
-    tches = Survey(name='ES Teacher Feedback Survey',
-                   code='tch-es')
-    tches.save()
-    schhs = Survey(name='HS Overall Experience Survey',
-                   code='sch-hs')
-    schhs.save()
-    schms = Survey(name='MS Overall Experience Survey',
-                   code='sch-ms')
-    schms.save()
-
-    print "Seeded 5 surveys."
-
-
-def seed_factors():
-    import pandas as pd
-    from datacombo.models import Survey, SummaryMeasure
-    # Import factors.csv
-    factors = pd.read_csv('factors.csv', index_col=['surveycode', 'varname'])
-    for idx_tuple in factors.index:
-        scode = idx_tuple[0]
-        new_factor = SummaryMeasure()
-        survey = Survey.objects.get(code=scode)
-        new_factor.survey = survey
-        varname = idx_tuple[1]
-        new_factor.name = varname
-        new_factor.label = factors.get_value(idx_tuple, 'label')
-        new_factor.save()
-    print "Summary Measures seeded."
-
-
-def seed_vars():
-    from datacombo.models import Survey, SummaryMeasure, Variable
-    import pandas as pd
-    #Import vars.csv
-    varlist = pd.read_csv('vars.csv', index_col=['surveycode', 'factor', 'varname'])
-    for idx_tuple in varlist.index:
-        scode = idx_tuple[0]
-        var = Variable()
-        survey = Survey.objects.get(code=scode)
-        var.survey = survey
-        fname = idx_tuple[1]
-        if pd.isnull(fname):
-            pass
-        else:
-            factor = SummaryMeasure.objects.get(name=fname)
-            var.summary_measure = factor
-        var.name = idx_tuple[2]
-        var.description = varlist.get_value(idx_tuple, 'label')
-        var.qraw = varlist.get_value(idx_tuple, 'qraw')
-        demographic = varlist.get_value(idx_tuple, 'demographic')
-        if demographic == 1:
-            var.demographic = True
-        else:
-            var.demographic = False
-        in_loop = varlist.get_value(idx_tuple, 'in_loop')
-        if in_loop == 1:
-            var.in_loop = True
-        else:
-            var.in_loop = False
-        in_report = varlist.get_value(idx_tuple, 'in_report')
-        if in_report == 1:
-            var.in_report = True
-        else:
-            var.in_report = False
-        var.active = True
-        var.save()
-    print "Sample variables seeded."
 
 
 class Command(BaseCommand):
     help = 'Set up surveys and variables for testing'
 
     def handle(self, *args, **options):
-        seed_users()
-        seed_surveys()
-        seed_factors()
-        seed_vars()
+        seed_users.execute()
+        seed_surveys.execute()
+        seed_factors.execute()
+        seed_vars.execute()
+        seed_varmaps.execute()

@@ -49,8 +49,7 @@
         <th>Variable Name</th>
         <th>Mapped From</th>
         <th>Label</th>
-        <th>Active?</th>
-        <th class="col-lg-2">Action</th>
+        <th class="col-lg-1">Action</th>
       </tr>
       
       {% for v in variables %}
@@ -58,18 +57,17 @@
         <td>{{ v.summary_measure.label }}</td>
         <td>{{ v.name }}</td>
         <td>
-          {% if not v.vmap_list %}
-            <span class="label label-danger">No map found</span>
-          {% else %}
-            {{ v.vmap_list|join:", " }}          
-          {% endif %}
+            {% for vm in v.varmap_set.all %}
+              <a href="{{ vm.get_absolute_url }}"><span class="label label-primary">{{ vm.raw_name }}</span></a>  
+            {% empty %}
+              <span class="label label-default">None</span>
+            {% endfor %}
+            <a href="{% url "varmap-add" pk=survey.id %}"><span class="label label-success"><i class="icon-plus"> </i></span></a>
         </td>
         <td>{{ v.description }}</td>
-        <td>{{ v.active }}</td>
         <td>
-          <a href="{% url "variables-edit" pk=v.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"> </i>Variable</a>
-          <a href="{% url "variables-edit" pk=v.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"> </i>Mapping</a>
-          <a href="{% url "variables-delete" pk=v.id %}" class="btn btn-danger btn-xs"><i class="icon-trash icon-large"> </i>Variable</a>
+          <a href="{% url "variables-edit" pk=v.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"> </i></a>
+          <a href="{% url "variables-delete" pk=v.id %}" class="btn btn-danger btn-xs"><i class="icon-trash icon-large"> </i></a>
         </td>
       </tr>
       {% endfor %}
