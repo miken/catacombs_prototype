@@ -17,11 +17,11 @@ def execute():
             var.summary_measure = factor
         var.name = idx_tuple[2]
         var.description = varlist.get_value(idx_tuple, 'label')
-        in_loop = varlist.get_value(idx_tuple, 'in_loop')
-        if in_loop == 1:
-            var.in_loop = True
+        qual = varlist.get_value(idx_tuple, 'qual')
+        if qual == 1:
+            var.qual = True
         else:
-            var.in_loop = False
+            var.qual = False
         var.active = True
         var.save()
     print "Sample variables seeded."
