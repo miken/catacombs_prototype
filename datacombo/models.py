@@ -162,7 +162,7 @@ class Variable(models.Model):
     survey = models.ForeignKey(Survey)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
-    in_loop = models.BooleanField(verbose_name=u'Is this a Likert variable used in teacher feedback loop?')
+    qual = models.BooleanField(verbose_name=u'Is this a qualitative variable?')
     summary_measure = models.ForeignKey(SummaryMeasure, blank=True, null=True)
     active = models.BooleanField()
 
@@ -388,9 +388,12 @@ class Student(models.Model):
 class Response(models.Model):
     question = models.ForeignKey(Variable)
     survey = models.ForeignKey(Survey)
+    # Response can be stored in either answer or comment, but not both
+    # If question.qual is True, then store in comment
     answer = models.PositiveSmallIntegerField(blank=True, null=True)
-    #Indicates to whom the answer belongs
-    #Set null=True for student because of a future possibility of surveying teachers and parents etc.
+    comment = models.CharField(max_length=16384, default='')
+    # Indicates to whom the answer belongs
+    # Set null=True for student because of a future possibility of surveying teachers and parents etc.
     student = models.ForeignKey(Student, null=True)
     #Indicates whether the answer was for a course or for a school-overall
     on_course = models.ForeignKey(Course, null=True, verbose_name=u'Feedback for which course?')

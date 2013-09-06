@@ -41,14 +41,20 @@ class Migration(SchemaMigration):
             ('survey', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['datacombo.Survey'])),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
             ('description', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('qraw', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
-            ('demographic', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('in_loop', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('in_report', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('summary_measure', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['datacombo.SummaryMeasure'], null=True)),
+            ('summary_measure', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['datacombo.SummaryMeasure'], null=True, blank=True)),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal(u'datacombo', ['Variable'])
+
+        # Adding model 'VarMap'
+        db.create_table(u'datacombo_varmap', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('raw_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('variable', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['datacombo.Variable'])),
+            ('survey', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['datacombo.Survey'])),
+        ))
+        db.send_create_signal(u'datacombo', ['VarMap'])
 
         # Adding model 'School'
         db.create_table(u'datacombo_school', (
@@ -150,6 +156,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Variable'
         db.delete_table(u'datacombo_variable')
+
+        # Deleting model 'VarMap'
+        db.delete_table(u'datacombo_varmap')
 
         # Deleting model 'School'
         db.delete_table(u'datacombo_school')
@@ -267,15 +276,19 @@ class Migration(SchemaMigration):
         u'datacombo.variable': {
             'Meta': {'ordering': "['name']", 'object_name': 'Variable'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'demographic': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'in_loop': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'in_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'qraw': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'summary_measure': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.SummaryMeasure']", 'null': 'True'}),
+            'summary_measure': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.SummaryMeasure']", 'null': 'True', 'blank': 'True'}),
             'survey': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Survey']"})
+        },
+        u'datacombo.varmap': {
+            'Meta': {'object_name': 'VarMap'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'raw_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'survey': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Survey']"}),
+            'variable': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Variable']"})
         }
     }
 

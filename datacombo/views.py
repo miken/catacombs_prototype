@@ -581,7 +581,7 @@ def add_var(request, pk):
             v.survey = survey
             v.name = form.cleaned_data['name']
             v.description = form.cleaned_data['description']
-            v.in_loop = form.cleaned_data['in_loop']
+            v.qual = form.cleaned_data['qual']
             v.summary_measure = form.cleaned_data['summary_measure']
             v.active = form.cleaned_data['active']
             v.save()

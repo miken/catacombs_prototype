@@ -49,6 +49,7 @@
         <th>Variable Name</th>
         <th>Mapped From</th>
         <th>Label</th>
+        <th>Qual?</th>
         <th class="col-lg-1">Action</th>
       </tr>
       
@@ -65,6 +66,11 @@
             <a href="{% url "varmap-add" pk=survey.id %}"><span class="label label-success"><i class="icon-plus"> </i></span></a>
         </td>
         <td>{{ v.description }}</td>
+        <td>
+          {% if v.qual %}
+            <i class="icon-ok-sign text-primary"></i>
+          {% endif %}
+        </td>
         <td>
           <a href="{% url "variables-edit" pk=v.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"> </i></a>
           <a href="{% url "variables-delete" pk=v.id %}" class="btn btn-danger btn-xs"><i class="icon-trash icon-large"> </i></a>

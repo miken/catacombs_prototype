@@ -1,4 +1,4 @@
-surveycode,factor,varname,label,in_loop
+surveycode,factor,varname,label,qual
 tch-hs,sum_eng,ts_expbest,How much do your teacher's expectations make you want to do your best?,1
 tch-hs,sum_eng,ts_pride,How much pride do you take in your class work?,1
 tch-hs,sum_eng,ts_trybest,How much do you try to do your best in this class?,1
@@ -85,14 +85,14 @@ sch-hs,,clim_dowell,,
 sch-hs,,clim_studresp,,
 sch-hs,,college,,
 sch-hs,,community,,
-sch-hs,,dislike_qual1,,
-sch-hs,,dislike_qual2,,
-sch-hs,,dislike_qual3,,
-sch-hs,,dislike_qual4,,
-sch-hs,,dislike_qual5,,
-sch-hs,,dislike_qual77,,
-sch-hs,,dislike_qual88,,
-sch-hs,,dislike_qualoth,,
+sch-hs,,dislike_qual1,,1
+sch-hs,,dislike_qual2,,1
+sch-hs,,dislike_qual3,,1
+sch-hs,,dislike_qual4,,1
+sch-hs,,dislike_qual5,,1
+sch-hs,,dislike_qual77,,1
+sch-hs,,dislike_qual88,,1
+sch-hs,,dislike_qualoth,,1
 sch-hs,,drophighschool,,
 sch-hs,,eng_campus,,
 sch-hs,,engage_pride,,
@@ -102,7 +102,7 @@ sch-hs,,exp_believe,,
 sch-hs,,exp_best,,
 sch-hs,,exp_satisfied,,
 sch-hs,,expect_next,,
-sch-hs,,expect_qualoth,,
+sch-hs,,expect_qualoth,,1
 sch-hs,,friendly,,
 sch-hs,,gh_think,,
 sch-hs,,hardbest_crimein,,
@@ -113,20 +113,20 @@ sch-hs,,hardbest_home,,
 sch-hs,,hardbest_none,,
 sch-hs,,hardbest_other,,
 sch-hs,,hardbest_picked,,
-sch-hs,,hardbest_qualoth,,
+sch-hs,,hardbest_qualoth,,1
 sch-hs,,hardbest_social,,
 sch-hs,,hardbest_work,,
-sch-hs,,like_qual1,,
-sch-hs,,like_qual2,,
-sch-hs,,like_qual3,,
-sch-hs,,like_qual4,,
-sch-hs,,like_qual5,,
-sch-hs,,like_qual77,,
-sch-hs,,like_qual88,,
-sch-hs,,like_qualoth,,
+sch-hs,,like_qual1,,1
+sch-hs,,like_qual2,,1
+sch-hs,,like_qual3,,1
+sch-hs,,like_qual4,,1
+sch-hs,,like_qual5,,1
+sch-hs,,like_qual77,,1
+sch-hs,,like_qual88,,1
+sch-hs,,like_qualoth,,1
 sch-hs,,math_campus,,
 sch-hs,,nativeal_r,,
-sch-hs,,other_qual,,
+sch-hs,,other_qual,,1
 sch-hs,,other_r,,
 sch-hs,,pacific_r,,
 sch-hs,,peerin,,
@@ -136,7 +136,7 @@ sch-hs,,prep_skills_car,,
 sch-hs,,prep_skills_col,,
 sch-hs,,prep_steps_car,,
 sch-hs,,prep_steps_col,,
-sch-hs,,r_qualoth,,
+sch-hs,,r_qualoth,,1
 sch-hs,,rel_connec,,
 sch-hs,,rel_help,,
 sch-hs,,rel_persprob,,
@@ -158,8 +158,8 @@ sch-hs,,rig_think_math,,
 sch-hs,,rig_workhard,,
 sch-hs,,rig_workhard_eng,,
 sch-hs,,rig_workhard_math,,
-sch-hs,,stem_instem_in_qualoth,,
-sch-hs,,stem_outstem_out_qualoth,,
+sch-hs,,stem_instem_in_qualoth,,1
+sch-hs,,stem_outstem_out_qualoth,,1
 sch-hs,,sup_admissions,,
 sch-hs,,sup_advisory,,
 sch-hs,,sup_aftertutor,,
@@ -192,7 +192,7 @@ sch-hs,,un_look,,
 sch-hs,,un_orient,,
 sch-hs,,un_other,,
 sch-hs,,un_prefer,,
-sch-hs,,un_qualoth,,
+sch-hs,,un_qualoth,,1
 sch-hs,,un_race,,
 sch-hs,,un_religion,,
 sch-hs,,white_r,,
@@ -203,9 +203,9 @@ sch-hs,,whydrop_failed,,
 sch-hs,,whydrop_helplife,,
 sch-hs,,whydrop_other,,
 sch-hs,,whydrop_personal,,
-sch-hs,,whydrop_qualoth,,
+sch-hs,,whydrop_qualoth,,1
 sch-hs,,whydrop_safe,,
 sch-hs,,whydrop_safeto,,
 sch-hs,,whydrop_students,,
 sch-hs,,whydrop_work,,
-sch-hs,,year_qualoth,,
+sch-hs,,year_qualoth,,1

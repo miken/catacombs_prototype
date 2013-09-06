@@ -16,7 +16,7 @@
 
   <p>You selected to update this survey: <strong>{{ survey_name }}</strong></p>
 
-  {% if filetype == 'legacy' %}
+  {% if filetype != 'panel' %}
 
     <h2>Column Matching</h2>
 
