@@ -41,9 +41,13 @@ def process_uploaded(file, filetype, survey, session_title):
         else:
             # Function to parse upload data here:
             # Send uploading process to Redis queue
-            q.enqueue(upload_data,
-                      args=(newcsv, survey, session, filetype,),
-                      timeout=36000)
+            # And take parse_status from this
+            parse_status = q.enqueue(upload_data,
+                                     args=(newcsv, survey, session, filetype,),
+                                     timeout=36000)
+            if parse_status:
+                session.parse_status = True
+                session.save()
     return context
 
 
@@ -88,14 +92,9 @@ def upload_data(newcsv, survey, session, filetype):
             match_and_create_responses(csv_stacked, survey, session, fresh_precords_dict, filetype)
         else:
             match_and_create_responses(newcsv, survey, session, fresh_precords_dict, filetype)
-    session_id = session.id
-    update_status(session_id)
+    # If everything's good, return True to parse_status in process_uploaded
+    return True
 
-
-def update_status(session_id):
-    session = ImportSession.objects.get(id=session_id)
-    session.parse_status = True
-    session.save()
 
 # FIX THIS
 def upload_legacy_data(newcsv, survey, session):
@@ -180,7 +179,7 @@ def match_and_create_responses(newcsv, survey, session, fresh_precords_dict, fil
             pass
         # We can insert validation for complete response here later
         else:
-            for v in vars_in_csv:
+            for v in vars_in_csv:        
                 a = row[v]
                 if pd.isnull(a):
                     pass
