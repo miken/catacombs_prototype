@@ -15,7 +15,7 @@
     <th>Session Title</th>
     <th>Type</th>
     <th>For Which Survey?</th>
-    <th>All Data Uploaded?</th>
+    <th>Processing Status</th>
     <th>Uploaded On</th>
     <th>Action</th>
   </tr>
@@ -27,7 +27,7 @@
     <td>{{ session.survey.name }}</td>
     <td>
       {% if session.parse_status %}
-        <i class="icon-ok-sign icon-large text-success"></i>
+        <span class="label label-success">Complete</span>
       {% else %}
         <span class="label label-warning">Processing</span>
       {% endif %}
