@@ -23,6 +23,7 @@
     {{ form.as_p }}
   </ul>
   <button id="save_varmap" type="submit" class="btn btn-primary btn-lg">Save</button>
+  <a href="{% url "varmap-delete" pk=varmap.id %}" class="btn btn-danger btn-lg">Delete</a>
 </form>
 
 {% if varmap.id %}

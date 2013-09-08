@@ -120,6 +120,11 @@ class ImportSession(models.Model):
                                    default=UNDEFINED)
     date_created = models.DateField()
     survey = models.ForeignKey(Survey)
+    # Other meta information goes here
+    # Number of rows in the CSV file uploaded
+    number_of_rows = models.PositiveSmallIntegerField(blank=True, null=True)
+    # Status of whether the uploaded data has been parsed or not
+    parse_status = models.BooleanField()
 
     def school_count(self):
         count = self.school_set.distinct().count()

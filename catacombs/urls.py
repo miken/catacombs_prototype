@@ -30,6 +30,8 @@ urlpatterns = patterns('',
     url(r'^surveys/(?P<pk>\d+)/map/add$', datacombo.views.add_varmap, name='varmap-add',),
     # Edit a variable map
     url(r'^vars/maps/(?P<pk>\d+)/$', datacombo.views.UpdateVarMapView.as_view(), name='varmap-edit',),
+    # Delete a variable map
+    url(r'^vars/maps/(?P<pk>\d+)/delete$', datacombo.views.DeleteVarMapView.as_view(), name='varmap-delete',),
     # Variables
     url(r'^vars/$', datacombo.views.ListVariableView.as_view(), name='variables-list',),
     url(r'^vars/new$', datacombo.views.CreateVariableView.as_view(), name='variables-new',),
@@ -93,6 +95,9 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
+
+    # Django-RQ
+    url(r'^django-rq/', include('django_rq.urls')),
 )
 
 urlpatterns += staticfiles_urlpatterns()

@@ -29,6 +29,24 @@ else:
     DATABASES = {}
     DATABASES['default'] = dj_database_url.config()
 
+# Redis Queue Settings
+RQ_QUEUES = {
+    'default': {
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379'), # If you're on Heroku
+        'DB': 0,
+    },
+    'high': {
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379'), # If you're on Heroku
+        'DB': 0,
+    },
+    'low': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+    }
+}
+
+
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
@@ -137,6 +155,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'south',
+    'django_rq',
     'datacombo',
 )
 

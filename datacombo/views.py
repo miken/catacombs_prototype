@@ -9,6 +9,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
+
+# Import models and custom forms
 from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure
 from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm
 from datacombo.upload import process_uploaded
@@ -480,10 +482,10 @@ def upload_file(request, pk):
             file_type = request.POST['file_type']
             session_title = request.POST['title']
             # Process the uploaded data using a helper function in upload.py
+            # This is a memory-heavy process! Hence send to 
             context = process_uploaded(newfile, file_type, survey, session_title)
-            # Redirect to upload summary after POST
-            response = SimpleTemplateResponse('survey/upload_confirm.html', context=context)
-            return response
+            # Redirect to upload wait after POST
+            return render_to_response('survey/upload_wait.html', context, context_instance=RequestContext(request))
     else:
         form = UploadFileForm()
     return render_to_response('survey/upload.html', {'form': form, 'survey': survey}, context_instance=RequestContext(request))

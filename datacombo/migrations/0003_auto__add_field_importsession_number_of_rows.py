@@ -8,31 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Response.comment'
-        db.add_column(u'datacombo_response', 'comment',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=16384),
-                      keep_default=False)
-
-        # Deleting field 'Variable.in_loop'
-        db.delete_column(u'datacombo_variable', 'in_loop')
-
-        # Adding field 'Variable.qual'
-        db.add_column(u'datacombo_variable', 'qual',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Adding field 'ImportSession.number_of_rows'
+        db.add_column(u'datacombo_importsession', 'number_of_rows',
+                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Response.comment'
-        db.delete_column(u'datacombo_response', 'comment')
-
-        # Adding field 'Variable.in_loop'
-        db.add_column(u'datacombo_variable', 'in_loop',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
-        # Deleting field 'Variable.qual'
-        db.delete_column(u'datacombo_variable', 'qual')
+        # Deleting field 'ImportSession.number_of_rows'
+        db.delete_column(u'datacombo_importsession', 'number_of_rows')
 
 
     models = {
@@ -51,6 +35,7 @@ class Migration(SchemaMigration):
             'date_created': ('django.db.models.fields.DateField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'import_type': ('django.db.models.fields.CharField', [], {'default': "'Undefined'", 'max_length': '10'}),
+            'number_of_rows': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'survey': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Survey']"}),
             'title': ('django.db.models.fields.CharField', [], {'default': "u'Session with no name'", 'max_length': '100'})
         },

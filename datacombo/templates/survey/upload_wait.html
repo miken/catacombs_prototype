@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>File Uploaded</h1>
+
+{% if not_csv_file %}
+
+  <p>That was not a valid CSV file. Please go back and try re-uploading a different file.</p>
+
+{% elif not_csv_match %}
+
+  <p>Catacombs determined that this CSV file is not valid for {{ survey_name }}. Please go back and try re-uploading the right CSV file for this survey.</p>
+
+{% else %}
+
+  <p>CSV file is now being processed for: <strong>{{ survey_name }}</strong>. Since this is a memory-intensive process, it may take a while to finish.</p>
+
+  <p>Please go to <a href="{% url "sessions-list" %}">import session management page</a> to check processing status at a later time.</p>
+
+{% endif %}
+
+
+<a href="{% url "home-view" %}">Back to home</a>
+{% endblock %}

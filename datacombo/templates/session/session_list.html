@@ -8,17 +8,14 @@
 
 <p>The downside of this approach is that when you delete an import session in this table, all data points, e.g., schools, teachers, students, and response records, "hooked" to that session will be deleted from the database too. Removing import session should only be the last resort. You have the option to delete schools and their participation records individually. Always check the number of "hooked" data points in this table to have a sense of what will be affected when you delete the session.</p>
 
+<p>Click on each upload session for more information.</p>
+
 <table class="table table-striped table-condensed">
   <tr>
     <th>Session Title</th>
     <th>Type</th>
     <th>For Which Survey?</th>
-    <th>Schools Added</th>
-    <th>School Participations Added</th>
-    <th>Teachers Added</th>
-    <th>Courses Added</th>
-    <th>Student Responses Added</th>
-    <th>Data Points Added</th>
+    <th>All Data Uploaded?</th>
     <th>Uploaded On</th>
     <th>Action</th>
   </tr>
@@ -28,12 +25,13 @@
     <td>{{ session.title }}</td>
     <td>{{ session.import_type }}</td>
     <td>{{ session.survey.name }}</td>
-    <td>{{ session.school_count }}</td>
-    <td>{{ session.pr_count }}</td>
-    <td>{{ session.teacher_count }}</td>
-    <td>{{ session.course_count }}</td>
-    <td>{{ session.student_count }}</td>
-    <td>{{ session.response_count }}</td>
+    <td>
+      {% if session.parse_status %}
+        <i class="icon-ok-sign icon-large text-success"></i>
+      {% else %}
+        <span class="label label-warning">Processing</span>
+      {% endif %}
+    </td>
     <td>{{ session.date_created }}</td>
     <td>
       <a href="{% url "sessions-edit" pk=session.id %}" class="btn btn-default btn-xs"><i class="icon-edit icon-large"></i></a>
