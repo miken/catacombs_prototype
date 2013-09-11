@@ -3,6 +3,7 @@ import datetime
 
 # Set up RQ queue
 import django_rq
+from django_rq import job
 q = django_rq.get_queue('high')
 
 from datacombo.models import School, SchoolParticipation, Student, Response, ImportSession, Teacher, Course, Subject
@@ -40,20 +41,34 @@ def process_uploaded(file, filetype, survey, session_title):
             context['not_csv_match'] = True
         else:
             # Function to parse upload data here:
-            # Send uploading process to Redis queue
-            # And take parse_status from this
-            parse_status = q.enqueue(upload_data,
-                                     args=(newcsv, survey, session, filetype,),
-                                     timeout=36000)
-            if parse_status:
-                session.parse_status = True
-                session.save()
+            # We'll enqueue within the function
+            # Split newcsv into smaller chunks to work with, 10 rows each or so
+            toprownum = 0
+            while toprownum < len(newcsv):
+                bottomrownum = toprownum + 10
+                # If we hit the bottom of newcsv, just re-assign bottomrownum
+                if bottomrownum > len(newcsv):
+                    bottomrownum = len(newcsv)
+                csv_chunk = newcsv[toprownum:bottomrownum]
+                # Enqueue the chunk uploading process
+                q.enqueue_call(func=upload_data,
+                               args=(csv_chunk, survey, session, filetype),
+                               )
+                toprownum += 10
+            session.parse_status = True
+            session.save()
     return context
 
 
 def upload_data(newcsv, survey, session, filetype):
     match_and_create_schools(newcsv, survey, session)
     match_and_create_schoolparticipations(newcsv, survey, session)
+    # q.enqueue_call(func=match_and_create_schools,
+    #          args=(newcsv, survey, session),
+    #          )
+    # q.enqueue_call(func=match_and_create_schoolparticipations,
+    #           args=(newcsv, survey, session),
+    #           )
 
     # If it's a teacher feedback survey, proceed with teacher & course matching
     fresh_precords_dict = get_precords_dict(survey)
@@ -81,19 +96,32 @@ def upload_data(newcsv, survey, session, filetype):
             s_t_c_df = group_course_level(newcsv)
         # Now proceed with mixing and matching
         match_and_create_teachers(s_t_df, session, fresh_precords_dict)
+        # q.enqueue_call(func=match_and_create_teachers,
+        #           args=(s_t_df, session, fresh_precords_dict),
+        #           )
         match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict)
+        # q.enqueue_call(func=match_and_create_subjects_and_courses,
+        #           args=(s_t_c_df, session, fresh_precords_dict),
+        #           )
         # Pair the new courses with teachers
         pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict)
     # Continue to add students and responses if it's raw data
     if filetype == 'raw':
         match_and_create_students(newcsv, session, fresh_precords_dict)
+        # q.enqueue_call(func=match_and_create_students,
+        #           args=(newcsv, session, fresh_precords_dict),
+        #           )
         # Add responses
         if survey.is_teacher_feedback():
             match_and_create_responses(csv_stacked, survey, session, fresh_precords_dict, filetype)
+            # q.enqueue_call(func=match_and_create_responses,
+            #           args=(csv_stacked, survey, session, fresh_precords_dict, filetype),
+            #           )
         else:
             match_and_create_responses(newcsv, survey, session, fresh_precords_dict, filetype)
-    # If everything's good, return True to parse_status in process_uploaded
-    return True
+            # q.enqueue_call(func=match_and_create_responses,
+            #           args=(newcsv, survey, session, fresh_precords_dict, filetype),
+            #           )
 
 
 # FIX THIS
@@ -133,6 +161,7 @@ def upload_legacy_data(newcsv, survey, session):
             pass
             # Import responses from newcsv
         new_students_dict = match_and_create_students(newcsv, survey, session, fresh_precords_dict)
+
 
 
 def match_and_create_responses(newcsv, survey, session, fresh_precords_dict, filetype):
@@ -179,9 +208,10 @@ def match_and_create_responses(newcsv, survey, session, fresh_precords_dict, fil
             pass
         # We can insert validation for complete response here later
         else:
-            for v in vars_in_csv:        
+            for v in vars_in_csv:
                 a = row[v]
                 if pd.isnull(a):
+                    # print "Skipping {v} because it's blank".format(v=v)
                     pass
                 else:
                     idx_str_list = []
@@ -190,10 +220,14 @@ def match_and_create_responses(newcsv, survey, session, fresh_precords_dict, fil
                     else:
                         idx_str_list.append(row['School_Short'])
                     idx_str_list.append(v)
+                    # Append PIN here
+                    pin = row['V4']
+                    idx_str_list.append(pin)
                     idx = ' - '.join(idx_str_list)
                     # If there's a match of student ID & variable name (idx) in the database,
                     # we'll skip adding a new variable
                     if idx in existing_responses_dict.keys():
+                        print 'This index already exists: {idx}'.format(idx=idx)
                         pass
                     else:
                         resp = Response()
@@ -214,6 +248,7 @@ def match_and_create_responses(newcsv, survey, session, fresh_precords_dict, fil
                             resp.comment = a
                         # If it's a blank space / string garbage, skip response creation
                         elif isinstance(a, basestring):
+                            # print "Skipping {v} because it's garbage: {a}".format(v=v, a=a)
                             continue
                         else:
                             resp.answer = a
@@ -234,6 +269,7 @@ def match_and_create_responses(newcsv, survey, session, fresh_precords_dict, fil
                         number_of_new_datapoints += 1
         # If the list of responses reach 500, we'll do bulk create and reset the list
         if len(new_responses_list) > 500:
+            # Enqueue this
             Response.objects.bulk_create(new_responses_list)
             new_responses_list = []
     # Bulk create new response objects and flush out the list
@@ -272,6 +308,7 @@ def match_and_create_schools(newcsv, survey, session):
             number_of_new_schools += 1
     # Bulk create new school objects
     School.objects.bulk_create(new_schools_list)
+
 
 
 def match_and_create_schoolparticipations(newcsv, survey, session):
@@ -320,6 +357,7 @@ def match_and_create_schoolparticipations(newcsv, survey, session):
     SchoolParticipation.objects.bulk_create(new_records_list)
 
 
+
 def match_and_create_teachers(s_t_df, session, fresh_precords_dict):
     '''
     s_t_df: CSV file grouped by School_Short and Teacher_Full_Name
@@ -351,6 +389,7 @@ def match_and_create_teachers(s_t_df, session, fresh_precords_dict):
             number_of_new_teachers += 1
     #Bulk create new participation objects
     Teacher.objects.bulk_create(new_teachers_list)
+
 
 
 def match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict):
@@ -397,6 +436,7 @@ def match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict
     Course.objects.bulk_create(new_courses_list)
 
 
+
 def pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict):
     '''
     Match up teachers with their corresponding courses
@@ -415,6 +455,7 @@ def pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict):
         teacher_id = fresh_teachers_dict[s_t_index]
         teacher = Teacher.objects.get(id=teacher_id)
         c.teacher_set.add(teacher)
+
 
 
 def match_and_create_students(csv, session, fresh_precords_dict):

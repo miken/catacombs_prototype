@@ -389,6 +389,9 @@ class Student(models.Model):
     surveyed_thru = models.ForeignKey(SchoolParticipation)
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
+    def __unicode__(self):
+        return self.pin + ' - ' + self.surveyed_thru.legacy_school_short
+
 
 class Response(models.Model):
     question = models.ForeignKey(Variable)
@@ -405,3 +408,13 @@ class Response(models.Model):
     on_schoolrecord = models.ForeignKey(SchoolParticipation, null=True, verbose_name=u'Feedback for which school record?')
     legacy_survey_index = models.CharField(max_length=255, default='', verbose_name=u'Index generated from School_Short & (Teacher_Name & Course_Name) & Login PIN & varname')
     imported_thru = models.ForeignKey(ImportSession, null=True)
+
+    def __unicode__(self):
+        if self.question.qual:
+            return '{pin}: ({question} - {answer})'.format(pin=self.student.pin,
+                                                           question=self.question.name,
+                                                           answer=self.comment)
+        else:
+            return '{pin}: ({question} - {answer})'.format(pin=self.student.pin,
+                                                           question=self.question.name,
+                                                           answer=self.answer)
