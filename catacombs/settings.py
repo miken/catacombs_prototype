@@ -123,6 +123,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'hirefire.contrib.django.middleware.HireFireMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -192,6 +193,9 @@ LOGGING = {
 
 LOGIN_REDIRECT_URL = '/home'
 
+# Settings for HireFire
+HIREFIRE_PROCS = ['datacombo.procs.WorkerProc']
+HIREFIRE_TOKEN = '0d296a293ac2e471290a42ddf67742526e74c33d'
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

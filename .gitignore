@@ -3,6 +3,7 @@ venv_mac
 venv_win
 *.py[cod]
 database.db
+dump.rdb
 
 # C extensions
 *.so

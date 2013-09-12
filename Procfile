@@ -1,2 +1,2 @@
-web: gunicorn catacombs.wsgi
-worker: python manage.py rqworker high
+web: newrelic-admin run-program gunicorn catacombs.wsgi
+worker: newrelic-admin run-python manage.py rqworker high

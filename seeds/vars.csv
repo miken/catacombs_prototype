@@ -1,211 +1,1 @@
-surveycode,factor,varname,label,qual
-tch-hs,sum_eng,ts_expbest,How much do your teacher's expectations make you want to do your best?,1
-tch-hs,sum_eng,ts_pride,How much pride do you take in your class work?,1
-tch-hs,sum_eng,ts_trybest,How much do you try to do your best in this class?,1
-tch-hs,sum_eng,ts_enjoy,How often do you enjoy coming to this class?,1
-tch-hs,sum_expec,ts_teachassign,How well do your teacher's assignments help you better understand the subject?,1
-tch-hs,sum_expec,ts_learnlot,"In this class, how much do you learn every day?",1
-tch-hs,sum_expec,ts_think,How much does the work that you do for your class make you really think?,1
-tch-hs,sum_expec,ts_teachundr,How well does your teacher understand the subject that (s)he is teaching?,1
-tch-hs,sum_expec,ts_fulleffort,How much effort does your teacher expect you to give in class?,1
-tch-hs,sum_expec,ts_nomem,"How much does your teacher want you to use your thinking skills, not just memorize things?",1
-tch-hs,sum_expec,ts_nogiveup,"When the work gets difficult, how hard does your teacher expect you to try?",1
-tch-hs,sum_rele,ts_under,How much does your teacher try to understand what your life is like outside of school?,1
-tch-hs,sum_rele,ts_feelcare,How much do you think your teacher cares about you?,1
-tch-hs,sum_rele,ts_helpout,How much does what you learn in this class help you outside of school?,1
-tch-hs,sum_rele,ts_connect,How well does your teacher connect what you're learning in class with your life outside of school?,1
-tch-hs,sum_met,ts_askexpl,How often does your teacher ask students to explain more about answers they give?,1
-tch-hs,sum_met,ts_explain,How often does your teacher want you to explain your answers - why you think what you think?,1
-tch-hs,sum_met,ts_askqns,How often does your teacher ask questions to be sure that you and your classmates are following along when (s)he is teaching?,1
-tch-hs,sum_met,ts_tryexp,"If someone doesn't understand something, how often does your teacher explain it another way?",1
-tch-hs,sum_met,ts_correct,"In this class, how much have you learned to correct your mistakes?",1
-tch-hs,sum_rel,ts_fair,How fair is your teacher?,1
-tch-hs,sum_rel,ts_adultresp,How respectful is your teacher to students in this class?,1
-tch-hs,sum_rel,ts_believe,How much does your teacher believe that you can get a good grade if you try?,1
-tch-hs,sum_rel,ts_extra,How willing is your teacher to give extra help on school work if you need it?,1
-tch-hs,sum_rel,ts_discipline,How fair is discipline in this class?,1
-tch-hs,sum_env,ts_bevwants,How many of your classmates behave the way your teacher wants them to?,1
-tch-hs,sum_env,ts_bevcontrol,How under control is student behavior in this classroom?,1
-tch-hs,sum_env,ts_studresp,How respectful are students to the teacher in this class?,1
-tch-hs,sum_env,ts_classbusy,How often does your class stay busy and not waste time?,1
-tch-hs,sum_env,ts_dowell,How many students in this class want to do well?,1
-tch-ms,,m_grade,Grade Level,
-tch-ms,,m_gender,Gender,
-tch-ms,m_sum_eng,m_ts_expbest,How much do your teacher's expectations make you want to do your best?,1
-tch-ms,m_sum_eng,m_ts_pride,How much pride do you take in your class work?,1
-tch-ms,m_sum_eng,m_ts_trybest,How much do you try to do your best in this class?,1
-tch-ms,m_sum_eng,m_ts_enjoy,How often do you enjoy coming to this class?,1
-tch-ms,m_sum_expec,m_ts_teachassign,How well do your teacher's assignments help you better understand the subject?,1
-tch-ms,m_sum_expec,m_ts_learnlot,"In this class, how much do you learn every day?",1
-tch-ms,m_sum_expec,m_ts_think,How much does the work that you do for your class make you really think?,1
-tch-ms,m_sum_expec,m_ts_teachundr,How well does your teacher understand the subject that (s)he is teaching?,1
-tch-ms,m_sum_expec,m_ts_fulleffort,How much effort does your teacher expect you to give in class?,1
-tch-ms,m_sum_expec,m_ts_nomem,"How much does your teacher want you to use your thinking skills, not just memorize things?",1
-tch-ms,m_sum_expec,m_ts_nogiveup,"When the work gets difficult, how hard does your teacher expect you to try?",1
-tch-ms,m_sum_rele,m_ts_under,How much does your teacher try to understand what your life is like outside of school?,1
-tch-ms,m_sum_rele,m_ts_feelcare,How much do you think your teacher cares about you?,1
-tch-ms,m_sum_rele,m_ts_helpout,How much does what you learn in this class help you outside of school?,1
-tch-ms,m_sum_rele,m_ts_connect,How well does your teacher connect what you're learning in class with your life outside of school?,1
-tch-ms,m_sum_met,m_ts_askexpl,How often does your teacher ask students to explain more about answers they give?,1
-tch-ms,m_sum_met,m_ts_explain,How often does your teacher want you to explain your answers - why you think what you think?,1
-tch-ms,m_sum_met,m_ts_askqns,How often does your teacher ask questions to be sure that you and your classmates are following along when (s)he is teaching?,1
-tch-ms,m_sum_met,m_ts_tryexp,"If someone doesn't understand something, how often does your teacher explain it another way?",1
-tch-ms,m_sum_met,m_ts_correct,"In this class, how much have you learned to correct your mistakes?",1
-tch-ms,m_sum_rel,m_ts_fair,How fair is your teacher?,1
-tch-ms,m_sum_rel,m_ts_adultresp,How respectful is your teacher to students in this class?,1
-tch-ms,m_sum_rel,m_ts_believe,How much does your teacher believe that you can get a good grade if you try?,1
-tch-ms,m_sum_rel,m_ts_extra,How willing is your teacher to give extra help on school work if you need it?,1
-tch-ms,m_sum_rel,m_ts_discipline,How fair is discipline in this class?,1
-tch-ms,m_sum_env,m_ts_bevwants,How many of your classmates behave the way your teacher wants them to?,1
-tch-ms,m_sum_env,m_ts_bevcontrol,How under control is student behavior in this classroom?,1
-tch-ms,m_sum_env,m_ts_studresp,How respectful are students to the teacher in this class?,1
-tch-ms,m_sum_env,m_ts_classbusy,How often does your class stay busy and not waste time?,1
-tch-ms,m_sum_env,m_ts_dowell,How many students in this class want to do well?,1
-sch-hs,,ad_extra,,
-sch-hs,,ad_fair,,
-sch-hs,,ad_under,,
-sch-hs,,aframb_r,,
-sch-hs,,asian_r,,
-sch-hs,,beself,,
-sch-hs,,bully_dk,,
-sch-hs,,bully_elec,,
-sch-hs,,bully_none,,
-sch-hs,,bully_phy,,
-sch-hs,,bully_soc,,
-sch-hs,,bully_verb,,
-sch-hs,,classtype_career,,
-sch-hs,,classtype_dk,,
-sch-hs,,classtype_ELL,,
-sch-hs,,classtype_gen,,
-sch-hs,,classtype_honors,,
-sch-hs,,classtype_spec,,
-sch-hs,,clim_adultresp,,
-sch-hs,,clim_discipline,,
-sch-hs,,clim_dowell,,
-sch-hs,,clim_studresp,,
-sch-hs,,college,,
-sch-hs,,community,,
-sch-hs,,dislike_qual1,,1
-sch-hs,,dislike_qual2,,1
-sch-hs,,dislike_qual3,,1
-sch-hs,,dislike_qual4,,1
-sch-hs,,dislike_qual5,,1
-sch-hs,,dislike_qual77,,1
-sch-hs,,dislike_qual88,,1
-sch-hs,,dislike_qualoth,,1
-sch-hs,,drophighschool,,
-sch-hs,,eng_campus,,
-sch-hs,,engage_pride,,
-sch-hs,,engage_qual,,
-sch-hs,,enjoy,,
-sch-hs,,exp_believe,,
-sch-hs,,exp_best,,
-sch-hs,,exp_satisfied,,
-sch-hs,,expect_next,,
-sch-hs,,expect_qualoth,,1
-sch-hs,,friendly,,
-sch-hs,,gh_think,,
-sch-hs,,hardbest_crimein,,
-sch-hs,,hardbest_crimeout,,
-sch-hs,,hardbest_extra,,
-sch-hs,,hardbest_family,,
-sch-hs,,hardbest_home,,
-sch-hs,,hardbest_none,,
-sch-hs,,hardbest_other,,
-sch-hs,,hardbest_picked,,
-sch-hs,,hardbest_qualoth,,1
-sch-hs,,hardbest_social,,
-sch-hs,,hardbest_work,,
-sch-hs,,like_qual1,,1
-sch-hs,,like_qual2,,1
-sch-hs,,like_qual3,,1
-sch-hs,,like_qual4,,1
-sch-hs,,like_qual5,,1
-sch-hs,,like_qual77,,1
-sch-hs,,like_qual88,,1
-sch-hs,,like_qualoth,,1
-sch-hs,,math_campus,,
-sch-hs,,nativeal_r,,
-sch-hs,,other_qual,,1
-sch-hs,,other_r,,
-sch-hs,,pacific_r,,
-sch-hs,,peerin,,
-sch-hs,,peerout,,
-sch-hs,,prefer_r,,
-sch-hs,,prep_skills_car,,
-sch-hs,,prep_skills_col,,
-sch-hs,,prep_steps_car,,
-sch-hs,,prep_steps_col,,
-sch-hs,,r_qualoth,,1
-sch-hs,,rel_connec,,
-sch-hs,,rel_help,,
-sch-hs,,rel_persprob,,
-sch-hs,,rel_write,,
-sch-hs,,rig_correct,,
-sch-hs,,rig_explain,,
-sch-hs,,rig_learnlot,,
-sch-hs,,rig_nogiveup,,
-sch-hs,,rig_nomem,,
-sch-hs,,rig_teachassign,,
-sch-hs,,rig_teachassign_eng,,
-sch-hs,,rig_teachassign_math,,
-sch-hs,,rig_teachundr,,
-sch-hs,,rig_teachundr_eng,,
-sch-hs,,rig_teachundr_math,,
-sch-hs,,rig_think,,
-sch-hs,,rig_think_eng,,
-sch-hs,,rig_think_math,,
-sch-hs,,rig_workhard,,
-sch-hs,,rig_workhard_eng,,
-sch-hs,,rig_workhard_math,,
-sch-hs,,stem_instem_in_qualoth,,1
-sch-hs,,stem_outstem_out_qualoth,,1
-sch-hs,,sup_admissions,,
-sch-hs,,sup_advisory,,
-sch-hs,,sup_aftertutor,,
-sch-hs,,sup_career,,
-sch-hs,,sup_choosegrad,,
-sch-hs,,sup_class,,
-sch-hs,,sup_collegeapply,,
-sch-hs,,sup_collegepay,,
-sch-hs,,sup_examprep,,
-sch-hs,,sup_makeup,,
-sch-hs,,sup_onetutor,,
-sch-hs,,suph_admissions,,
-sch-hs,,suph_advisory,,
-sch-hs,,suph_aftertutor,,
-sch-hs,,suph_career,,
-sch-hs,,suph_choosegrad,,
-sch-hs,,suph_class,,
-sch-hs,,suph_collegeapply,,
-sch-hs,,suph_collegepay,,
-sch-hs,,suph_examprep,,
-sch-hs,,suph_makeup,,
-sch-hs,,suph_onetutor,,
-sch-hs,,surveylen,,
-sch-hs,,trydobest,,
-sch-hs,,un_disabil,,
-sch-hs,,un_finance,,
-sch-hs,,un_from,,
-sch-hs,,un_gender,,
-sch-hs,,un_look,,
-sch-hs,,un_orient,,
-sch-hs,,un_other,,
-sch-hs,,un_prefer,,
-sch-hs,,un_qualoth,,1
-sch-hs,,un_race,,
-sch-hs,,un_religion,,
-sch-hs,,white_r,,
-sch-hs,,whydrop_behind,,
-sch-hs,,whydrop_cared,,
-sch-hs,,whydrop_discouraged,,
-sch-hs,,whydrop_failed,,
-sch-hs,,whydrop_helplife,,
-sch-hs,,whydrop_other,,
-sch-hs,,whydrop_personal,,
-sch-hs,,whydrop_qualoth,,1
-sch-hs,,whydrop_safe,,
-sch-hs,,whydrop_safeto,,
-sch-hs,,whydrop_students,,
-sch-hs,,whydrop_work,,
-sch-hs,,year_qualoth,,1
+surveycode,factor,varname,label,qualtch-hs,sum_eng,ts_expbest,How much do your teacher's expectations make you want to do your best?,tch-hs,sum_eng,ts_pride,How much pride do you take in your class work?,tch-hs,sum_eng,ts_trybest,How much do you try to do your best in this class?,tch-hs,sum_eng,ts_enjoy,How often do you enjoy coming to this class?,tch-hs,sum_expec,ts_teachassign,How well do your teacher's assignments help you better understand the subject?,tch-hs,sum_expec,ts_learnlot,"In this class, how much do you learn every day?",tch-hs,sum_expec,ts_think,How much does the work that you do for your class make you really think?,tch-hs,sum_expec,ts_teachundr,How well does your teacher understand the subject that (s)he is teaching?,tch-hs,sum_expec,ts_fulleffort,How much effort does your teacher expect you to give in class?,tch-hs,sum_expec,ts_nomem,"How much does your teacher want you to use your thinking skills, not just memorize things?",tch-hs,sum_expec,ts_nogiveup,"When the work gets difficult, how hard does your teacher expect you to try?",tch-hs,sum_rele,ts_under,How much does your teacher try to understand what your life is like outside of school?,tch-hs,sum_rele,ts_feelcare,How much do you think your teacher cares about you?,tch-hs,sum_rele,ts_helpout,How much does what you learn in this class help you outside of school?,tch-hs,sum_rele,ts_connect,How well does your teacher connect what you're learning in class with your life outside of school?,tch-hs,sum_met,ts_askexpl,How often does your teacher ask students to explain more about answers they give?,tch-hs,sum_met,ts_explain,How often does your teacher want you to explain your answers - why you think what you think?,tch-hs,sum_met,ts_askqns,How often does your teacher ask questions to be sure that you and your classmates are following along when (s)he is teaching?,tch-hs,sum_met,ts_tryexp,"If someone doesn't understand something, how often does your teacher explain it another way?",tch-hs,sum_met,ts_correct,"In this class, how much have you learned to correct your mistakes?",tch-hs,sum_rel,ts_fair,How fair is your teacher?,tch-hs,sum_rel,ts_adultresp,How respectful is your teacher to students in this class?,tch-hs,sum_rel,ts_believe,How much does your teacher believe that you can get a good grade if you try?,tch-hs,sum_rel,ts_extra,How willing is your teacher to give extra help on school work if you need it?,tch-hs,sum_rel,ts_discipline,How fair is discipline in this class?,tch-hs,sum_env,ts_bevwants,How many of your classmates behave the way your teacher wants them to?,tch-hs,sum_env,ts_bevcontrol,How under control is student behavior in this classroom?,tch-hs,sum_env,ts_studresp,How respectful are students to the teacher in this class?,tch-hs,sum_env,ts_classbusy,How often does your class stay busy and not waste time?,tch-hs,sum_env,ts_dowell,How many students in this class want to do well?,tch-ms,,m_grade,Grade Level,tch-ms,,m_gender,Gender,tch-ms,m_sum_eng,m_ts_expbest,How much do your teacher's expectations make you want to do your best?,tch-ms,m_sum_eng,m_ts_pride,How much pride do you take in your class work?,tch-ms,m_sum_eng,m_ts_trybest,How much do you try to do your best in this class?,tch-ms,m_sum_eng,m_ts_enjoy,How often do you enjoy coming to this class?,tch-ms,m_sum_expec,m_ts_teachassign,How well do your teacher's assignments help you better understand the subject?,tch-ms,m_sum_expec,m_ts_learnlot,"In this class, how much do you learn every day?",tch-ms,m_sum_expec,m_ts_think,How much does the work that you do for your class make you really think?,tch-ms,m_sum_expec,m_ts_teachundr,How well does your teacher understand the subject that (s)he is teaching?,tch-ms,m_sum_expec,m_ts_fulleffort,How much effort does your teacher expect you to give in class?,tch-ms,m_sum_expec,m_ts_nomem,"How much does your teacher want you to use your thinking skills, not just memorize things?",tch-ms,m_sum_expec,m_ts_nogiveup,"When the work gets difficult, how hard does your teacher expect you to try?",tch-ms,m_sum_rele,m_ts_under,How much does your teacher try to understand what your life is like outside of school?,tch-ms,m_sum_rele,m_ts_feelcare,How much do you think your teacher cares about you?,tch-ms,m_sum_rele,m_ts_helpout,How much does what you learn in this class help you outside of school?,tch-ms,m_sum_rele,m_ts_connect,How well does your teacher connect what you're learning in class with your life outside of school?,tch-ms,m_sum_met,m_ts_askexpl,How often does your teacher ask students to explain more about answers they give?,tch-ms,m_sum_met,m_ts_explain,How often does your teacher want you to explain your answers - why you think what you think?,tch-ms,m_sum_met,m_ts_askqns,How often does your teacher ask questions to be sure that you and your classmates are following along when (s)he is teaching?,tch-ms,m_sum_met,m_ts_tryexp,"If someone doesn't understand something, how often does your teacher explain it another way?",tch-ms,m_sum_met,m_ts_correct,"In this class, how much have you learned to correct your mistakes?",tch-ms,m_sum_rel,m_ts_fair,How fair is your teacher?,tch-ms,m_sum_rel,m_ts_adultresp,How respectful is your teacher to students in this class?,tch-ms,m_sum_rel,m_ts_believe,How much does your teacher believe that you can get a good grade if you try?,tch-ms,m_sum_rel,m_ts_extra,How willing is your teacher to give extra help on school work if you need it?,tch-ms,m_sum_rel,m_ts_discipline,How fair is discipline in this class?,tch-ms,m_sum_env,m_ts_bevwants,How many of your classmates behave the way your teacher wants them to?,tch-ms,m_sum_env,m_ts_bevcontrol,How under control is student behavior in this classroom?,tch-ms,m_sum_env,m_ts_studresp,How respectful are students to the teacher in this class?,tch-ms,m_sum_env,m_ts_classbusy,How often does your class stay busy and not waste time?,tch-ms,m_sum_env,m_ts_dowell,How many students in this class want to do well?,sch-hs,,ad_extra,,sch-hs,,ad_fair,,sch-hs,,ad_under,,sch-hs,,aframb_r,,sch-hs,,asian_r,,sch-hs,,beself,,sch-hs,,bully_dk,,sch-hs,,bully_elec,,sch-hs,,bully_none,,sch-hs,,bully_phy,,sch-hs,,bully_soc,,sch-hs,,bully_verb,,sch-hs,,classtype_career,,sch-hs,,classtype_dk,,sch-hs,,classtype_ELL,,sch-hs,,classtype_gen,,sch-hs,,classtype_honors,,sch-hs,,classtype_spec,,sch-hs,,clim_adultresp,,sch-hs,,clim_discipline,,sch-hs,,clim_dowell,,sch-hs,,clim_studresp,,sch-hs,,college,,sch-hs,,community,,sch-hs,,dislike_qual1,,1sch-hs,,dislike_qual2,,1sch-hs,,dislike_qual3,,1sch-hs,,dislike_qual4,,1sch-hs,,dislike_qual5,,1sch-hs,,dislike_qual77,,1sch-hs,,dislike_qual88,,1sch-hs,,dislike_qualoth,,1sch-hs,,drophighschool,,sch-hs,,eng_campus,,sch-hs,,engage_pride,,sch-hs,,engage_qual,,sch-hs,,enjoy,,sch-hs,,exp_believe,,sch-hs,,exp_best,,sch-hs,,exp_satisfied,,sch-hs,,expect_next,,sch-hs,,expect_qualoth,,1sch-hs,,friendly,,sch-hs,,gh_think,,sch-hs,,hardbest_crimein,,sch-hs,,hardbest_crimeout,,sch-hs,,hardbest_extra,,sch-hs,,hardbest_family,,sch-hs,,hardbest_home,,sch-hs,,hardbest_none,,sch-hs,,hardbest_other,,sch-hs,,hardbest_picked,,sch-hs,,hardbest_qualoth,,1sch-hs,,hardbest_social,,sch-hs,,hardbest_work,,sch-hs,,like_qual1,,1sch-hs,,like_qual2,,1sch-hs,,like_qual3,,1sch-hs,,like_qual4,,1sch-hs,,like_qual5,,1sch-hs,,like_qual77,,1sch-hs,,like_qual88,,1sch-hs,,like_qualoth,,1sch-hs,,math_campus,,sch-hs,,nativeal_r,,sch-hs,,other_qual,,1sch-hs,,other_r,,sch-hs,,pacific_r,,sch-hs,,peerin,,sch-hs,,peerout,,sch-hs,,prefer_r,,sch-hs,,prep_skills_car,,sch-hs,,prep_skills_col,,sch-hs,,prep_steps_car,,sch-hs,,prep_steps_col,,sch-hs,,r_qualoth,,1sch-hs,,rel_connec,,sch-hs,,rel_help,,sch-hs,,rel_persprob,,sch-hs,,rel_write,,sch-hs,,rig_correct,,sch-hs,,rig_explain,,sch-hs,,rig_learnlot,,sch-hs,,rig_nogiveup,,sch-hs,,rig_nomem,,sch-hs,,rig_teachassign,,sch-hs,,rig_teachassign_eng,,sch-hs,,rig_teachassign_math,,sch-hs,,rig_teachundr,,sch-hs,,rig_teachundr_eng,,sch-hs,,rig_teachundr_math,,sch-hs,,rig_think,,sch-hs,,rig_think_eng,,sch-hs,,rig_think_math,,sch-hs,,rig_workhard,,sch-hs,,rig_workhard_eng,,sch-hs,,rig_workhard_math,,sch-hs,,stem_instem_in_qualoth,,1sch-hs,,stem_outstem_out_qualoth,,1sch-hs,,sup_admissions,,sch-hs,,sup_advisory,,sch-hs,,sup_aftertutor,,sch-hs,,sup_career,,sch-hs,,sup_choosegrad,,sch-hs,,sup_class,,sch-hs,,sup_collegeapply,,sch-hs,,sup_collegepay,,sch-hs,,sup_examprep,,sch-hs,,sup_makeup,,sch-hs,,sup_onetutor,,sch-hs,,suph_admissions,,sch-hs,,suph_advisory,,sch-hs,,suph_aftertutor,,sch-hs,,suph_career,,sch-hs,,suph_choosegrad,,sch-hs,,suph_class,,sch-hs,,suph_collegeapply,,sch-hs,,suph_collegepay,,sch-hs,,suph_examprep,,sch-hs,,suph_makeup,,sch-hs,,suph_onetutor,,sch-hs,,surveylen,,sch-hs,,trydobest,,sch-hs,,un_disabil,,sch-hs,,un_finance,,sch-hs,,un_from,,sch-hs,,un_gender,,sch-hs,,un_look,,sch-hs,,un_orient,,sch-hs,,un_other,,sch-hs,,un_prefer,,sch-hs,,un_qualoth,,1sch-hs,,un_race,,sch-hs,,un_religion,,sch-hs,,white_r,,sch-hs,,whydrop_behind,,sch-hs,,whydrop_cared,,sch-hs,,whydrop_discouraged,,sch-hs,,whydrop_failed,,sch-hs,,whydrop_helplife,,sch-hs,,whydrop_other,,sch-hs,,whydrop_personal,,sch-hs,,whydrop_qualoth,,1sch-hs,,whydrop_safe,,sch-hs,,whydrop_safeto,,sch-hs,,whydrop_students,,sch-hs,,whydrop_work,,sch-hs,,year_qualoth,,1
