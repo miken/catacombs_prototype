@@ -3,7 +3,7 @@ import datetime
 
 # Set up RQ queue
 import django_rq
-q = django_rq.get_queue('high')
+q = django_rq.get_queue('default')
 
 from datacombo.models import School, SchoolParticipation, Student, Response, ImportSession, Teacher, Course, Subject
 from datacombo.helpers import round_time_conversion

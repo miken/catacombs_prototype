@@ -40,10 +40,9 @@ RQ_QUEUES = {
         'DB': 0,
     },
     'low': {
-        'HOST': 'localhost',
-        'PORT': 6379,
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379'), # If you're on Heroku
         'DB': 0,
-    }
+    },
 }
 
 
@@ -124,7 +123,7 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     # Disabling HireFire for now
-    #'hirefire.contrib.django.middleware.HireFireMiddleware',
+    'hirefire.contrib.django.middleware.HireFireMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
