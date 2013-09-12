@@ -9,4 +9,4 @@ u = urlparse(redistogo_url)
 class WorkerProc(RQProc):
     name = 'worker'
     queues = ['high', 'default', 'low']
-    connection = StrictRedis(host=u.hostname, port=u.port, db=0)
+    connection = StrictRedis(host=u.hostname, port=u.port, db=0, password=u.password)
