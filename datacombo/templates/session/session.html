@@ -86,9 +86,6 @@ and one for legacy upload, which will compare survey variable names with CSV col
   </li>
   {% if importsession.survey.is_teacher_feedback %}
     <li>
-  {% else %}
-    <li class="disabled">
-  {% endif %}
       <a href="#teachers" data-toggle="tab">
         Teachers
         {% if importsession.teacher_count != 0 %}
@@ -96,11 +93,16 @@ and one for legacy upload, which will compare survey variable names with CSV col
         {% endif %}
       </a>
     </li>
-  {% if importsession.survey.is_teacher_feedback %}
-    <li>
   {% else %}
     <li class="disabled">
+      <a href="#" data-toggle="tab">
+        Teachers
+      </a>
+    </li>
   {% endif %}
+
+  {% if importsession.survey.is_teacher_feedback %}
+    <li>
       <a href="#courses" data-toggle="tab">
         Courses
         {% if importsession.course_count != 0 %}
@@ -108,17 +110,24 @@ and one for legacy upload, which will compare survey variable names with CSV col
         {% endif %}
       </a>
     </li>
+  {% else %}
+    <li class="disabled">
+      <a href="#" data-toggle="tab">
+        Courses
+      </a>
+    </li>
+  {% endif %}
+
 </ul>
 
 <div class="tab-content">
   <div class="tab-pane active" id="generalinfo">
     <h2>General Information</h2>
-    <p>This session took place at: <strong>{{ importsession.date_created }}</strong></p>
+    <p>This session took place on: <strong>{{ importsession.date_created }}</strong></p>
     <p>
       There are {{ importsession.number_of_rows }} rows in the CSV file.  
       {% if importsession.import_type == 'raw' or importsession.import_type == 'legacy' %}
-        A total of {{ importsession.student_count }} new students were recorded from your file.
-        {{ importsession.response_count }} data points were recorded from your file.
+        A total of {{ importsession.student_count }} new students and {{ importsession.response_count }} data points were recorded from your file.
       {% endif %}
     </p>
   </div>

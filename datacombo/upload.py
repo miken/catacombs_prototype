@@ -25,6 +25,7 @@ def process_uploaded(file, filetype, survey, session_title):
         session.import_type = filetype
         session.date_created = datetime.datetime.now()
         session.survey = survey
+        session.number_of_rows = len(newcsv) - 1
         session.save()
         context = {}
         context['filetype'] = filetype
@@ -40,14 +41,35 @@ def process_uploaded(file, filetype, survey, session_title):
             context['not_csv_match'] = True
         else:
             # Since these two functions are fast, we don't need to enqueue them
-            match_and_create_schools(newcsv, survey, session)
-            match_and_create_schoolparticipations(newcsv, survey, session)
+            q.enqueue_call(
+                func=match_and_create_schools,
+                args=(newcsv, survey, session),
+            )
+            q.enqueue_call(
+                func=match_and_create_schoolparticipations,
+                args=(newcsv, survey, session),
+            )
 
-            # TODO Create a function for matching CSV columns with either survey raw vars or vars
             match_survey_vars_with_csv_cols(newcsv, filetype, survey, session)
 
             # Save the list of survey variables present in CSV in a list for lookup later
-            vars_in_csv = generate_vars_in_csv(newcsv, survey, filetype)
+            # vars_in_csv = generate_vars_in_csv(newcsv, survey, filetype)
+
+            # Get the list of variable names for access
+            vmrecords = session.varmatchrecord_set.filter(match_status=True)
+            if filetype == 'raw':
+                vars_in_csv = vmrecords.values_list('raw_var__raw_name', flat=True)
+                vars_in_csv = list(vars_in_csv)
+            elif filetype == 'legacy':
+                vars_in_csv = vmrecords.values_list('var__name', flat=True)
+                vars_in_csv = list(vars_in_csv)
+            else:
+                vars_in_csv = []
+
+            # First we'll filter to use only those columns available
+            # in survey_csv_colspec and vars_in_csv
+            filter_cols = survey_csv_colspec + vars_in_csv
+            newcsv = newcsv[filter_cols]
 
             # We'll enqueue the remainder in upload_data in smaller chunks
             # Split newcsv into smaller chunks to work with, 10 rows each or so
@@ -131,9 +153,9 @@ def upload_data(newcsv, survey, session, filetype, vars_in_csv):
         match_and_create_students(newcsv, survey, session)
         # Add responses
         if survey.is_teacher_feedback():
-            match_and_create_responses(csv_stacked, survey, session, vars_in_csv, filetype)
+            match_and_create_responses(csv_stacked, survey, session, filetype, vars_in_csv)
         else:
-            match_and_create_responses(newcsv, survey, session, vars_in_csv, filetype)
+            match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv)
 
 
 # FIX THIS
@@ -176,11 +198,6 @@ def upload_legacy_data(newcsv, survey, session):
 
 
 def generate_vars_in_csv(newcsv, survey, filetype):
-    # TODO
-    # Update session's list of raw variables that were present in the CSV file here
-    # First create a new model called CSVVarMapStatus that links to either VarMap or Variable and Session
-    # Then update accordingly
-    # Also create this in a file separate from this function
     if filetype == 'raw':
         survey_maplist = survey.varmap_set.values_list('raw_name', flat=True)
         vlist = [v for v in survey_maplist if v in newcsv.columns]
@@ -190,7 +207,7 @@ def generate_vars_in_csv(newcsv, survey, filetype):
     return vlist
 
 
-def match_and_create_responses(newcsv, survey, session, vars_in_csv, filetype):
+def match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv):
     for i in newcsv.index:
         print 'Importing row {num}'.format(num=str(i+1))
         row = newcsv.ix[i]
@@ -207,13 +224,14 @@ def match_and_create_responses(newcsv, survey, session, vars_in_csv, filetype):
             else:
                 resp_defaults_dict = {}
                 resp_defaults_dict['student'] = Student.objects.get(response_id=qid)
+                resp_defaults_dict['imported_thru'] = session
                 if survey.is_teacher_feedback():
                     s_t_c_index = newcsv.get_value(i, 's_t_c')
                     resp_defaults_dict['on_course'] = Course.objects.get(legacy_survey_index=s_t_c_index)
                 else:
                     schshort = newcsv.get_value(i, 'School_Short')
                     resp_defaults_dict['on_schoolrecord'] = SchoolParticipation.objects.get(legacy_school_short=schshort)
-                resp_defaults_dict['imported_thru'] = session
+
                 for v in vars_in_csv:
                     a = row[v]
 
