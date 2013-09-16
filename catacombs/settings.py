@@ -32,15 +32,15 @@ else:
 # Redis Queue Settings
 RQ_QUEUES = {
     'default': {
-        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379'), # If you're on Heroku
+        'URL': os.getenv('REDISGREEN_URL', 'redis://localhost:6379'), # If you're on Heroku
         'DB': 0,
     },
     'high': {
-        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379'), # If you're on Heroku
+        'URL': os.getenv('REDISGREEN_URL', 'redis://localhost:6379'), # If you're on Heroku
         'DB': 0,
     },
     'low': {
-        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379'), # If you're on Heroku
+        'URL': os.getenv('REDISGREEN_URL', 'redis://localhost:6379'), # If you're on Heroku
         'DB': 0,
     },
 }
