@@ -625,6 +625,15 @@ def add_varmap(request, pk):
 
 
 #Views for Import Session
+class SessionView(DetailView):
+    model = ImportSession
+    template_name = 'session/session.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SessionView, self).dispatch(*args, **kwargs)
+
+
 class ListSessionView(ListView):
 
     model = ImportSession

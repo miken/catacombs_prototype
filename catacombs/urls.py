@@ -85,6 +85,7 @@ urlpatterns = patterns('',
 
     #Import Sessions
     url(r'^sessions/$', datacombo.views.ListSessionView.as_view(), name='sessions-list',),
+    url(r'^sessions/(?P<pk>\d+)/$', datacombo.views.SessionView.as_view(), name='sessions-view',),
     url(r'^sessions/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSessionView.as_view(),
         name='sessions-edit',),
     url(r'^sessions/delete/(?P<pk>\d+)/$', datacombo.views.delete_session,

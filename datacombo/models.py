@@ -150,6 +150,9 @@ class ImportSession(models.Model):
         count = self.response_set.count()
         return count
 
+    def get_absolute_url(self):
+        return reverse('sessions-view', kwargs={'pk': self.id})
+
     def __unicode__(self):
         return self.title
 
@@ -192,6 +195,34 @@ class VarMap(models.Model):
 
     def __unicode__(self):
         return self.raw_name
+
+
+class VarMatchRecord(models.Model):
+    '''
+    This model keeps track of whether a survey variable is found in the uploaded CSV file. There are two cases:
+        - If a raw file is uploaded, a VarMatchRecord instance
+        establishes the connection between a VarMap and the ImportSession
+        and indicates whether match_status is True or False
+        - If a legacy data file is uploaded, a VarMatchRecord instance
+        establishes the connection between a Variable and the ImportSession
+        and indicates whether match_status is True or False
+    '''
+    session = models.ForeignKey(ImportSession)
+    raw_var = models.ForeignKey(VarMap, blank=True, null=True)
+    var = models.ForeignKey(Variable, blank=True, null=True)
+    match_status = models.BooleanField()
+
+    def __unicode__(self):
+        string = '{session} - {var} - {status}'
+        if self.raw_var:
+            var = self.raw_var
+        elif self.var:
+            var = self.var
+        return string.format(
+            session=self.session,
+            var=var,
+            status=self.match_status
+        )
 
 
 class School(models.Model):
@@ -326,7 +357,6 @@ class Course(models.Model):
             avg_dict = course_resp.aggregate(Avg('answer'))
             rating = avg_dict['answer__avg']
             return rating
-
 
     def get_absolute_url(self):
         return reverse('courses-view', kwargs={'pk': self.id})

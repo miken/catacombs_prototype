@@ -5,7 +5,7 @@ import datetime
 import django_rq
 q = django_rq.get_queue('default')
 
-from datacombo.models import School, SchoolParticipation, Student, Response, ImportSession, Teacher, Course, Subject
+from datacombo.models import School, SchoolParticipation, Student, Response, ImportSession, Teacher, Course, Subject, VarMatchRecord
 from datacombo.helpers import round_time_conversion
 
 
@@ -43,6 +43,12 @@ def process_uploaded(file, filetype, survey, session_title):
             match_and_create_schools(newcsv, survey, session)
             match_and_create_schoolparticipations(newcsv, survey, session)
 
+            # TODO Create a function for matching CSV columns with either survey raw vars or vars
+            match_survey_vars_with_csv_cols(newcsv, filetype, survey, session)
+
+            # Save the list of survey variables present in CSV in a list for lookup later
+            vars_in_csv = generate_vars_in_csv(newcsv, survey, filetype)
+
             # We'll enqueue the remainder in upload_data in smaller chunks
             # Split newcsv into smaller chunks to work with, 10 rows each or so
             toprownum = 0
@@ -53,13 +59,35 @@ def process_uploaded(file, filetype, survey, session_title):
                     bottomrownum = len(newcsv)
                     # This is when we'll also update the parse status of session
                     q.enqueue(update_parse_status, session)
-                csv_chunk = newcsv[toprownum:bottomrownum]
+                # Make a copy of it to see if memory size will be smaller
+                csv_chunk = newcsv[toprownum:bottomrownum].copy()
                 # Enqueue the chunk uploading process
                 q.enqueue_call(func=upload_data,
-                               args=(csv_chunk, survey, session, filetype),
+                               args=(csv_chunk, survey, session, filetype, vars_in_csv),
                                )
                 toprownum += 10
     return context
+
+
+def match_survey_vars_with_csv_cols(newcsv, filetype, survey, session):
+    if filetype == 'raw':
+        varname_list = survey.varmap_set.all()
+    elif filetype == 'legacy':
+        varname_list = survey.var_set.all()
+    for v in varname_list:
+        c = VarMatchRecord()
+        c.session = session
+        if filetype == 'raw':
+            name = v.raw_name
+            c.raw_var = v
+        elif filetype == 'legacy':
+            name = v.name
+            c.var = v
+        if name in newcsv.columns:
+            c.match_status = True
+        else:
+            c.match_status = False
+        c.save()
 
 
 def update_parse_status(session):
@@ -67,7 +95,7 @@ def update_parse_status(session):
     session.save()
 
 
-def upload_data(newcsv, survey, session, filetype):
+def upload_data(newcsv, survey, session, filetype, vars_in_csv):
     # If it's a teacher feedback survey, proceed with teacher & course matching
     if survey.is_teacher_feedback():
         if filetype == 'raw':
@@ -99,7 +127,6 @@ def upload_data(newcsv, survey, session, filetype):
         # pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict)
 
     # Continue to add students and responses if it's raw data
-    vars_in_csv = generate_vars_in_csv(newcsv, survey, filetype)
     if filetype == 'raw':
         match_and_create_students(newcsv, survey, session)
         # Add responses

@@ -29,17 +29,21 @@
 
 
 h1 {
-    font-family: 'Lobster', Georgia, Times, serif;
+    font-family: 'UnifrakturMaguntia', Georgia, Times, serif;
     font-size: 70px;
     line-height: 100px;
 }
 
 h2, h3, h4, h5, h6 {
-    font-family: 'Lobster', Georgia, Times, serif;
+    font-family: 'UnifrakturMaguntia', Georgia, Times, serif;
 }
 
 p, a, ul, button, table {
     font-family: 'Droid Sans', Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 25px;
+}
+
+.label {
+  padding: .2em .5em .2em;
 }
