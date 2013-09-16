@@ -2,8 +2,8 @@ from hirefire.procs.rq import RQProc
 from redis import StrictRedis
 from urlparse import urlparse
 import os
-redistogo_url = os.getenv('REDISCLOUD_URL', 'redis://localhost:6379/')
-u = urlparse(redistogo_url)
+rediscloud_url = os.getenv('REDISCLOUD_URL', 'redis://localhost:6379/')
+u = urlparse(rediscloud_url)
 
 
 class WorkerProc(RQProc):
