@@ -40,20 +40,11 @@ def process_uploaded(file, filetype, survey, session_title):
         if not set(survey_csv_colspec).issubset(newcsv_col_set):
             context['not_csv_match'] = True
         else:
-            # Since these two functions are fast, we don't need to enqueue them
-            q.enqueue_call(
-                func=match_and_create_schools,
-                args=(newcsv, survey, session),
-            )
-            q.enqueue_call(
-                func=match_and_create_schoolparticipations,
-                args=(newcsv, survey, session),
-            )
-
+            # q.enqueue_call(
+            #     func=match_survey_vars_with_csv_cols,
+            #     args=(newcsv, filetype, survey, session)
+            # )
             match_survey_vars_with_csv_cols(newcsv, filetype, survey, session)
-
-            # Save the list of survey variables present in CSV in a list for lookup later
-            # vars_in_csv = generate_vars_in_csv(newcsv, survey, filetype)
 
             # Get the list of variable names for access
             vmrecords = session.varmatchrecord_set.filter(match_status=True)
@@ -70,6 +61,16 @@ def process_uploaded(file, filetype, survey, session_title):
             # in survey_csv_colspec and vars_in_csv
             filter_cols = survey_csv_colspec + vars_in_csv
             newcsv = newcsv[filter_cols]
+
+            # Match and create schools and participation records first
+            q.enqueue_call(
+                func=match_and_create_schools,
+                args=(newcsv, survey, session),
+            )
+            q.enqueue_call(
+                func=match_and_create_schoolparticipations,
+                args=(newcsv, survey, session),
+            )
 
             # We'll enqueue the remainder in upload_data in smaller chunks
             # Split newcsv into smaller chunks to work with, 10 rows each or so
