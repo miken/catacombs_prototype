@@ -63,14 +63,16 @@ def process_uploaded(file, filetype, survey, session_title):
             newcsv = newcsv[filter_cols]
 
             # Match and create schools and participation records first
-            q.enqueue_call(
-                func=match_and_create_schools,
-                args=(newcsv, survey, session),
-            )
-            q.enqueue_call(
-                func=match_and_create_schoolparticipations,
-                args=(newcsv, survey, session),
-            )
+            # q.enqueue_call(
+            #     func=match_and_create_schools,
+            #     args=(newcsv, survey, session),
+            # )
+            match_and_create_schools(newcsv, survey, session)
+            # q.enqueue_call(
+            #     func=match_and_create_schoolparticipations,
+            #     args=(newcsv, survey, session),
+            # )
+            match_and_create_schoolparticipations(newcsv, survey, session)
 
             # We'll enqueue the remainder in upload_data in smaller chunks
             # Split newcsv into smaller chunks to work with, 10 rows each or so
@@ -83,7 +85,7 @@ def process_uploaded(file, filetype, survey, session_title):
                     # This is when we'll also update the parse status of session
                     q.enqueue(update_parse_status, session)
                 # Make a copy of it to see if memory size will be smaller
-                csv_chunk = newcsv[toprownum:bottomrownum].copy()
+                csv_chunk = newcsv[toprownum:bottomrownum]
                 # Enqueue the chunk uploading process
                 q.enqueue_call(func=upload_data,
                                args=(csv_chunk, survey, session, filetype, vars_in_csv),

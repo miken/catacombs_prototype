@@ -22,6 +22,9 @@ urlpatterns = patterns('',
     url(r'^surveys/(?P<pk>\d+)/upload$', datacombo.views.upload_file, name='surveys-upload',),
     # Clean school / course records below reporting thresholds
     url(r'^surveys/(?P<pk>\d+)/clean$', datacombo.views.clean_survey, name='surveys-clean',),
+    # Export all response data from a survey
+    url(r'^surveys/(?P<pk>\d+)/export$', datacombo.views.survey_export, name='export-survey-response-data',),
+
     # Variable Mapping
     url(r'^surveys/(?P<pk>\d+)/map$', datacombo.views.variable_map, name='surveys-map',),
     # Add a new variable to survey

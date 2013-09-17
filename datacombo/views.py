@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.template import RequestContext
 from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
@@ -9,11 +9,11 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-
 # Import models and custom forms
 from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure
 from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm
 from datacombo.upload import process_uploaded
+from datacombo.export import write_response_data
 
 
 #Index View
@@ -55,7 +55,8 @@ class CreateVariableView(CreateView):
     template_name = 'variable/edit_variable.html'
 
     def get_success_url(self):
-        return reverse('surveys-view',
+        return reverse(
+            'surveys-view',
             kwargs={'pk': self.get_object().survey.id}
         )
 
@@ -672,3 +673,16 @@ def delete_session(request, pk):
         return redirect('sessions-list')
     else:
         return render(request, 'session/delete_session.html', {'session': session})
+
+
+# Export CSV Views
+@login_required
+def survey_export(request, pk):
+    survey = get_object_or_404(Survey, pk=pk)
+    filename = "{name} - Student Responses.csv".format(name=survey.name)
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename={fname}'.format(fname=filename)
+
+    response = write_response_data(response, survey)
+    return response
