@@ -156,6 +156,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'south',
+    'storages',
     'django_rq',
     'datacombo',
 )
@@ -213,3 +214,16 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
 
+
+# Not ideal to store secret access key here
+# Let's reconsider where else we could store AWS credentials
+AWS_STORAGE_BUCKET_NAME = 'yt_catacombs'
+AWS_ACCESS_KEY_ID = 'AKIAI4UY5LXGS4ZCWQVQ'
+AWS_SECRET_ACCESS_KEY = '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'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+
+if not DEBUG:
+    AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
+    STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+    S3_URL = 'http://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
+    STATIC_URL = S3_URL
