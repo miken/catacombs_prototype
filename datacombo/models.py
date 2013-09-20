@@ -448,3 +448,27 @@ class Response(models.Model):
             return '{pin}: ({question} - {answer})'.format(pin=self.student.pin,
                                                            question=self.question.name,
                                                            answer=self.answer)
+
+
+class CSVExport(models.Model):
+    QUANT = 'quant'
+    QUAL = 'qual'
+    UNDEFINED = 'Undefined'
+    EXPORT_TYPE_CHOICES = (
+        (QUANT, 'Student Ratings'),
+        (QUAL, 'Student Comments'),
+        (UNDEFINED, 'Undefined'),
+    )
+    
+    title = models.CharField(max_length=100, default=u'No name')
+    csv = models.FileField(upload_to='csv_exports')
+    date_requested = models.DateField()
+    # Which survey was this data used for?
+    survey = models.ForeignKey(Survey)
+    # Other meta information goes here
+    # Whether this was a quantitative or qualitative file export
+    export_type = models.CharField(max_length=10,
+                                   choices=EXPORT_TYPE_CHOICES,
+                                   default=UNDEFINED)
+    # Status of whether the CSV file is ready or not
+    file_status = models.BooleanField()
