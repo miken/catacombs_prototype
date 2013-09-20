@@ -1,10 +1,10 @@
 // Create an array of images that you'd like to use
 var images = [
-    "/static/com.jpg",
-    "/static/book.jpg",
-    "/static/csquare.jpg",
-    "/static/placzamkowy.jpg",
-    "/static/mermaid.jpg"
+    STATIC_URL + "com.jpg",
+    STATIC_URL + "book.jpg",
+    STATIC_URL + "csquare.jpg",
+    STATIC_URL + "placzamkowy.jpg",
+    STATIC_URL + "mermaid.jpg"
 ];
 
 // Get a random number between 0 and the number of images

@@ -3,6 +3,8 @@ import os
 import dj_database_url
 # from whichcomp import sqlite_path
 
+
+# TODO Change this to false once we roll the app out to client
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -206,14 +208,11 @@ ALLOWED_HOSTS = ['*']
 
 # Static asset configuration
 # Might have already been configured above. Check later.
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_ROOT = 'staticfiles'
-STATIC_URL = '/static/'
+# Disabling the next line since we're sending static files to S3
+# STATIC_ROOT = 'staticfiles'
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
 
+# ===== AMAZON S3 BUCKET SETTINGS =====
 
 # Not ideal to store secret access key here
 # Let's reconsider where else we could store AWS credentials
@@ -222,8 +221,11 @@ AWS_ACCESS_KEY_ID = 'AKIAI4UY5LXGS4ZCWQVQ'
 AWS_SECRET_ACCESS_KEY = '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'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
-if not DEBUG:
-    AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
-    STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-    S3_URL = 'http://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
-    STATIC_URL = S3_URL
+# The following 4 lines should be under if not DEBUG
+# However, for the time being, DEBUG is True
+# So we don't need if not DEBUG yet
+# Disable this line - we'll re-enable it once we set DEBUG=False
+# AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
+STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+S3_URL = 'http://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
+STATIC_URL = S3_URL
