@@ -44,7 +44,6 @@ sch-hs,dislike_qualoth,dislike_TEXT
 sch-hs,drophighschool,drophs
 sch-hs,eng_campus,English1
 sch-hs,eng_campus,English1_cb
-sch-hs,eng_campus,eng_campus
 sch-hs,engage_pride,engage_pride_cb
 sch-hs,engage_pride,engage_pride
 sch-hs,engage_qual,engage_qual_cb
@@ -62,7 +61,6 @@ sch-hs,expect_next,expect_cb
 sch-hs,expect_next,expect_next
 sch-hs,expect_qualoth,expect_TEXT
 sch-hs,expect_qualoth,expect_TEXT_cb
-sch-hs,expect_qualoth,expect_qualoth
 sch-hs,friendly,friendly_cb
 sch-hs,friendly,friendly
 sch-hs,gh_think,gh_think_1
@@ -87,7 +85,6 @@ sch-hs,like_qual88,quallike(7)
 sch-hs,like_qualoth,like_TEXT
 sch-hs,math_campus,math1
 sch-hs,math_campus,math1_cb
-sch-hs,math_campus,math_campus
 sch-hs,nativeal_r,race_3
 sch-hs,other_qual,qual_oth
 sch-hs,other_r,race_6
@@ -154,7 +151,6 @@ sch-hs,sup_admissions,sup_admissions_cb
 sch-hs,sup_admissions,sup_admissions
 sch-hs,sup_advisory,sup_adviso
 sch-hs,sup_advisory,sup_adviso_cb
-sch-hs,sup_advisory,sup_advisory
 sch-hs,sup_aftertutor,sup_aftertutor_cb
 sch-hs,sup_aftertutor,sup_aftertutor
 sch-hs,sup_career,sup_career_cb
