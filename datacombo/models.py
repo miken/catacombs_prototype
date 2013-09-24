@@ -3,6 +3,9 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Avg
 from django.core.urlresolvers import reverse
+from django.conf import settings
+
+from secures3 import SecureS3
 
 
 # Create your models here.
@@ -459,9 +462,9 @@ class CSVExport(models.Model):
         (QUAL, 'Student Comments'),
         (UNDEFINED, 'Undefined'),
     )
-    
+
     title = models.CharField(max_length=100, default=u'No name')
-    csv = models.FileField(upload_to='csv_exports')
+    file_name = models.CharField(max_length=100, default=u'unnamed.csv')
     date_requested = models.DateField()
     # Which survey was this data used for?
     survey = models.ForeignKey(Survey)
@@ -472,3 +475,10 @@ class CSVExport(models.Model):
                                    default=UNDEFINED)
     # Status of whether the CSV file is ready or not
     file_status = models.BooleanField()
+
+    def url(self):
+        s3 = SecureS3(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
+        return s3.get_auth_link(settings.AWS_STORAGE_BUCKET_NAME, self.file_name)
+
+    def __unicode__(self):
+        return self.title

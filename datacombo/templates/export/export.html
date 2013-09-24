@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ importsession.title }}</h1>
+
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2">
+      {% if importsession.parse_status %}
+        <div class="alert alert-success">Upload processing is complete for this import session.</div>
+      {% else %}
+        <div class="alert alert-warning">CSV data is still being processed for this session. The information here may not be most up-to-date. Please check again at a later time.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<p>This session was used to update this survey: <strong>{{ importsession.survey.name }}</strong></p>
+
+{% comment %}
+  If it's either a raw or legacy upload, list all variables for the given survey
+  and display whether there was a match, i.e., the survey variables are found in the column names of the CSV
+{% endcomment %}
+
+
+{% comment %}
+
+We'll split this into two cases: one for raw upload, which will compare raw variable names with CSV column names
+and one for legacy upload, which will compare survey variable names with CSV column names
+
+  {% if s.import_type == 'raw' or s.import_type == 'legacy' %}
+    <h2>Column Matching</h2>
+
+    <p>The following table lists all variables used by this survey and indicate whether the system found a match from the uploaded CSV file<br />
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-lg-offset-3">
+            <table class="table table-hover table-condensed">
+              <tr>
+                <th>Survey Variable in Database</th>
+                <th>Match?</th>
+              </tr>
+
+              {% for var, status in var_status_dict.items %}
+              <tr>
+                <td>{{ var }}</td>
+                <td>
+                  {% if status == 1 %}
+                    <i class="icon-ok-sign icon-large text-success"></i>
+                  {% elif status == 0 %}
+                    <i class="icon-remove-sign icon-large text-danger"></i>
+                  {% else %}
+                    <i class="icon-question-sign icon-large text-warning"></i>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+      </div>
+    </p>
+  {% endif %}
+
+{% endcomment %}
+
+<ul class="nav nav-tabs">
+  <li><a href="#generalinfo" data-toggle="tab">General Info</a></li>
+  <li><a href="#varmatch" data-toggle="tab">Variable Matching</a></li>
+  <li>
+    <a href="#schools" data-toggle="tab">
+      Schools
+      {% if importsession.school_count != 0 %}
+        <span class="label label-success">{{ importsession.school_count }}</span>
+      {% endif %}
+    </a>
+  </li>
+  <li>
+    <a href="#schoolprs" data-toggle="tab">
+      School Records
+      {% if importsession.pr_count != 0 %}
+        <span class="label label-success">{{ importsession.pr_count }}</span>
+      {% endif %}
+    </a>
+  </li>
+  {% if importsession.survey.is_teacher_feedback %}
+    <li>
+      <a href="#teachers" data-toggle="tab">
+        Teachers
+        {% if importsession.teacher_count != 0 %}
+          <span class="label label-success">{{ importsession.teacher_count }}</span>
+        {% endif %}
+      </a>
+    </li>
+  {% else %}
+    <li class="disabled">
+      <a href="#" data-toggle="tab">
+        Teachers
+      </a>
+    </li>
+  {% endif %}
+
+  {% if importsession.survey.is_teacher_feedback %}
+    <li>
+      <a href="#courses" data-toggle="tab">
+        Courses
+        {% if importsession.course_count != 0 %}
+          <span class="label label-success">{{ importsession.course_count }}</span>
+        {% endif %}
+      </a>
+    </li>
+  {% else %}
+    <li class="disabled">
+      <a href="#" data-toggle="tab">
+        Courses
+      </a>
+    </li>
+  {% endif %}
+
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane active" id="generalinfo">
+    <h2>General Information</h2>
+    <p>This session took place on: <strong>{{ importsession.date_created }}</strong></p>
+    <p>
+      There are {{ importsession.number_of_rows }} rows in the CSV file.  
+      {% if importsession.import_type == 'raw' or importsession.import_type == 'legacy' %}
+        A total of {{ importsession.student_count }} new students and {{ importsession.response_count }} data points were recorded from your file.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="tab-pane" id="varmatch">
+    <h2>Comparison of Survey Variables and CSV Columns</h2>
+    <p>Var Match Records go here</p>
+  </div>
+
+  <div class="tab-pane" id="schools">
+    <h2>New School Records</h2>
+
+    {% if importsession.school_count == 0 %}
+
+      <p>All schools found in the CSV file already exist in the database.</p>
+
+    {% else %}
+
+      <p>The following schools in the CSV file did not exist in and were added to the database through this importsession:</p>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-lg-offset-3">
+            <table class="table table-striped">
+              <tr>
+                <th>School Name</th>
+                <th>Abbreviation</th>
+                <th>School Alpha</th>
+              </tr>
+
+              {% for school in importsession.school_set.all %}
+              <tr>
+                <td>{{ school.name }}</td>
+                <td>{{ school.abbrev_name }}</td>
+                <td>{{ school.alpha }}</td>
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+      </div>
+        
+    {% endif %}
+  </div>
+
+  <div class="tab-pane" id="schoolprs">
+    <h2>New Participation Records</h2>
+
+    {% if importsession.pr_count == 0 %}
+
+      <p>There are no new participation records for the schools in the CSV file.</p>
+
+    {% else %}
+
+      <p>The database did not find participation records for these schools and therefore have added them automatically:</p>
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-6 col-lg-offset-3">
+                <table class="table table-striped">
+                  <tr>
+                    <th>School Name</th>
+                    <th>Date Participated</th>
+                    <th>No. of Teachers Created</th>
+                    <th>No. of Students Created</th>
+                  </tr>
+
+                  {% for p in importsession.schoolparticipation_set.all %}
+                  <tr>
+                    <td>{{ p.school.name }}</td>
+                    <td>{{ p.date_participated }}</td>
+                    <td>{{ p.teacher_set.count }}</td>
+                    <td>{{ p.student_set.count }}</td>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </table>
+              </div>
+            </div>
+          </div>
+
+    {% endif %}
+  </div>
+
+  <div class="tab-pane" id="teachers">
+    <h2>New Teacher Records</h2>
+
+    {% if importsession.teacher_count == 0 %}
+
+      <p>All teachers in your CSV file already exist in the database.</p>
+
+    {% else %}
+
+      <p>A total of {{ importsession.teacher_count }} teachers were added to the database. The following table lists all new teachers:</p>
+
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-lg-offset-3">
+            <table class="table table-striped table-condensed">
+              <tr>
+                <th>School</th>
+                <th>Full Name</th>
+                <th>No. of Courses Created</th>
+              </tr>
+
+              {% for t in importsession.teacher_set.all %}
+              <tr>
+                <td>{{ t.feedback_given_in.school.abbrev_name }}</td>
+                <td>{{ t.full_name }}</td>
+                <td>{{ t.courses.count }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="tab-pane" id="courses">
+    <h2>New Course Records</h2>
+
+    {% if importsession.course_count == 0 %}
+
+      <p>All courses listed in your CSV file already exist in the database.</p>
+
+    {% else %}
+
+      <p>A total of {{ importsession.course_count }} courses were added to the database.</p>
+        
+    {% endif %}
+  </div>
+
+</div>
+
+<p>Something doesn't look right? Fret not, use the button below to delete all data from this import session and re-upload another file.</p>
+<div class="container">
+  <div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+      <a href="{% url "sessions-delete" pk=importsession.id %}" class="btn btn-danger btn-lg btn-block"><i class="icon-trash"> </i>Delete Session</a>
+    </div>
+  </div>
+</div>
+
+<a href="{% url "sessions-list" %}">Back to list of sessions</a>
+{% endblock %}

@@ -10,11 +10,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 # Import models and custom forms
-from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure
-from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm
+from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure, CSVExport
+from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm, CSVExportForm
 from datacombo.upload import process_uploaded
-from datacombo.export import write_response_data
-
+from datacombo.export import write_response_data, s3_write_response_data
 
 #Index View
 def home_or_login(request):
@@ -676,6 +675,56 @@ def delete_session(request, pk):
 
 
 # Export CSV Views
+class ExportView(DetailView):
+    model = CSVExport
+    template_name = 'export/export.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ExportView, self).dispatch(*args, **kwargs)
+
+
+class ListExportView(ListView):
+
+    model = CSVExport
+    template_name = 'export/export_list.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ListExportView, self).dispatch(*args, **kwargs)
+
+
+class UpdateExportView(UpdateView):
+
+    model = CSVExport
+    form_class = CSVExportForm
+    template_name = 'export/edit_export.html'
+
+    def get_success_url(self):
+        return reverse('exports-list')
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateExportView, self).get_context_data(**kwargs)
+        context['action'] = reverse('exports-edit',
+                                    kwargs={'pk': self.get_object().id})
+        return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateExportView, self).dispatch(*args, **kwargs)
+
+
+@login_required
+def delete_export(request, pk):
+    export = get_object_or_404(CSVExport, pk=pk)
+    if request.method == 'POST':
+        export.delete()
+        return redirect('exports-list')
+    else:
+        return render(request, 'export/delete_export.html', {'export': export})
+
+
 @login_required
 def survey_export(request, pk):
     survey = get_object_or_404(Survey, pk=pk)
@@ -686,3 +735,10 @@ def survey_export(request, pk):
 
     response = write_response_data(response, survey)
     return response
+
+
+@login_required
+def export_wait(request, pk):
+    survey = get_object_or_404(Survey, pk=pk)
+    s3_write_response_data(survey)
+    return render(request, 'export/export_wait.html', {'survey_name': survey.name})

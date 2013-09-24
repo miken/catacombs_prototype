@@ -1,6 +1,6 @@
 from django import forms
 
-from datacombo.models import SchoolParticipation, Variable, VarMap
+from datacombo.models import SchoolParticipation, Variable, VarMap, CSVExport
 
 
 class UploadFileForm(forms.Form):
@@ -17,9 +17,9 @@ class UploadFileForm(forms.Form):
 
 
 class SchoolParticipationForm(forms.ModelForm):
-	class Meta:
-		model = SchoolParticipation
-		fields = ['survey', 'date_participated', 'legacy_school_short', 'note']
+    class Meta:
+        model = SchoolParticipation
+        fields = ['survey', 'date_participated', 'legacy_school_short', 'note']
 
 
 class VarMapForm(forms.ModelForm):
@@ -32,3 +32,12 @@ class VarForm(forms.ModelForm):
     class Meta:
         model = Variable
         fields = ['name', 'description', 'qual', 'summary_measure', 'active']
+
+
+class CSVExportForm(forms.ModelForm):
+    class Meta:
+        model = CSVExport
+        fields = ['title']
+        widgets = {
+            'title': forms.TextInput(attrs={'size': 100, 'maxlength': 100})
+        }

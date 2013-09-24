@@ -23,7 +23,7 @@ urlpatterns = patterns('',
     # Clean school / course records below reporting thresholds
     url(r'^surveys/(?P<pk>\d+)/clean$', datacombo.views.clean_survey, name='surveys-clean',),
     # Export all response data from a survey
-    url(r'^surveys/(?P<pk>\d+)/export$', datacombo.views.survey_export, name='export-survey-response-data',),
+    url(r'^surveys/(?P<pk>\d+)/export$', datacombo.views.export_wait, name='export-survey-response-data',),
 
     # Variable Mapping
     url(r'^surveys/(?P<pk>\d+)/map$', datacombo.views.variable_map, name='surveys-map',),
@@ -86,13 +86,17 @@ urlpatterns = patterns('',
     url(r'^courses/delete/(?P<pk>\d+)/$', datacombo.views.DeleteCourseView.as_view(), name='courses-delete',),
     url(r'^courses/(?P<pk>\d+)/$', datacombo.views.CourseView.as_view(), name='courses-view',),
 
-    #Import Sessions
+    # Import Sessions
     url(r'^sessions/$', datacombo.views.ListSessionView.as_view(), name='sessions-list',),
     url(r'^sessions/(?P<pk>\d+)/$', datacombo.views.SessionView.as_view(), name='sessions-view',),
-    url(r'^sessions/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSessionView.as_view(),
-        name='sessions-edit',),
-    url(r'^sessions/delete/(?P<pk>\d+)/$', datacombo.views.delete_session,
-        name='sessions-delete',),
+    url(r'^sessions/edit/(?P<pk>\d+)/$', datacombo.views.UpdateSessionView.as_view(), name='sessions-edit',),
+    url(r'^sessions/delete/(?P<pk>\d+)/$', datacombo.views.delete_session, name='sessions-delete',),
+
+    # CSV Export Views
+    url(r'^exports/$', datacombo.views.ListExportView.as_view(), name='exports-list',),
+    url(r'^exports/(?P<pk>\d+)/$', datacombo.views.ExportView.as_view(), name='exports-view',),
+    url(r'^exports/edit/(?P<pk>\d+)/$', datacombo.views.UpdateExportView.as_view(), name='exports-edit',),
+    url(r'^exports/delete/(?P<pk>\d+)/$', datacombo.views.delete_export, name='exports-delete',),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

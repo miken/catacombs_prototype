@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Data Exported</h1>
+
+<p>Data is now being exported for: <strong>{{ survey_name }}</strong>. Since this is a memory-intensive process, it may take a while to finish.</p>
+
+<p>Please go to <a href="{% url "exports-list" %}">file export page</a> to check processing status at a later time.</p>
+
+<a href="{% url "home-view" %}">Back to home</a>
+{% endblock %}

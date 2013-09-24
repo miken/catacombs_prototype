@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Edit File Request Title</h1>
+
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_export" type="submit" class="btn btn-primary btn-large">Save</button>
+</form>
+
+<a href="{% url "exports-list" %}">back to list</a>
+{% endblock %}
