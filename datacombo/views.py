@@ -13,7 +13,12 @@ from django.utils.decorators import method_decorator
 from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure, CSVExport
 from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm, CSVExportForm
 from datacombo.upload import process_uploaded
-from datacombo.export import write_response_data, s3_write_response_data
+from datacombo.export import s3_write_response_data
+
+# Set up RQ queue
+import django_rq
+q = django_rq.get_queue('default')
+
 
 #Index View
 def home_or_login(request):
@@ -740,5 +745,7 @@ def survey_export(request, pk):
 @login_required
 def export_wait(request, pk):
     survey = get_object_or_404(Survey, pk=pk)
-    s3_write_response_data(survey)
+    # Enqueue this task for background processing
+    q.enqueue(s3_write_response_data, survey)
+    # s3_write_response_data(survey)
     return render(request, 'export/export_wait.html', {'survey_name': survey.name})
