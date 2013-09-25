@@ -1,4 +1,3 @@
-import os
 import csv
 import datetime
 from collections import OrderedDict
@@ -110,8 +109,8 @@ def write_student_responses(chunk_filename, survey, query_chunk, header_dict, su
         survey_varlist: list of variables for the given survey
     '''
     # Try this locally first
-    with open(chunk_filename, 'w') as csvfile:
-    # with default_storage.open(chunk_filename, 'w') as csvfile:
+    # with open(chunk_filename, 'w') as csvfile:
+    with default_storage.open(chunk_filename, 'w') as csvfile:
         # Use DictWriter to match records
         writer = csv.DictWriter(csvfile, fieldnames=header_dict)
 
@@ -173,7 +172,7 @@ def stitch_csv_chunks(last_filename, chunk_filename_list, filename):
     trycount = 1
     while trycount < 11:
         try:
-            with open(last_filename):
+            with default_storage.open(last_filename):
                 pass
             # Assign trycount to be 11 immediately so we can proceed next to csv stitching
             trycount = 11
@@ -186,27 +185,32 @@ def stitch_csv_chunks(last_filename, chunk_filename_list, filename):
 
     # Check if filename exists first, if it does
     # Delete that file
-    if os.path.exists(filename):
-        print '{filename} already exists. Attempting to overwrite this file.'.format(filename=filename)
-        os.remove(filename)
+    # if default_storage.exists(filename):
+    #     print '{filename} already exists. Attempting to overwrite this file.'.format(filename=filename)
+    #     default_storage.delete(filename)
 
-    with open(filename, 'a') as finalcsv:
+    # Use 'w' mode for writing to overwrite any previously created file
+    with default_storage.open(filename, 'w') as finalcsv:
         # First file
         first_filename = chunk_filename_list[0]
         print 'Reading {filename}'.format(filename=first_filename)
-        for line in open(first_filename):
+        for line in default_storage.open(first_filename):
             finalcsv.write(line)
         # Now the rest
         for fname in chunk_filename_list[1:]:
-            f = open(fname)
+            f = default_storage.open(fname)
             print 'Reading {filename}'.format(filename=fname)
-            # Skip the header
-            f.next()
+            header = True
             for line in f:
-                finalcsv.write(line)
+                # Skip the header
+                if header:
+                    header = False
+                    pass
+                else:
+                    finalcsv.write(line)
             f.close()
 
     # Now delete all temp_chunks file
     for f in chunk_filename_list:
         print 'Now deleting {filename}'.format(filename=f)
-        os.remove(f)
+        default_storage.delete(f)
