@@ -472,7 +472,6 @@ class SurveyView(DetailView):
         return super(SurveyView, self).dispatch(*args, **kwargs)
 
 
-
 # View functions for handling file uploads
 @login_required
 def upload_file(request, pk):
@@ -487,7 +486,11 @@ def upload_file(request, pk):
             file_type = request.POST['file_type']
             session_title = request.POST['title']
             # Process the uploaded data using a helper function in upload.py
-            # This is a memory-heavy process! Hence send to 
+            # Send this task to background
+            # q.enqueue_call(
+            #     func=process_uploaded,
+            #     args=(newfile, file_type, survey, session_title),
+            # )
             context = process_uploaded(newfile, file_type, survey, session_title)
             # Redirect to upload wait after POST
             return render_to_response('survey/upload_wait.html', context, context_instance=RequestContext(request))

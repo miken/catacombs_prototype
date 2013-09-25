@@ -108,8 +108,6 @@ def write_student_responses(chunk_filename, survey, query_chunk, header_dict, su
         header_dict: dictionary that contains the header row for the csvwriter object
         survey_varlist: list of variables for the given survey
     '''
-    # Try this locally first
-    # with open(chunk_filename, 'w') as csvfile:
     with default_storage.open(chunk_filename, 'w') as csvfile:
         # Use DictWriter to match records
         writer = csv.DictWriter(csvfile, fieldnames=header_dict)
@@ -182,12 +180,6 @@ def stitch_csv_chunks(last_filename, chunk_filename_list, filename):
             # Count that as another try
             trycount += 1
             sleep(15)
-
-    # Check if filename exists first, if it does
-    # Delete that file
-    # if default_storage.exists(filename):
-    #     print '{filename} already exists. Attempting to overwrite this file.'.format(filename=filename)
-    #     default_storage.delete(filename)
 
     # Use 'w' mode for writing to overwrite any previously created file
     with default_storage.open(filename, 'w') as finalcsv:

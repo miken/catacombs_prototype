@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+from time import sleep
 
 # Set up RQ queue
 import django_rq
@@ -40,58 +41,68 @@ def process_uploaded(file, filetype, survey, session_title):
         if not set(survey_csv_colspec).issubset(newcsv_col_set):
             context['not_csv_match'] = True
         else:
-            # q.enqueue_call(
-            #     func=match_survey_vars_with_csv_cols,
-            #     args=(newcsv, filetype, survey, session)
-            # )
-            match_survey_vars_with_csv_cols(newcsv, filetype, survey, session)
-
-            # Get the list of variable names for access
-            vmrecords = session.varmatchrecord_set.filter(match_status=True)
-            if filetype == 'raw':
-                vars_in_csv = vmrecords.values_list('raw_var__raw_name', flat=True)
-                vars_in_csv = list(vars_in_csv)
-            elif filetype == 'legacy':
-                vars_in_csv = vmrecords.values_list('var__name', flat=True)
-                vars_in_csv = list(vars_in_csv)
-            else:
-                vars_in_csv = []
-
-            # First we'll filter to use only those columns available
-            # in survey_csv_colspec and vars_in_csv
-            filter_cols = survey_csv_colspec + vars_in_csv
-            newcsv = newcsv[filter_cols]
-
-            # Match and create schools and participation records first
-            # q.enqueue_call(
-            #     func=match_and_create_schools,
-            #     args=(newcsv, survey, session),
-            # )
-            match_and_create_schools(newcsv, survey, session)
-            # q.enqueue_call(
-            #     func=match_and_create_schoolparticipations,
-            #     args=(newcsv, survey, session),
-            # )
-            match_and_create_schoolparticipations(newcsv, survey, session)
-
-            # We'll enqueue the remainder in upload_data in smaller chunks
-            # Split newcsv into smaller chunks to work with, 10 rows each or so
-            toprownum = 0
-            while toprownum < len(newcsv):
-                bottomrownum = toprownum + 10
-                # If we hit the bottom of newcsv, just re-assign bottomrownum
-                if bottomrownum > len(newcsv):
-                    bottomrownum = len(newcsv)
-                    # This is when we'll also update the parse status of session
-                    q.enqueue(update_parse_status, session)
-                # Make a copy of it to see if memory size will be smaller
-                csv_chunk = newcsv[toprownum:bottomrownum]
-                # Enqueue the chunk uploading process
-                q.enqueue_call(func=upload_data,
-                               args=(csv_chunk, survey, session, filetype, vars_in_csv),
-                               )
-                toprownum += 10
+            q.enqueue_call(
+                func=parse_csv_into_database,
+                args=(newcsv, survey_csv_colspec, filetype, survey, session),
+            )
     return context
+
+
+def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, session):
+    '''
+    Actual function that will work on parsing CSV data
+    '''
+    # q.enqueue_call(
+    #     func=match_survey_vars_with_csv_cols,
+    #     args=(newcsv, filetype, survey, session)
+    # )
+    match_survey_vars_with_csv_cols(newcsv, filetype, survey, session)
+
+    # Get the list of variable names for access
+    vmrecords = session.varmatchrecord_set.filter(match_status=True)
+    if filetype == 'raw':
+        vars_in_csv = vmrecords.values_list('raw_var__raw_name', flat=True)
+        vars_in_csv = list(vars_in_csv)
+    elif filetype == 'legacy':
+        vars_in_csv = vmrecords.values_list('var__name', flat=True)
+        vars_in_csv = list(vars_in_csv)
+    else:
+        vars_in_csv = []
+
+    # First we'll filter to use only those columns available
+    # in survey_csv_colspec and vars_in_csv
+    filter_cols = survey_csv_colspec + vars_in_csv
+    newcsv = newcsv[filter_cols]
+
+    # Match and create schools and participation records first
+    # q.enqueue_call(
+    #     func=match_and_create_schools,
+    #     args=(newcsv, survey, session),
+    # )
+    match_and_create_schools(newcsv, survey, session)
+    # q.enqueue_call(
+    #     func=match_and_create_schoolparticipations,
+    #     args=(newcsv, survey, session),
+    # )
+    match_and_create_schoolparticipations(newcsv, survey, session)
+
+    # We'll enqueue the remainder in upload_data in smaller chunks
+    # Split newcsv into smaller chunks to work with, 10 rows each or so
+    toprownum = 0
+    while toprownum < len(newcsv):
+        bottomrownum = toprownum + 10
+        # If we hit the bottom of newcsv, just re-assign bottomrownum
+        if bottomrownum > len(newcsv):
+            bottomrownum = len(newcsv)
+            # This is when we'll also update the parse status of session
+            q.enqueue(update_parse_status, session)
+        # Make a copy of it to see if memory size will be smaller
+        csv_chunk = newcsv[toprownum:bottomrownum]
+        # Enqueue the chunk uploading process
+        q.enqueue_call(func=upload_data,
+                       args=(csv_chunk, survey, session, filetype, vars_in_csv),
+                       )
+        toprownum += 10
 
 
 def match_survey_vars_with_csv_cols(newcsv, filetype, survey, session):
