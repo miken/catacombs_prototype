@@ -1,6 +1,4 @@
-from django.http import HttpResponse
 from django.template import RequestContext
-from django.template.response import SimpleTemplateResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404, redirect
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView

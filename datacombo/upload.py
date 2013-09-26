@@ -41,6 +41,8 @@ def process_uploaded(file, filetype, survey, session_title):
         if not set(survey_csv_colspec).issubset(newcsv_col_set):
             context['not_csv_match'] = True
         else:
+            # Drop rows that do not have values for 'V4' (PIN column)
+            newcsv = newcsv.dropna(subset=['V4'])
             q.enqueue_call(
                 func=parse_csv_into_database,
                 args=(newcsv, survey_csv_colspec, filetype, survey, session),
@@ -56,23 +58,32 @@ def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, sessio
     #     func=match_survey_vars_with_csv_cols,
     #     args=(newcsv, filetype, survey, session)
     # )
+    if survey.is_teacher_feedback():
+        newcsv = convert_raw_to_stack(newcsv, survey)
+        # Add a new column for this table
+        newcsv['s_t_c'] = (newcsv['School_Short'] +
+                           ' - ' +
+                           newcsv['teacherfirst'] +
+                           ' ' +
+                           newcsv['teacherlast'] +
+                           ' - ' +
+                           newcsv['coursename']
+                           )
+        # Set 'ID_insert', created with convert_raw_to_stack(), as index
+        newcsv = newcsv.set_index('ID_insert')
     match_survey_vars_with_csv_cols(newcsv, filetype, survey, session)
 
     # Get the list of variable names for access
     vmrecords = session.varmatchrecord_set.filter(match_status=True)
-    if filetype == 'raw':
-        vars_in_csv = vmrecords.values_list('raw_var__raw_name', flat=True)
-        vars_in_csv = list(vars_in_csv)
-    elif filetype == 'legacy':
+
+    if survey.is_teacher_feedback() or filetype == 'legacy':
         vars_in_csv = vmrecords.values_list('var__name', flat=True)
+        vars_in_csv = list(vars_in_csv)
+    elif filetype == 'raw':
+        vars_in_csv = vmrecords.values_list('raw_var__raw_name', flat=True)
         vars_in_csv = list(vars_in_csv)
     else:
         vars_in_csv = []
-
-    # First we'll filter to use only those columns available
-    # in survey_csv_colspec and vars_in_csv
-    filter_cols = survey_csv_colspec + vars_in_csv
-    newcsv = newcsv[filter_cols]
 
     # Match and create schools and participation records first
     # q.enqueue_call(
@@ -86,7 +97,7 @@ def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, sessio
     # )
     match_and_create_schoolparticipations(newcsv, survey, session)
 
-    # We'll enqueue the remainder in upload_data in smaller chunks
+    # We'll enqueue the remainder in upload_data_chunk in smaller chunks
     # Split newcsv into smaller chunks to work with, 10 rows each or so
     toprownum = 0
     while toprownum < len(newcsv):
@@ -98,27 +109,33 @@ def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, sessio
             q.enqueue(update_parse_status, session)
         # Make a copy of it to see if memory size will be smaller
         csv_chunk = newcsv[toprownum:bottomrownum]
+        log_msg = 'Processing rows {top}-{bottom} out of {total}'.format(
+            top=toprownum+1,
+            bottom=bottomrownum,
+            total=len(newcsv)
+        )
         # Enqueue the chunk uploading process
-        q.enqueue_call(func=upload_data,
-                       args=(csv_chunk, survey, session, filetype, vars_in_csv),
+        q.enqueue_call(func=upload_data_chunk,
+                       args=(csv_chunk, survey, session, filetype, vars_in_csv, log_msg),
                        )
         toprownum += 10
 
 
 def match_survey_vars_with_csv_cols(newcsv, filetype, survey, session):
-    if filetype == 'raw':
+    if survey.is_teacher_feedback() or filetype == 'legacy':
+        varname_list = survey.variable_set.all()
+    elif filetype == 'raw':
         varname_list = survey.varmap_set.all()
-    elif filetype == 'legacy':
-        varname_list = survey.var_set.all()
+
     for v in varname_list:
         c = VarMatchRecord()
         c.session = session
-        if filetype == 'raw':
-            name = v.raw_name
-            c.raw_var = v
-        elif filetype == 'legacy':
+        if survey.is_teacher_feedback() or filetype == 'legacy':
             name = v.name
             c.var = v
+        elif filetype == 'raw':
+            name = v.raw_name
+            c.raw_var = v
         if name in newcsv.columns:
             c.match_status = True
         else:
@@ -131,99 +148,22 @@ def update_parse_status(session):
     session.save()
 
 
-def upload_data(newcsv, survey, session, filetype, vars_in_csv):
-    # If it's a teacher feedback survey, proceed with teacher & course matching
+def upload_data_chunk(csv_chunk, survey, session, filetype, vars_in_csv, log_msg):
+    print log_msg
     if survey.is_teacher_feedback():
-        if filetype == 'raw':
-            # If we're importing raw data, we need to
-            # convert newcsv to stackformat first
-            csv_stacked = convert_raw_to_stack(newcsv, survey)
-            # Add a new column for this table
-            csv_stacked['s_t_c'] = (csv_stacked['School_Short'] +
-                                    ' - ' +
-                                    csv_stacked['teacherfirst'] +
-                                    ' ' +
-                                    csv_stacked['teacherlast'] +
-                                    ' - ' +
-                                    csv_stacked['coursename']
-                                    )
-            # Set 'ID_insert', created with convert_raw_to_stack(), as index
-            csv_stacked = csv_stacked.set_index('ID_insert')
-            # With a fresh list of PartipationRecords, mix & match teachers, subjects, and courses
-            s_t_df = group_teacher_level(csv_stacked)
-            s_t_c_df = group_course_level(csv_stacked)
-        else:
-            s_t_df = group_teacher_level(newcsv)
-            s_t_c_df = group_course_level(newcsv)
+        s_t_df = group_teacher_level(csv_chunk)
+        s_t_c_df = group_course_level(csv_chunk)
         # Now proceed with mixing and matching
-        # TODO
-        # We'll rewrite this after optimization
-        # match_and_create_teachers(s_t_df, session, fresh_precords_dict)
-        # match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict)
-        # pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict)
-
-    # Continue to add students and responses if it's raw data
-    if filetype == 'raw':
-        match_and_create_students(newcsv, survey, session)
-        # Add responses
-        if survey.is_teacher_feedback():
-            match_and_create_responses(csv_stacked, survey, session, filetype, vars_in_csv)
-        else:
-            match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv)
-
-
-# FIX THIS
-def upload_legacy_data(newcsv, survey, session):
-    # Check that the user is uploading the correct CSV file
-    survey_csv_colspec = survey.raw_columns_for_csv_matching()
-    newcsv_col_set = set(newcsv.columns)
-    # If the CSV files don't have all the required column names, return None
-    if not set(survey_csv_colspec).issubset(newcsv_col_set):
-        context['not_csv_match'] = True
-    else:
-        new_schools_dict = match_and_create_schools(newcsv, survey, session)
-        new_schoolparticipations_dict = match_and_create_schoolparticipations(newcsv, survey, session)
-        context['number_of_rows'] = len(newcsv)
-        context['number_of_new_schools'] = new_schools_dict['newcount']
-        context['number_of_new_participations'] = new_schoolparticipations_dict['newcount']
-        context['added_schools'] = School.objects.filter(imported_thru=session)
-        context['added_records'] = SchoolParticipation.objects.filter(imported_thru=session)
-        context['session_id'] = session.id
-        # If it's a teacher feedback survey, proceed with teacher & course matching
-        if survey.is_teacher_feedback():
-            # If we're importing raw data, we need to
-            # convert newcsv to stackformat first
-            csv_stacked = convert_raw_to_stack(newcsv, survey)
-
-            fresh_precords_dict = get_precords_dict(survey)
-            # With a fresh list of PartipationRecords, mix & match teachers, subjects, and courses
-            s_t_df = group_teacher_level(csv_stacked)
-            s_t_c_df = group_course_level(csv_stacked)
-            new_teachers_dict = match_and_create_teachers(s_t_df, survey, session, fresh_precords_dict)
-            new_subjects_and_courses_dict = match_and_create_subjects_and_courses(s_t_c_df, survey, session, fresh_precords_dict)
-            # Pair the new courses with teachers
-            pair_new_courses_with_teachers(s_t_c_df, survey, session, fresh_precords_dict)
-
-            # Import responses from csv_stacked
-        else:
-            pass
-            # Import responses from newcsv
-        new_students_dict = match_and_create_students(newcsv, survey, session, fresh_precords_dict)
-
-
-def generate_vars_in_csv(newcsv, survey, filetype):
-    if filetype == 'raw':
-        survey_maplist = survey.varmap_set.values_list('raw_name', flat=True)
-        vlist = [v for v in survey_maplist if v in newcsv.columns]
-    elif filetype == 'legacy':
-        survey_varlist = survey.variable_set.values_list('name', flat=True)
-        vlist = [v for v in survey_varlist if v in newcsv.columns]
-    return vlist
+        match_and_create_teachers(s_t_df, survey, session)
+        match_and_create_subjects_and_courses(s_t_c_df, survey, session)
+        if filetype == 'raw':
+            match_and_create_students(csv_chunk, survey, session)
+            # Add responses
+            match_and_create_responses(csv_chunk, survey, session, filetype, vars_in_csv)
 
 
 def match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv):
     for i in newcsv.index:
-        print 'Importing row {num}'.format(num=str(i+1))
         row = newcsv.ix[i]
         if survey.is_teacher_feedback() and pd.isnull(row['coursename']):
             pass
@@ -264,7 +204,7 @@ def match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv):
                         idx_str_list.append(pin)
                         idx = ' - '.join(idx_str_list)
                         # Prepare all lookup fields
-                        if filetype == 'legacy':
+                        if survey.is_teacher_feedback() or filetype == 'legacy':
                             var = survey.variable_set.get(name=v)
                         elif filetype == 'raw':
                             varmap = survey.varmap_set.get(raw_name=v)
@@ -343,127 +283,112 @@ def match_and_create_schoolparticipations(newcsv, survey, session):
         )
 
 
-def match_and_create_teachers(s_t_df, session, fresh_precords_dict):
+def match_and_create_teachers(s_t_df, survey, session):
     '''
     s_t_df: CSV file grouped by School_Short and Teacher_Full_Name
+    survey: Survey object
     session: ImportSession object
-    fresh_precords_dict: List of IDs of ParticipationRecords, including the new ones
-                         Create this by using get_precords_dict() after bulk_create
-                         the new school participation records
     '''
     # Match & create new teachers
-    number_of_new_teachers = 0
-    new_teachers_list = []
-    existing_teachers_dict = get_teachers_dict(fresh_precords_dict)
+    current_teacher_idx_list = Teacher.objects.values_list('legacy_survey_index', flat=True)
 
     for idx in s_t_df.index:
-        if idx in existing_teachers_dict.keys():
+        if idx in current_teacher_idx_list:
             pass
         else:
-            t = Teacher()
-            t.first_name = s_t_df.get_value(idx, 'teacherfirst')
-            t.last_name = s_t_df.get_value(idx, 'teacherlast')
-            t.salutation = s_t_df.get_value(idx, 'teachersalutation')
+            t_defaults_dict = {}
+            t_defaults_dict['first_name'] = s_t_df.get_value(idx, 'teacherfirst')
+            t_defaults_dict['last_name'] = s_t_df.get_value(idx, 'teacherlast')
+            t_defaults_dict['salutation'] = s_t_df.get_value(idx, 'teachersalutation')
             schshort = s_t_df.get_value(idx, 'School_Short')
-            t.feedback_given_in_id = fresh_precords_dict[schshort]
-            t.legacy_survey_index = idx
-            t.imported_thru = session
-            # Append to object list for bulk create later
-            new_teachers_list.append(t)
-            # Add up the tallies
-            number_of_new_teachers += 1
-    #Bulk create new participation objects
-    Teacher.objects.bulk_create(new_teachers_list)
+            t_defaults_dict['feedback_given_in'] = SchoolParticipation.objects.get(
+                legacy_school_short=schshort,
+                survey=survey
+            )
+            t_defaults_dict['imported_thru'] = session
+
+            obj, created = Teacher.objects.get_or_create(
+                legacy_survey_index=idx,
+                defaults=t_defaults_dict,
+            )
 
 
-def match_and_create_subjects_and_courses(s_t_c_df, session, fresh_precords_dict):
+def match_and_create_subjects_and_courses(s_t_c_df, survey, session):
     '''
-    s_t_df: CSV file grouped by School_Short and Teacher_Full_Name
+    s_t_df: CSV file grouped by School_Short, teacher's full name, and coursename
+    survey: Survey object
     session: ImportSession object
     '''
     # Match & create new courses and subjects
-    number_of_new_subjects = 0
-    new_subjects_list = []
-    number_of_new_courses = 0
-    new_courses_list = []
-    existing_courses_dict = get_courses_dict(fresh_precords_dict)
+    current_course_idx_list = Course.objects.values_list('legacy_survey_index', flat=True)
+
     for idx in s_t_c_df.index:
-        if idx in existing_courses_dict.keys():
+        if idx in current_course_idx_list:
             pass
         else:
-            c = Course()
-            coursename = s_t_c_df.get_value(idx, 'coursename')
-            c.name = coursename
-            # Was there a subject that already exists? If not, add it
+            c_defaults_dict = {}
+            c_defaults_dict['name'] = s_t_c_df.get_value(idx, 'coursename')
             subject_name = s_t_c_df.get_value(idx, 'subject')
-            try:
-                s = Subject.objects.get(name=subject_name)
-            except Subject.DoesNotExist:
-                s = Subject()
-                s.name = subject_name
-                s.save()
-                number_of_new_subjects += 1
-                new_subjects_list.append(s)
-            c.subject = s
-            c.classroom_size = s_t_c_df.get_value(idx, 'size')
-            c.legacy_survey_index = idx
+            c_defaults_dict['subject'], created = Subject.objects.get_or_create(name=subject_name)
+            c_defaults_dict['classroom_size'] = s_t_c_df.get_value(idx, 'size')
             schshort = s_t_c_df.get_value(idx, 'School_Short')
-            c.feedback_given_in_id = fresh_precords_dict[schshort]
-            c.imported_thru = session
-            # Must save first before adding course
-            # We'll take care of this record matching later
-            # Append to object list for bulk create later
-            new_courses_list.append(c)
-            # Add up the tallies
-            number_of_new_courses += 1
-    #Bulk create new participation objects
-    Course.objects.bulk_create(new_courses_list)
+            c_defaults_dict['feedback_given_in'] = SchoolParticipation.objects.get(
+                legacy_school_short=schshort,
+                survey=survey
+            )
+            c_defaults_dict['imported_thru'] = session
 
+            obj, created = Course.objects.get_or_create(
+                legacy_survey_index=idx,
+                defaults=c_defaults_dict,
+            )
 
-def pair_new_courses_with_teachers(s_t_c_df, session, fresh_precords_dict):
-    '''
-    Match up teachers with their corresponding courses
-    Do this for just the new courses, we don't connect old courses
-    with newly imported teachers, i.e., teachers don't teach courses
-    that existed in the past
-    '''
-    # Get a fresh set of teachers to pair with new courses
-    # after bulk_create command
-    fresh_teachers_dict = get_teachers_dict(fresh_precords_dict)
-    added_courses = Course.objects.filter(imported_thru=session)
-    for c in added_courses:
-        idx = c.legacy_survey_index
-        # Find the teacher_id with this key
-        s_t_index = s_t_c_df.get_value(idx, 's_t_index')
-        teacher_id = fresh_teachers_dict[s_t_index]
-        teacher = Teacher.objects.get(id=teacher_id)
-        c.teacher_set.add(teacher)
+            # We'll also pair courses with teachers here
+            teacher_idx = s_t_c_df.get_value(idx, 's_t_index')
+            teacher = Teacher.objects.get(legacy_survey_index=teacher_idx)
+            obj.teacher_set.add(teacher)
 
 
 def match_and_create_students(csv, survey, session):
     '''
     use get_precords_dict() to retrieve a new paired set of ID and School_Short
     '''
-    # Set ['V1'] or Qualtrics ID as index of csv
-    csv = csv.set_index('V1')
-    for q in csv.index:
-        if pd.isnull(q):
+    # If it's a teacher feedback survey, V1 is no longer unique 
+    # so we've already set ID_insert as index and can skip this step
+    if not survey.is_teacher_feedback():
+        # Set ['V1'] or Qualtrics ID as index of csv
+        csv = csv.set_index('V1')
+    
+    # Retrieve list of current students for matching up
+    current_student_idx_list = Student.objects.values_list('response_id', flat=True)
+
+    for idx in csv.index:
+        if pd.isnull(idx):
             pass
         else:
-            std_defaults_dict = {}
-            pin = csv.get_value(q, 'V4')
-            schshort = csv.get_value(q, 'School_Short')
-            precord = SchoolParticipation.objects.get(
-                survey=survey,
-                legacy_school_short=schshort,
-            )
-            std_defaults_dict['imported_thru'] = session
-            obj, created = Student.objects.get_or_create(
-                pin=pin,
-                response_id=q,
-                surveyed_thru=precord,
-                defaults=std_defaults_dict
-            )
+            if survey.is_teacher_feedback():
+                qid = csv.get_value(idx, 'V1')
+            else:
+                qid = idx
+            if qid in current_student_idx_list:
+                pass
+            else:
+                std_defaults_dict = {}
+                pin = csv.get_value(idx, 'V4')
+                schshort = csv.get_value(idx, 'School_Short')
+                precord = SchoolParticipation.objects.get(
+                    survey=survey,
+                    legacy_school_short=schshort,
+                )
+                school = precord.school
+                std_defaults_dict['imported_thru'] = session
+
+                obj, created = Student.objects.get_or_create(
+                    pin=pin,
+                    response_id=qid,
+                    school=school,
+                    defaults=std_defaults_dict
+                )
 
 
 def get_precords_dict(survey):
@@ -596,8 +521,8 @@ def convert_raw_to_stack(newcsv, survey):
     left_cols = survey.raw_columns_for_csv_matching()
     # middle_cols are variables that are in the variable_set
     # of the survey, but are not part of the survey loop
-    # e.g., race variables
-    middle_cols = list(survey.variable_set.values_list('name', flat=True))
+    # e.g., demographic variables like race
+    middle_cols = list(survey.variable_set.filter(demographic=True).values_list('name', flat=True))
     # meta_cols are the following columns:
     # 'teachersalutation', 'teacherfirst', 'teacherlast', 'subject', 'coursename'
     # These columns values will change depending on which survey loop we're in
@@ -605,11 +530,11 @@ def convert_raw_to_stack(newcsv, survey):
     # right_cols are variables that are in the variable_set
     # of the survey and part of the survey loop
     # e.g., ts_enjoy --> ts_enjoy(1), ts_enjoy(2), ts_enjoy(3)
-    right_cols = list(survey.variable_set.filter(in_loop=True).values_list('name', flat=True))
+    right_cols = list(survey.variable_set.filter(demographic=False, qual=False).values_list('name', flat=True))
     stackcols = left_cols + middle_cols + meta_cols + right_cols + ['ID_insert']
     left_middle = newcsv[left_cols + middle_cols]
-    # Loop from course 1 to course 5
-    iterlist = [str(i) for i in range(1, 6)]
+    # Loop from course 1 to course 10
+    iterlist = [str(i) for i in range(1, 11)]
     raw_stack = pd.DataFrame(columns=stackcols)
     newcsv_cols_set = set(newcsv.columns)
     for i in iterlist:
@@ -623,6 +548,10 @@ def convert_raw_to_stack(newcsv, survey):
             meta.columns = meta_cols
             right.columns = right_cols
             data_tostack = left_middle.join([meta, right])
+            # Drop any rows that do not have metadata, i.e., teacherfirst, teacherlast, coursename
+            # Or any ratings at all in right_cols
+            data_tostack = data_tostack.dropna(how='all', subset=meta_cols)
+            data_tostack = data_tostack.dropna(how='all', subset=right_cols)
             data_tostack['ID_insert'] = data_tostack['V1'] + ' - ' + i
             raw_stack = raw_stack.append(data_tostack)
     # raw_stack.to_csv('test.csv')

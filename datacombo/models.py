@@ -69,8 +69,8 @@ class Survey(models.Model):
     def student_count(self):
         # Use distinct, since a school can participate in the same survey multiple times
         # We care about the number of distinct schools, instead of particpation records
-        count = Student.objects.filter(surveyed_thru__in=self.schoolparticipation_set.distinct()).count()
-        return count
+        # count = Student.objects.filter(surveyed_thru__in=self.schoolparticipation_set.distinct()).count()
+        return 9999999999
 
     def courses_below_cutoff(self):
         '''
@@ -174,6 +174,7 @@ class Variable(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
     qual = models.BooleanField(verbose_name=u'Is this a qualitative variable?')
+    demographic = models.BooleanField(verbose_name=u'Is this a demographic variable?')
     summary_measure = models.ForeignKey(SummaryMeasure, blank=True, null=True)
     active = models.BooleanField()
 
@@ -274,12 +275,12 @@ class SchoolParticipation(models.Model):
     def student_count(self):
         # If it's a teacher feedback survey record, use student_set.count() directly
         # Since student responses are cleaned at the course level
-        if self.survey.is_teacher_feedback():
-            count = self.student_set.count()
-        else:
-            student_ids = self.response_set.values_list('student__id', flat=True)
-            count = Student.objects.filter(id__in=student_ids).distinct().count()
-        return count
+        # if self.survey.is_teacher_feedback():
+        #     count = self.student_set.count()
+        # else:
+        #     student_ids = self.response_set.values_list('student__id', flat=True)
+        #     count = Student.objects.filter(id__in=student_ids).distinct().count()
+        return 999999999
 
     def teacher_count(self):
         count = self.teacher_set.count()
@@ -388,7 +389,6 @@ class Teacher(models.Model):
         salute_name = u'{salute} {last}'.format(salute=self.salutation, last=self.last_name)
         return salute_name
 
-
     def rating(self, var):
         '''
         Return the average rating for a given variable
@@ -419,11 +419,11 @@ class Teacher(models.Model):
 class Student(models.Model):
     pin = models.CharField(max_length=50, verbose_name=u'YouthTruth PIN used')
     response_id = models.CharField(max_length=50, verbose_name=u'Response ID recorded by Qualtrics')
-    surveyed_thru = models.ForeignKey(SchoolParticipation)
+    school = models.ForeignKey(School)
     imported_thru = models.ForeignKey(ImportSession, null=True)
 
     def __unicode__(self):
-        return self.pin + ' - ' + self.surveyed_thru.legacy_school_short
+        return self.pin + ' - ' + self.school.alpha
 
 
 class Response(models.Model):

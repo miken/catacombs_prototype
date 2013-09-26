@@ -8,15 +8,23 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'ImportSession.parse_status'
-        db.add_column(u'datacombo_importsession', 'parse_status',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Deleting field 'Student.surveyed_thru'
+        db.delete_column(u'datacombo_student', 'surveyed_thru_id')
+
+        # Adding field 'Student.school'
+        db.add_column(u'datacombo_student', 'school',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['datacombo.School']),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'ImportSession.parse_status'
-        db.delete_column(u'datacombo_importsession', 'parse_status')
+        # Adding field 'Student.surveyed_thru'
+        db.add_column(u'datacombo_student', 'surveyed_thru',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['datacombo.SchoolParticipation']),
+                      keep_default=False)
+
+        # Deleting field 'Student.school'
+        db.delete_column(u'datacombo_student', 'school_id')
 
 
     models = {
@@ -29,6 +37,16 @@ class Migration(SchemaMigration):
             'legacy_survey_index': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'subject': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Subject']"})
+        },
+        u'datacombo.csvexport': {
+            'Meta': {'object_name': 'CSVExport'},
+            'date_requested': ('django.db.models.fields.DateField', [], {}),
+            'export_type': ('django.db.models.fields.CharField', [], {'default': "'Undefined'", 'max_length': '10'}),
+            'file_name': ('django.db.models.fields.CharField', [], {'default': "u'unnamed.csv'", 'max_length': '100'}),
+            'file_status': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'survey': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Survey']"}),
+            'title': ('django.db.models.fields.CharField', [], {'default': "u'No name'", 'max_length': '100'})
         },
         u'datacombo.importsession': {
             'Meta': {'object_name': 'ImportSession'},
@@ -79,7 +97,7 @@ class Migration(SchemaMigration):
             'imported_thru': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.ImportSession']", 'null': 'True'}),
             'pin': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'response_id': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'surveyed_thru': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.SchoolParticipation']"})
+            'school': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.School']"})
         },
         u'datacombo.subject': {
             'Meta': {'object_name': 'Subject'},
@@ -113,6 +131,7 @@ class Migration(SchemaMigration):
         u'datacombo.variable': {
             'Meta': {'ordering': "['name']", 'object_name': 'Variable'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'demographic': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
@@ -126,6 +145,14 @@ class Migration(SchemaMigration):
             'raw_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'survey': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Survey']"}),
             'variable': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Variable']"})
+        },
+        u'datacombo.varmatchrecord': {
+            'Meta': {'object_name': 'VarMatchRecord'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'match_status': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'raw_var': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.VarMap']", 'null': 'True', 'blank': 'True'}),
+            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.ImportSession']"}),
+            'var': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['datacombo.Variable']", 'null': 'True', 'blank': 'True'})
         }
     }
 

@@ -1,6 +1,7 @@
 from datacombo.models import Survey, SummaryMeasure, Variable
 import pandas as pd
 
+
 def execute():
     #Import vars.csv
     varlist = pd.read_csv('vars.csv', index_col=['surveycode', 'factor', 'varname'])
@@ -22,6 +23,11 @@ def execute():
             var.qual = True
         else:
             var.qual = False
+        demographic = varlist.get_value(idx_tuple, 'demographic')
+        if demographic == 1:
+            var.demographic = True
+        else:
+            var.demographic = False
         var.active = True
         var.save()
     print "Sample variables seeded."
