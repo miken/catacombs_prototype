@@ -18,8 +18,9 @@
         <table class="table table-striped table-condensed">
           <tr>
             <th>School Name</th>
-            <th>Times Participated in YT</th>
+            <th>No. of Participations</th>
             <th>Most Recent Participation</th>
+            <th>Most Recent No. of Student Responses</th>
           </tr>
           
           {% for school in survey.school_set.distinct %}
@@ -27,6 +28,7 @@
             <td><a href="{{ school.get_absolute_url }}">{{ school.name }}</a></td>
             <td>{{ school.repeat_count }}</td>
             <td>{{ school.schoolparticipation_set.latest.month }}, {{ school.schoolparticipation_set.latest.year }}</td>
+            <td>{{ school.schoolparticipation_set.latest.student_count }}</td>
           </tr>
           {% endfor %}
         </table>

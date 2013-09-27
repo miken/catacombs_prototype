@@ -67,10 +67,8 @@ class Survey(models.Model):
         return count
 
     def student_count(self):
-        # Use distinct, since a school can participate in the same survey multiple times
-        # We care about the number of distinct schools, instead of particpation records
-        # count = Student.objects.filter(surveyed_thru__in=self.schoolparticipation_set.distinct()).count()
-        return 9999999999
+        count = Student.objects.filter(school__schoolparticipation__in=self.schoolparticipation_set.all()).count()
+        return count
 
     def courses_below_cutoff(self):
         '''
@@ -280,7 +278,8 @@ class SchoolParticipation(models.Model):
         # else:
         #     student_ids = self.response_set.values_list('student__id', flat=True)
         #     count = Student.objects.filter(id__in=student_ids).distinct().count()
-        return 999999999
+        count = Student.objects.filter(school__schoolparticipation=self).count()
+        return count
 
     def teacher_count(self):
         count = self.teacher_set.count()
@@ -311,10 +310,22 @@ class Subject(models.Model):
         return self.name
 
 
+class Student(models.Model):
+    pin = models.CharField(max_length=50, verbose_name=u'YouthTruth PIN used')
+    response_id = models.CharField(max_length=50, verbose_name=u'Response ID recorded by Qualtrics')
+    school = models.ForeignKey(School)
+    imported_thru = models.ForeignKey(ImportSession, null=True)
+
+    def __unicode__(self):
+        return self.pin + ' - ' + self.school.alpha
+
+
 class Course(models.Model):
     name = models.CharField(max_length=50, verbose_name=u'Course Name')
     subject = models.ForeignKey(Subject)
     classroom_size = models.PositiveSmallIntegerField(default=0)
+    # TODO Add many-to-many relationship with students here so it's easier to count the number of students
+    students = models.ManyToManyField(Student)
     legacy_survey_index = models.CharField(max_length=255, default='', verbose_name=u'Index generated from School_Short, Full_Name, and Course_Name')
     feedback_given_in = models.ForeignKey(SchoolParticipation)
     imported_thru = models.ForeignKey(ImportSession, null=True)
@@ -408,22 +419,11 @@ class Teacher(models.Model):
             rating = avg_dict['answer__avg']
             return rating
 
-
     def get_absolute_url(self):
         return reverse('teachers-view', kwargs={'pk': self.id})
 
     def __unicode__(self):
         return self.full_name()
-
-
-class Student(models.Model):
-    pin = models.CharField(max_length=50, verbose_name=u'YouthTruth PIN used')
-    response_id = models.CharField(max_length=50, verbose_name=u'Response ID recorded by Qualtrics')
-    school = models.ForeignKey(School)
-    imported_thru = models.ForeignKey(ImportSession, null=True)
-
-    def __unicode__(self):
-        return self.pin + ' - ' + self.school.alpha
 
 
 class Response(models.Model):
@@ -437,6 +437,7 @@ class Response(models.Model):
     # Set null=True for student because of a future possibility of surveying teachers and parents etc.
     student = models.ForeignKey(Student, null=True)
     #Indicates whether the answer was for a course or for a school-overall
+    on_teacher = models.ForeignKey(Teacher, null=True, verbose_name=u'Feedback for which teacher?')
     on_course = models.ForeignKey(Course, null=True, verbose_name=u'Feedback for which course?')
     on_schoolrecord = models.ForeignKey(SchoolParticipation, null=True, verbose_name=u'Feedback for which school record?')
     legacy_survey_index = models.CharField(max_length=255, default='', verbose_name=u'Index generated from School_Short & (Teacher_Name & Course_Name) & Login PIN & varname')

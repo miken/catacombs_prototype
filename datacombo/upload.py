@@ -60,7 +60,14 @@ def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, sessio
     # )
     if survey.is_teacher_feedback():
         newcsv = convert_raw_to_stack(newcsv, survey)
-        # Add a new column for this table
+        # Add a teacher index column for this table
+        newcsv['s_t'] = (newcsv['School_Short'] +
+                           ' - ' +
+                           newcsv['teacherfirst'] +
+                           ' ' +
+                           newcsv['teacherlast']
+                           )        
+        # Add a coursename index column for this table
         newcsv['s_t_c'] = (newcsv['School_Short'] +
                            ' - ' +
                            newcsv['teacherfirst'] +
@@ -180,11 +187,12 @@ def match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv):
                 resp_defaults_dict['student'] = Student.objects.get(response_id=qid)
                 resp_defaults_dict['imported_thru'] = session
                 if survey.is_teacher_feedback():
+                    s_t_index = newcsv.get_value(i, 's_t')
+                    resp_defaults_dict['on_teacher'] = Teacher.objects.get(legacy_survey_index=s_t_index)
                     s_t_c_index = newcsv.get_value(i, 's_t_c')
                     resp_defaults_dict['on_course'] = Course.objects.get(legacy_survey_index=s_t_c_index)
-                else:
-                    schshort = newcsv.get_value(i, 'School_Short')
-                    resp_defaults_dict['on_schoolrecord'] = SchoolParticipation.objects.get(legacy_school_short=schshort)
+                schshort = newcsv.get_value(i, 'School_Short')
+                resp_defaults_dict['on_schoolrecord'] = SchoolParticipation.objects.get(legacy_school_short=schshort)
 
                 for v in vars_in_csv:
                     a = row[v]
@@ -370,6 +378,31 @@ def match_and_create_students(csv, survey, session):
                 qid = csv.get_value(idx, 'V1')
             else:
                 qid = idx
+            # TODO: Can't pass this because if we do this, we'll only have one course assigned to one student
+            # Trying something else... this might be more memory-intensive:
+            std_defaults_dict = {}
+            pin = csv.get_value(idx, 'V4')
+            schshort = csv.get_value(idx, 'School_Short')
+            precord = SchoolParticipation.objects.get(
+                survey=survey,
+                legacy_school_short=schshort,
+            )
+            school = precord.school
+            std_defaults_dict['imported_thru'] = session
+
+            obj, created = Student.objects.get_or_create(
+                pin=pin,
+                response_id=qid,
+                school=school,
+                defaults=std_defaults_dict
+            )
+            if survey.is_teacher_feedback():
+                course_idx = csv.get_value(idx, 's_t_c')
+                course = Course.objects.get(legacy_survey_index=course_idx)
+                if course not in obj.course_set.all():
+                    obj.course_set.add(course)
+
+            '''
             if qid in current_student_idx_list:
                 pass
             else:
@@ -389,6 +422,13 @@ def match_and_create_students(csv, survey, session):
                     school=school,
                     defaults=std_defaults_dict
                 )
+
+                # We'll also pair students with courses here
+                if survey.is_teacher_feedback():
+                    course_idx = csv.get_value(idx, 's_t_c')
+                    course = Course.objects.get(legacy_survey_index=course_idx)
+                    obj.course_set.add(course)
+            '''
 
 
 def get_precords_dict(survey):

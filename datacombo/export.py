@@ -6,7 +6,7 @@ from time import sleep
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.files.storage import default_storage
 
-from datacombo.models import Student, CSVExport
+from datacombo.models import Student, Course, CSVExport
 
 # Set up RQ queue
 import django_rq
@@ -39,7 +39,7 @@ def s3_write_response_data(survey):
     # Pick 10 student objects, and write a 10-row csv file for these objects
 
     # Get all student objects related to this survey
-    surveyed_students = Student.objects.filter(surveyed_thru__in=survey.schoolparticipation_set.all())
+    surveyed_students = Student.objects.filter(school__schoolparticipation__in=survey.schoolparticipation_set.all())
     student_queryset_count = surveyed_students.count()
 
     # Let's get the header row out first
@@ -117,50 +117,92 @@ def write_student_responses(chunk_filename, survey, query_chunk, header_dict, su
 
         # Next, data rows
         # If it's an overall feedback survey, one row represents one student
-        if not survey.is_teacher_feedback():
-            for s in query_chunk:
-                print 'Writing response data from student with PIN {pin}'.format(pin=s.pin)
-                rowdata = {}
-                # First element is 'School_Short'
-                school_short = s.surveyed_thru.legacy_school_short
-                rowdata['School_Short'] = school_short
-                # Second element is 'School_Name'
-                school_name = s.surveyed_thru.school.name
-                rowdata['School_Name'] = school_name
-                # Next is Qualtrics ID
-                rowdata['Qualtrics ID'] = s.response_id
-                # Next is YouthTruth PIN
-                rowdata['PIN'] = s.pin
-                # Now get all response data from this student s
+        for s in query_chunk:
+            print 'Writing response data from student with PIN {pin}'.format(pin=s.pin)
+            rowdata = {}
+            # First element is 'School_Short'
+            # Pretty sure each student has only one unique school short
+            # So safe to use the first school participation record
+            # And extract school short from it
+            school_short = s.school.schoolparticipation_set.latest('id').legacy_school_short
+            rowdata['School_Short'] = school_short
+            # Second element is 'School_Name'
+            school_name = s.school.name
+            rowdata['School_Name'] = school_name
+            # Next is Qualtrics ID
+            rowdata['Qualtrics ID'] = s.response_id
+            # Next is YouthTruth PIN
+            rowdata['PIN'] = s.pin
+
+            # If it's a teacher feedback survey, collect all courses
+            # that this student provides feedback for
+            if survey.is_teacher_feedback():
+                student_courses = s.course_set.all()
+                # Iterate over these courses
+                for c in student_courses:
+                    rowdata['coursename'] = c.name
+                    rowdata['subject'] = c.subject.name
+                    # First add in teacher full name
+                    # If there's only one teacher (which is by default), feel free to add that teacher
+                    if c.teacher_set.count() == 1:
+                        teacher = c.teacher_set.latest('id')
+                        rowdata['teachersalutation'] = teacher.salutation
+                        rowdata['teacherfirst'] = teacher.first_name
+                        rowdata['teacherlast'] = teacher.last_name
+                        course_responses = c.response_set.all()
+                        rowdata = insert_responses_into_rowdata(rowdata, course_responses, survey_varlist)
+                        writer.writerow(rowdata)
+                    else:
+                        for t in c.teacher_set.all():
+                            rowdata['teachersalutation'] = t.salutation
+                            rowdata['teacherfirst'] = t.first_name
+                            rowdata['teacherlast'] = t.last_name
+                            teacher_responses = c.response_set.filter(on_teacher=t)
+                            rowdata = insert_responses_into_rowdata(rowdata, teacher_responses, survey_varlist)
+                            writer.writerow(rowdata)
+            else:
+                # Get all response data from this student s
                 # given this school short
                 # and belong to survey_varlist
                 student_responses = s.response_set.filter(
                     on_schoolrecord=s.surveyed_thru,
                     question__name__in=survey_varlist
                 )
-                # Varnames for matching with CSV row headers
-                # We save this in a list first to reduce the number of database hits
-                # for faster processing
-                varnames = student_responses.values_list('question__name', flat=True)
-                for v in survey_varlist:
-                    if v not in varnames:
-                        pass
-                    else:
-                        # Look for answer from student_responses
-                        try:
-                            r = student_responses.get(question__name=v)
-                        except MultipleObjectsReturned:
-                            # Usually this should not happen - it only happens when during
-                            # the upload process, we recorded 2 different responses from
-                            # a student from the same question!
-                            # To deal with this situation, we'll just take the first available
-                            # response in the queryset
-                            r = student_responses.filter(question__name=v)[0]
-                        rowdata[v] = r.answer
+
+                rowdata = insert_responses_into_rowdata(rowdata, student_responses, survey_varlist)
                 # Write everything from datarow
                 writer.writerow(rowdata)
-        else:
+
+
+def insert_responses_into_rowdata(rowdata, student_responses, survey_varlist):
+    '''
+    Helper function that will use database queries to find a student's response to a question variable
+    and then insert into rowdata, which is a dict.
+        rowdata: dict object that contains question-answer pairs
+        student_responses: all responses object belonging to a student
+            in the case of teacher feedback survey, it's all responses on a course belonging to a student
+        survey_varlist: list of variables for the given survey
+    '''
+    # Varnames for matching with CSV row headers
+    # We save this in a list first to reduce the number of database hits
+    # for faster processing
+    varnames = student_responses.values_list('question__name', flat=True)
+    for v in survey_varlist:
+        if v not in varnames:
             pass
+        else:
+            # Look for answer from student_responses
+            try:
+                r = student_responses.get(question__name=v)
+            except MultipleObjectsReturned:
+                # Usually this should not happen - it only happens when during
+                # the upload process, we recorded 2 different responses from
+                # a student from the same question!
+                # To deal with this situation, we'll just take the first available
+                # response in the queryset
+                r = student_responses.filter(question__name=v).latest('id')
+            rowdata[v] = r.answer
+    return rowdata
 
 
 def stitch_csv_chunks(last_filename, chunk_filename_list, filename):
