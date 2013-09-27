@@ -163,10 +163,10 @@ def upload_data_chunk(csv_chunk, survey, session, filetype, vars_in_csv, log_msg
         # Now proceed with mixing and matching
         match_and_create_teachers(s_t_df, survey, session)
         match_and_create_subjects_and_courses(s_t_c_df, survey, session)
-        if filetype == 'raw':
-            match_and_create_students(csv_chunk, survey, session)
-            # Add responses
-            match_and_create_responses(csv_chunk, survey, session, filetype, vars_in_csv)
+    if filetype == 'raw':
+        match_and_create_students(csv_chunk, survey, session)
+        # Add responses
+        match_and_create_responses(csv_chunk, survey, session, filetype, vars_in_csv)
 
 
 def match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv):
@@ -368,7 +368,7 @@ def match_and_create_students(csv, survey, session):
         csv = csv.set_index('V1')
     
     # Retrieve list of current students for matching up
-    current_student_idx_list = Student.objects.values_list('response_id', flat=True)
+    # current_student_idx_list = Student.objects.values_list('response_id', flat=True)
 
     for idx in csv.index:
         if pd.isnull(idx):
