@@ -10,7 +10,7 @@ from datacombo.models import School, SchoolParticipation, Student, Response, Imp
 from datacombo.helpers import round_time_conversion
 
 
-def process_uploaded(file, filetype, survey, session_title):
+def process_uploaded(file, filetype, survey, session_title, debug=None):
     #Create context first to catch all message
     try:
         #Load it as a CSV file
@@ -43,21 +43,21 @@ def process_uploaded(file, filetype, survey, session_title):
         else:
             # Drop rows that do not have values for 'V4' (PIN column)
             newcsv = newcsv.dropna(subset=['V4'])
-            q.enqueue_call(
-                func=parse_csv_into_database,
-                args=(newcsv, survey_csv_colspec, filetype, survey, session),
-            )
+            # If debug is on, we'll use web dyno for processing
+            if debug:
+                parse_csv_into_database(newcsv, filetype, survey, session)
+            else:
+                q.enqueue_call(
+                    func=parse_csv_into_database,
+                    args=(newcsv, filetype, survey, session),
+                )
     return context
 
 
-def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, session):
+def parse_csv_into_database(newcsv, filetype, survey, session, debug=None):
     '''
     Actual function that will work on parsing CSV data
     '''
-    # q.enqueue_call(
-    #     func=match_survey_vars_with_csv_cols,
-    #     args=(newcsv, filetype, survey, session)
-    # )
     if survey.is_teacher_feedback():
         newcsv = convert_raw_to_stack(newcsv, survey)
         # Add a teacher index column for this table
@@ -66,7 +66,7 @@ def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, sessio
                            newcsv['teacherfirst'] +
                            ' ' +
                            newcsv['teacherlast']
-                           )        
+                           )
         # Add a coursename index column for this table
         newcsv['s_t_c'] = (newcsv['School_Short'] +
                            ' - ' +
@@ -113,7 +113,10 @@ def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, sessio
         if bottomrownum > len(newcsv):
             bottomrownum = len(newcsv)
             # This is when we'll also update the parse status of session
-            q.enqueue(update_parse_status, session)
+            if debug:
+                update_parse_status(session)
+            else:
+                q.enqueue(update_parse_status, session)
         # Make a copy of it to see if memory size will be smaller
         csv_chunk = newcsv[toprownum:bottomrownum]
         log_msg = 'Processing rows {top}-{bottom} out of {total}'.format(
@@ -122,9 +125,13 @@ def parse_csv_into_database(newcsv, survey_csv_colspec, filetype, survey, sessio
             total=len(newcsv)
         )
         # Enqueue the chunk uploading process
-        q.enqueue_call(func=upload_data_chunk,
-                       args=(csv_chunk, survey, session, filetype, vars_in_csv, log_msg),
-                       )
+        # If debug mode is on, use web dyno for processing
+        if debug:
+            upload_data_chunk(csv_chunk, survey, session, filetype, vars_in_csv, log_msg)
+        else:
+            q.enqueue_call(func=upload_data_chunk,
+                           args=(csv_chunk, survey, session, filetype, vars_in_csv, log_msg),
+                           )
         toprownum += 10
 
 
@@ -354,53 +361,61 @@ def match_and_create_subjects_and_courses(s_t_c_df, survey, session):
             # We'll also pair courses with teachers here
             teacher_idx = s_t_c_df.get_value(idx, 's_t_index')
             teacher = Teacher.objects.get(legacy_survey_index=teacher_idx)
-            obj.teacher_set.add(teacher)
+            if teacher not in obj.teacher_set.all():
+                obj.teacher_set.add(teacher)
 
 
 def match_and_create_students(csv, survey, session):
     '''
     use get_precords_dict() to retrieve a new paired set of ID and School_Short
     '''
-    # If it's a teacher feedback survey, V1 is no longer unique 
+    # If it's a teacher feedback survey, V1 is no longer unique
     # so we've already set ID_insert as index and can skip this step
     if not survey.is_teacher_feedback():
         # Set ['V1'] or Qualtrics ID as index of csv
         csv = csv.set_index('V1')
-    
+
     # Retrieve list of current students for matching up
     # current_student_idx_list = Student.objects.values_list('response_id', flat=True)
 
     for idx in csv.index:
         if pd.isnull(idx):
             pass
+        elif survey.is_teacher_feedback():
+            # If it's a teacher feedback survey, we'll go with the slower method
+            # of scanning each student object using get_or_create
+            # It's the only way to match student object with course
+            qid = csv.get_value(idx, 'V1')
         else:
-            if survey.is_teacher_feedback():
-                qid = csv.get_value(idx, 'V1')
-            else:
-                qid = idx
-            # TODO: Can't pass this because if we do this, we'll only have one course assigned to one student
-            # Trying something else... this might be more memory-intensive:
-            std_defaults_dict = {}
-            pin = csv.get_value(idx, 'V4')
-            schshort = csv.get_value(idx, 'School_Short')
-            precord = SchoolParticipation.objects.get(
-                survey=survey,
-                legacy_school_short=schshort,
-            )
-            school = precord.school
-            std_defaults_dict['imported_thru'] = session
+            # If it's an overall survey, we can construct the list of current students for matching up
+            # We don't have to worry about extracting single student instance for matching with courses
+            current_student_idx_list = Student.objects.values_list('response_id', flat=True)
+            qid = idx
+            if qid in current_student_idx_list:
+                pass
+        std_defaults_dict = {}
+        pin = csv.get_value(idx, 'V4')
+        schshort = csv.get_value(idx, 'School_Short')
+        precord = SchoolParticipation.objects.get(
+            survey=survey,
+            legacy_school_short=schshort,
+        )
+        school = precord.school
+        std_defaults_dict['imported_thru'] = session
 
-            obj, created = Student.objects.get_or_create(
-                pin=pin,
-                response_id=qid,
-                school=school,
-                defaults=std_defaults_dict
-            )
-            if survey.is_teacher_feedback():
-                course_idx = csv.get_value(idx, 's_t_c')
-                course = Course.objects.get(legacy_survey_index=course_idx)
-                if course not in obj.course_set.all():
-                    obj.course_set.add(course)
+        obj, created = Student.objects.get_or_create(
+            pin=pin,
+            response_id=qid,
+            school=school,
+            defaults=std_defaults_dict
+        )
+
+        # We'll also pair students with courses here
+        if survey.is_teacher_feedback():
+            course_idx = csv.get_value(idx, 's_t_c')
+            course = Course.objects.get(legacy_survey_index=course_idx)
+            if course not in obj.course_set.all():
+                obj.course_set.add(course)
 
             '''
             if qid in current_student_idx_list:

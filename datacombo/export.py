@@ -6,40 +6,23 @@ from time import sleep
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.files.storage import default_storage
 
-from datacombo.models import Student, Course, CSVExport
+from datacombo.models import Student, Course
 
 # Set up RQ queue
 import django_rq
 q = django_rq.get_queue('default')
 
 
-def s3_write_response_data(survey):
-    # New CSVExport object
-    export = CSVExport()
-    export.title = 'Student Responses'
-    export.export_type = 'response'
-    now = datetime.datetime.now()
-    export.date_requested = now
-    export.survey = survey
-
-    # Prepare CSV filename
-    today = now.strftime('%Y%m%d')
-    time = now.strftime('%H%M')
-    filename = "export_{surveycode}_responses_{today}_{time}.csv".format(
-        surveycode=survey.code,
-        today=today,
-        time=time,
-    )
-
-    export.file_name = filename
-    # Save export object first so it'll show up on the export management page
-    export.save()
-
-    # First we're gonna write to multiple csv files
-    # Pick 10 student objects, and write a 10-row csv file for these objects
-
+def s3_write_response_data(survey, export, debug=None):
+    '''
+        export: CSVExport instance
+    '''
     # Get all student objects related to this survey
     surveyed_students = Student.objects.filter(school__schoolparticipation__in=survey.schoolparticipation_set.all())
+    # For some reason, if we don't do a distinct, we'll have duplicated records
+    # of students in queryset, even though the count is the same!
+    # So let's apply distinct() here to the Student queryset
+    surveyed_students = surveyed_students.distinct()
     student_queryset_count = surveyed_students.count()
 
     # Let's get the header row out first
@@ -75,23 +58,36 @@ def s3_write_response_data(survey):
             last_filename = chunk_filename
         chunk_filename_list.append(chunk_filename)
         # We'll enqueue this task
-        # write_student_responses(chunk_filename, survey, query_chunk, header_dict, survey_varlist)
-        q.enqueue_call(
-            func=write_student_responses,
-            args=(chunk_filename, survey, query_chunk, header_dict, survey_varlist)
-        )
+        # If debug mode is on, we'll use web dyno for processing
+        if debug:
+            write_student_responses(chunk_filename, survey, query_chunk, header_dict, survey_varlist)
+        else:
+            q.enqueue_call(
+                func=write_student_responses,
+                args=(chunk_filename, survey, query_chunk, header_dict, survey_varlist)
+            )
         toprownum += 10
 
     # Now stitch all temp_chunk_*.csv files together
-    # stitch_csv_chunks(last_filename, chunk_filename_list, filename)
-    q.enqueue_call(
-        func=stitch_csv_chunks,
-        args=(last_filename, chunk_filename_list, filename),
-    )
+    filename = export.file_name
+    # If debug mode is on, we'll use web dyno for processing
+    if debug:
+        bottomnum = student_queryset_count
+        modulus = student_queryset_count % 10   # e.g., 257 % 10 = 7
+        topnum = bottomnum - modulus            # e.g., 257 - 7 = 250
+        last_filename = "temp_chunk_{topnum}_{bottomnum}.csv".format(topnum=topnum, bottomnum=bottomnum)
+        stitch_csv_chunks(last_filename, chunk_filename_list, filename)
+    else:
+        q.enqueue_call(
+            func=stitch_csv_chunks,
+            args=(last_filename, chunk_filename_list, filename),
+        )
 
     # Finally when done, set file_status to True and then save it
-    # update_file_status(export)
-    q.enqueue(update_file_status, export)
+    if debug:
+        update_file_status(export)
+    else:
+        q.enqueue(update_file_status, export)
 
 
 def update_file_status(export):
@@ -118,7 +114,7 @@ def write_student_responses(chunk_filename, survey, query_chunk, header_dict, su
         # Next, data rows
         # If it's an overall feedback survey, one row represents one student
         for s in query_chunk:
-            print 'Writing response data from student with PIN {pin}'.format(pin=s.pin)
+            print 'Writing response data for student PIN {pin}'.format(pin=s.pin)
             rowdata = {}
             # First element is 'School_Short'
             # Pretty sure each student has only one unique school short
@@ -149,7 +145,8 @@ def write_student_responses(chunk_filename, survey, query_chunk, header_dict, su
                         rowdata['teachersalutation'] = teacher.salutation
                         rowdata['teacherfirst'] = teacher.first_name
                         rowdata['teacherlast'] = teacher.last_name
-                        course_responses = c.response_set.all()
+                        # Filter for responses by student s on this course c
+                        course_responses = s.response_set.filter(on_course=c)
                         rowdata = insert_responses_into_rowdata(rowdata, course_responses, survey_varlist)
                         writer.writerow(rowdata)
                     else:
@@ -157,7 +154,8 @@ def write_student_responses(chunk_filename, survey, query_chunk, header_dict, su
                             rowdata['teachersalutation'] = t.salutation
                             rowdata['teacherfirst'] = t.first_name
                             rowdata['teacherlast'] = t.last_name
-                            teacher_responses = c.response_set.filter(on_teacher=t)
+                            # Filter for responses by student s on this course c for teacher t
+                            teacher_responses = s.response_set.filter(on_course=c, on_teacher=t)
                             rowdata = insert_responses_into_rowdata(rowdata, teacher_responses, survey_varlist)
                             writer.writerow(rowdata)
             else:
@@ -165,7 +163,7 @@ def write_student_responses(chunk_filename, survey, query_chunk, header_dict, su
                 # given this school short
                 # and belong to survey_varlist
                 student_responses = s.response_set.filter(
-                    on_schoolrecord=s.surveyed_thru,
+                    # on_schoolrecord=s.surveyed_thru, --probably not necessary
                     question__name__in=survey_varlist
                 )
 

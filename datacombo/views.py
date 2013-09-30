@@ -1,3 +1,5 @@
+import datetime
+
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, render_to_response, get_object_or_404, redirect
@@ -6,6 +8,9 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 # These two are used for user authentication
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+
+# This is for file storage on S3
+from django.core.files.storage import default_storage
 
 # Import models and custom forms
 from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure, CSVExport
@@ -426,7 +431,8 @@ class DeleteCourseView(DeleteView):
     template_name = 'course/delete_course.html'
 
     def get_success_url(self):
-        return reverse('teachers-view',
+        return reverse(
+            'teachers-view',
             kwargs={'pk': self.teacher_id}
         )
 
@@ -520,6 +526,7 @@ def clean_survey(request, pk):
             context['teachers_deleted'] = 'Teachers deleted from database.'
     return render_to_response('survey/clean_survey.html', context, context_instance=RequestContext(request))
 
+
 # View function for mapping variables from raw data to database
 @login_required
 def variable_map(request, pk):
@@ -538,7 +545,8 @@ class UpdateVarMapView(UpdateView):
     template_name = 'varmap/edit_varmap.html'
 
     def get_success_url(self):
-        return reverse('surveys-view',
+        return reverse(
+            'surveys-view',
             kwargs={'pk': self.get_object().survey.id}
         )
 
@@ -548,7 +556,6 @@ class UpdateVarMapView(UpdateView):
         context['action'] = reverse('varmap-edit',
                                     kwargs={'pk': self.get_object().id})
         return context
-
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -725,6 +732,9 @@ class UpdateExportView(UpdateView):
 def delete_export(request, pk):
     export = get_object_or_404(CSVExport, pk=pk)
     if request.method == 'POST':
+        # We'll also delete the file associated with this export at this time
+        if default_storage.exists(export.file_name):
+            default_storage.delete(export.file_name)
         export.delete()
         return redirect('exports-list')
     else:
@@ -734,7 +744,28 @@ def delete_export(request, pk):
 @login_required
 def export_wait(request, pk):
     survey = get_object_or_404(Survey, pk=pk)
+    # Create a CSVExport Session first
+    export = CSVExport()
+    export.title = 'Student Responses'
+    export.export_type = 'response'
+    now = datetime.datetime.now()
+    export.date_requested = now
+    export.survey = survey
+
+    # Prepare CSV filename
+    today = now.strftime('%Y%m%d')
+    time = now.strftime('%H%M')
+    filename = "export_{surveycode}_responses_{today}_{time}.csv".format(
+        surveycode=survey.code,
+        today=today,
+        time=time,
+    )
+
+    export.file_name = filename
+    # Save export object first so it'll show up on the export management page
+    export.save()
+
     # Enqueue this task for background processing
-    q.enqueue(s3_write_response_data, survey)
+    q.enqueue(s3_write_response_data, survey, export)
     # s3_write_response_data(survey)
     return render(request, 'export/export_wait.html', {'survey_name': survey.name})
