@@ -23,7 +23,8 @@ urlpatterns = patterns('',
     # Clean school / course records below reporting thresholds
     url(r'^surveys/(?P<pk>\d+)/clean$', datacombo.views.clean_survey, name='surveys-clean',),
     # Export all response data from a survey
-    url(r'^surveys/(?P<pk>\d+)/export$', datacombo.views.export_wait, name='export-survey-response-data',),
+    url(r'^surveys/(?P<pk>\d+)/export/quant$', datacombo.views.export_wait, {'qual': False}, name='export-survey-response-data',),
+    url(r'^surveys/(?P<pk>\d+)/export/qual$', datacombo.views.export_wait, {'qual': True}, name='export-survey-qual-data',),
 
     # Variable Mapping
     url(r'^surveys/(?P<pk>\d+)/map$', datacombo.views.variable_map, name='surveys-map',),

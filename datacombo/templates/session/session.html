@@ -134,7 +134,35 @@ and one for legacy upload, which will compare survey variable names with CSV col
 
   <div class="tab-pane" id="varmatch">
     <h2>Comparison of Survey Variables and CSV Columns</h2>
-    <p>Var Match Records go here</p>
+    <p>The following table lists all variables used by this survey and indicate whether the system found a match from the uploaded CSV file<br />
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-lg-offset-3">
+            <table class="table table-hover table-condensed">
+              <tr>
+                <th>Survey Variable in Database</th>
+                <th>Match?</th>
+              </tr>
+
+              {% for record in importsession.varmatchrecord_set.all %}
+              <tr>
+                <td>{{ record.varname }}</td>
+                <td>
+                  {% if record.match_status == 1 %}
+                    <i class="icon-ok-sign icon-large text-success"></i>
+                  {% elif record.match_status == 0 %}
+                    <i class="icon-remove-sign icon-large text-danger"></i>
+                  {% else %}
+                    <i class="icon-question-sign icon-large text-warning"></i>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+      </div>
+    </p>
   </div>
 
   <div class="tab-pane" id="schools">

@@ -1,9 +1,3 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
-
-Replace this with more appropriate tests for your application.
-"""
 import os
 import pandas as pd
 import datetime
@@ -22,6 +16,16 @@ class DataExchangeIntegrityTest(TestCase):
     This will test the integrity of data in the system
     by comparing the output of an exported CSV file from Catacombs
     with an original CSV file used for upload
+
+    For this test to work properly, you'll need to prepare 2 things:
+
+        - Use `python manage.py dumpdata datacombo --indent=4 > datacombo/fixtures/datacombo_testdata.json` to dump database to a JSON file
+            This file might be big! If you have response data in the json dump, delete them from the json to reduce test load time
+
+        - Prepare sample CSV files (raw Qualtrics export) for testing in datacombo/testdata:
+            + tch-ms.csv for MS Teacher Feedback
+            + sch-hs.csv for HS Overall Experience
+
     '''
     fixtures = ['datacombo_testdata.json']
 
@@ -91,6 +95,12 @@ class DataExchangeIntegrityTest(TestCase):
         # If survey is teacher feedback then convert it to stack first
         if survey.is_teacher_feedback():
             orig = convert_raw_to_stack(orig, survey)
+
+        # DEBUG
+        # Output two files for debugging
+        orig.to_csv('orig.csv')
+        from_s3.to_csv('from_s3.csv')
+
         # Compare lists of Qualtrics ID
         orig_qid_list = orig['V1'].tolist()
         orig_qid_list.sort()
@@ -110,8 +120,12 @@ class DataExchangeIntegrityTest(TestCase):
             default_storage.delete(export.file_name)
             print 'Deleted {} after testing.'.format(export.file_name)
 
-    def test_integrity_tch_ms_raw(self):
+    # Skipping this test
+    # Reactivate it by deleting the word "skip_" in front of the method name
+    def skip_test_integrity_tch_ms_raw(self):
         self.generate_data_integrity_test('tch-ms.csv', 'raw')
 
+    # Skipping this test
+    # Reactivate it by deleting the word "skip_" in front of the method name
     def test_integrity_sch_hs_raw(self):
         self.generate_data_integrity_test('sch-hs.csv', 'raw')

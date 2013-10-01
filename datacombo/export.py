@@ -6,14 +6,36 @@ from time import sleep
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.files.storage import default_storage
 
-from datacombo.models import Student, Course
+from datacombo.models import Student, Course, CSVExport
 
 # Set up RQ queue
 import django_rq
 q = django_rq.get_queue('default')
 
 
-def s3_write_response_data(survey, export, debug=None):
+def create_csvexport(survey):
+    export = CSVExport()
+    export.title = 'Student Responses'
+    export.export_type = 'response'
+    now = datetime.datetime.now()
+    export.date_requested = now
+    export.survey = survey
+
+    # Prepare CSV filename
+    today = now.strftime('%Y%m%d')
+    time = now.strftime('%H%M')
+    filename = "export_{surveycode}_responses_{today}_{time}.csv".format(
+        surveycode=survey.code,
+        today=today,
+        time=time,
+    )
+
+    export.file_name = filename
+    # Save export object first so it'll show up on the export management page
+    export.save()
+
+
+def s3_write_response_data(survey, export, qual=None, debug=None):
     '''
         export: CSVExport instance
     '''
@@ -39,8 +61,11 @@ def s3_write_response_data(survey, export, debug=None):
     header_dict['PIN'] = None
     #header_row.extend(['Qualtrics ID', 'PIN'])
     # Finally we'll append all survey variables here
-    # Filter for variables that are not qualitative
-    survey_varlist = survey.variable_set.filter(qual=False).values_list('name', flat=True)
+    if qual:
+        survey_varlist = survey.variable_set.filter(qual=True).values_list('name', flat=True)
+    else:
+        # Filter for variables that are not qualitative
+        survey_varlist = survey.variable_set.filter(qual=False).values_list('name', flat=True)
     for v in survey_varlist:
         header_dict[v] = None
 
@@ -52,7 +77,19 @@ def s3_write_response_data(survey, export, debug=None):
         if bottomrownum > student_queryset_count:
             bottomrownum = student_queryset_count
         query_chunk = surveyed_students[toprownum:bottomrownum]
-        chunk_filename = "temp_chunk_{topnum}_{bottomnum}.csv".format(topnum=toprownum, bottomnum=bottomrownum)
+        chunk_filename_string = "{debug}temp_chunk_{topnum}_{bottomnum}.csv"
+        if debug:
+            chunk_filename = chunk_filename_string.format(
+                debug='integration_test_',
+                topnum=toprownum,
+                bottomnum=bottomrownum
+            )
+        else:
+            chunk_filename = chunk_filename_string.format(
+                debug='',
+                topnum=toprownum,
+                bottomnum=bottomrownum
+            )
         # If it's the last file, save it too
         if bottomrownum == student_queryset_count:
             last_filename = chunk_filename
@@ -75,7 +112,11 @@ def s3_write_response_data(survey, export, debug=None):
         bottomnum = student_queryset_count
         modulus = student_queryset_count % 10   # e.g., 257 % 10 = 7
         topnum = bottomnum - modulus            # e.g., 257 - 7 = 250
-        last_filename = "temp_chunk_{topnum}_{bottomnum}.csv".format(topnum=topnum, bottomnum=bottomnum)
+        last_filename = chunk_filename_string.format(
+            debug='integration_test_',
+            topnum=topnum,
+            bottomnum=bottomnum
+        )
         stitch_csv_chunks(last_filename, chunk_filename_list, filename)
     else:
         q.enqueue_call(

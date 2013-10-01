@@ -214,6 +214,15 @@ class VarMatchRecord(models.Model):
     var = models.ForeignKey(Variable, blank=True, null=True)
     match_status = models.BooleanField()
 
+    def varname(self):
+        if self.session.import_type == 'raw':
+            if self.session.survey.is_teacher_feedback():
+                return self.var
+            else:
+                return self.raw_var
+        elif self.session.import_type == 'legacy':
+            return self.var
+
     def __unicode__(self):
         string = '{session} - {var} - {status}'
         if self.raw_var:

@@ -16,7 +16,7 @@ from django.core.files.storage import default_storage
 from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure, CSVExport
 from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm, CSVExportForm
 from datacombo.upload import process_uploaded
-from datacombo.export import s3_write_response_data
+from datacombo.export import s3_write_response_data, create_csvexport
 
 # Set up RQ queue
 import django_rq
@@ -469,6 +469,8 @@ class SurveyView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(SurveyView, self).get_context_data(**kwargs)
         context['variables'] = self.get_object().variable_set.order_by('summary_measure', 'name')
+        schools = self.get_object().school_set.distinct()
+        context['schools'] = schools
         return context
 
     @method_decorator(login_required)
@@ -742,30 +744,15 @@ def delete_export(request, pk):
 
 
 @login_required
-def export_wait(request, pk):
+def export_wait(request, pk, qual=None):
     survey = get_object_or_404(Survey, pk=pk)
     # Create a CSVExport Session first
-    export = CSVExport()
-    export.title = 'Student Responses'
-    export.export_type = 'response'
-    now = datetime.datetime.now()
-    export.date_requested = now
-    export.survey = survey
-
-    # Prepare CSV filename
-    today = now.strftime('%Y%m%d')
-    time = now.strftime('%H%M')
-    filename = "export_{surveycode}_responses_{today}_{time}.csv".format(
-        surveycode=survey.code,
-        today=today,
-        time=time,
-    )
-
-    export.file_name = filename
-    # Save export object first so it'll show up on the export management page
-    export.save()
+    export = create_csvexport(survey)
 
     # Enqueue this task for background processing
-    q.enqueue(s3_write_response_data, survey, export)
+    if qual:
+        q.enqueue(s3_write_response_data, survey, export, qual)
+    else:
+        q.enqueue(s3_write_response_data, survey, export)
     # s3_write_response_data(survey)
     return render(request, 'export/export_wait.html', {'survey_name': survey.name})

@@ -117,7 +117,6 @@ def parse_csv_into_database(newcsv, filetype, survey, session, debug=None):
                 update_parse_status(session)
             else:
                 q.enqueue(update_parse_status, session)
-        # Make a copy of it to see if memory size will be smaller
         csv_chunk = newcsv[toprownum:bottomrownum]
         log_msg = 'Processing rows {top}-{bottom} out of {total}'.format(
             top=toprownum+1,
@@ -174,6 +173,59 @@ def upload_data_chunk(csv_chunk, survey, session, filetype, vars_in_csv, log_msg
         match_and_create_students(csv_chunk, survey, session)
         # Add responses
         match_and_create_responses(csv_chunk, survey, session, filetype, vars_in_csv)
+
+
+def match_and_create_students(csv, survey, session):
+    '''
+    use get_precords_dict() to retrieve a new paired set of ID and School_Short
+    '''
+    # If it's a teacher feedback survey, V1 is no longer unique
+    # so we've already set ID_insert as index and can skip this step
+    if not survey.is_teacher_feedback():
+        # Set ['V1'] or Qualtrics ID as index of csv
+        csv = csv.set_index('V1')
+
+    # Retrieve list of current students for matching up
+    current_student_idx_list = Student.objects.values_list('response_id', flat=True)
+
+    for idx in csv.index:
+        if pd.isnull(idx):
+            pass
+        elif survey.is_teacher_feedback():
+            # If it's a teacher feedback survey, we'll go with the slower method
+            # of scanning each student object using get_or_create
+            # It's the only way to match student object with course
+            qid = csv.get_value(idx, 'V1')
+        else:
+            # If it's an overall survey, we can construct the list of current students for matching up
+            # We don't have to worry about extracting single student instance for matching with courses
+            current_student_idx_list = Student.objects.values_list('response_id', flat=True)
+            qid = idx
+            if qid in current_student_idx_list:
+                continue
+        std_defaults_dict = {}
+        pin = csv.get_value(idx, 'V4')
+        schshort = csv.get_value(idx, 'School_Short')
+        precord = SchoolParticipation.objects.get(
+            survey=survey,
+            legacy_school_short=schshort,
+        )
+        school = precord.school
+        std_defaults_dict['imported_thru'] = session
+
+        obj, created = Student.objects.get_or_create(
+            pin=pin,
+            response_id=qid,
+            school=school,
+            defaults=std_defaults_dict
+        )
+
+        # We'll also pair students with courses here
+        if survey.is_teacher_feedback():
+            course_idx = csv.get_value(idx, 's_t_c')
+            course = Course.objects.get(legacy_survey_index=course_idx)
+            if course not in obj.course_set.all():
+                obj.course_set.add(course)
 
 
 def match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv):
@@ -363,87 +415,6 @@ def match_and_create_subjects_and_courses(s_t_c_df, survey, session):
             teacher = Teacher.objects.get(legacy_survey_index=teacher_idx)
             if teacher not in obj.teacher_set.all():
                 obj.teacher_set.add(teacher)
-
-
-def match_and_create_students(csv, survey, session):
-    '''
-    use get_precords_dict() to retrieve a new paired set of ID and School_Short
-    '''
-    # If it's a teacher feedback survey, V1 is no longer unique
-    # so we've already set ID_insert as index and can skip this step
-    if not survey.is_teacher_feedback():
-        # Set ['V1'] or Qualtrics ID as index of csv
-        csv = csv.set_index('V1')
-
-    # Retrieve list of current students for matching up
-    # current_student_idx_list = Student.objects.values_list('response_id', flat=True)
-
-    for idx in csv.index:
-        if pd.isnull(idx):
-            pass
-        elif survey.is_teacher_feedback():
-            # If it's a teacher feedback survey, we'll go with the slower method
-            # of scanning each student object using get_or_create
-            # It's the only way to match student object with course
-            qid = csv.get_value(idx, 'V1')
-        else:
-            # If it's an overall survey, we can construct the list of current students for matching up
-            # We don't have to worry about extracting single student instance for matching with courses
-            current_student_idx_list = Student.objects.values_list('response_id', flat=True)
-            qid = idx
-            if qid in current_student_idx_list:
-                pass
-        std_defaults_dict = {}
-        pin = csv.get_value(idx, 'V4')
-        schshort = csv.get_value(idx, 'School_Short')
-        precord = SchoolParticipation.objects.get(
-            survey=survey,
-            legacy_school_short=schshort,
-        )
-        school = precord.school
-        std_defaults_dict['imported_thru'] = session
-
-        obj, created = Student.objects.get_or_create(
-            pin=pin,
-            response_id=qid,
-            school=school,
-            defaults=std_defaults_dict
-        )
-
-        # We'll also pair students with courses here
-        if survey.is_teacher_feedback():
-            course_idx = csv.get_value(idx, 's_t_c')
-            course = Course.objects.get(legacy_survey_index=course_idx)
-            if course not in obj.course_set.all():
-                obj.course_set.add(course)
-
-            '''
-            if qid in current_student_idx_list:
-                pass
-            else:
-                std_defaults_dict = {}
-                pin = csv.get_value(idx, 'V4')
-                schshort = csv.get_value(idx, 'School_Short')
-                precord = SchoolParticipation.objects.get(
-                    survey=survey,
-                    legacy_school_short=schshort,
-                )
-                school = precord.school
-                std_defaults_dict['imported_thru'] = session
-
-                obj, created = Student.objects.get_or_create(
-                    pin=pin,
-                    response_id=qid,
-                    school=school,
-                    defaults=std_defaults_dict
-                )
-
-                # We'll also pair students with courses here
-                if survey.is_teacher_feedback():
-                    course_idx = csv.get_value(idx, 's_t_c')
-                    course = Course.objects.get(legacy_survey_index=course_idx)
-                    obj.course_set.add(course)
-            '''
 
 
 def get_precords_dict(survey):

@@ -5,11 +5,8 @@ import sys
 root_dir = os.getcwd()
 cmd_dir = os.path.join(root_dir, 'seeds')
 os.chdir(cmd_dir)
-# Add to PATH for importing files
-sys.path.insert(0, cmd_dir)
 
-import seed_users, seed_surveys, seed_factors, seed_vars, seed_varmaps
-
+from seeds import seed_users, seed_surveys, seed_factors, seed_vars, seed_varmaps, seed_schools
 
 
 class Command(BaseCommand):
@@ -21,3 +18,4 @@ class Command(BaseCommand):
         seed_factors.execute()
         seed_vars.execute()
         seed_varmaps.execute()
+        seed_schools.execute()
