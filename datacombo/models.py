@@ -249,9 +249,12 @@ class School(models.Model):
     class Meta:
         ordering = ["name"]
 
-    def repeat_count(self):
-        '''This function tells how many times this school has participated in YouthTruth'''
-        count = self.schoolparticipation_set.count()
+    def repeat_count(self, survey):
+        '''
+        This function tells how many times this school has participated in YouthTruth
+        for a given survey
+        '''
+        count = self.schoolparticipation_set.filter(survey=survey).count()
         return count
 
     def get_absolute_url(self):
