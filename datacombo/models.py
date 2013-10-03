@@ -67,7 +67,9 @@ class Survey(models.Model):
         return count
 
     def student_count(self):
-        count = Student.objects.filter(school__schoolparticipation__in=self.schoolparticipation_set.all()).count()
+        count = Student.objects.filter(
+            school__schoolparticipation__in=self.schoolparticipation_set.all()
+            ).distinct().count()
         return count
 
     def courses_below_cutoff(self):

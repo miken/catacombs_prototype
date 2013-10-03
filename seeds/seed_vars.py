@@ -14,9 +14,13 @@ def execute():
         if pd.isnull(fname):
             pass
         else:
-            factor = SummaryMeasure.objects.get(name=fname)
+            sm_defaults_dict = {}
+            sm_defaults_dict['label'] = fname
+            sm_defaults_dict['survey'] = survey
+            factor, created = SummaryMeasure.objects.get_or_create(name=fname, defaults=sm_defaults_dict)
             var.summary_measure = factor
         var.name = idx_tuple[2]
+        # print var.name
         var.description = varlist.get_value(idx_tuple, 'label')
         qual = varlist.get_value(idx_tuple, 'qual')
         if qual == 1:

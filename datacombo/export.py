@@ -13,9 +13,9 @@ import django_rq
 q = django_rq.get_queue('default')
 
 
-def create_csvexport(survey):
+def create_csvexport(survey, export_title):
     export = CSVExport()
-    export.title = 'Student Responses'
+    export.title = export_title
     export.export_type = 'response'
     now = datetime.datetime.now()
     export.date_requested = now
@@ -33,6 +33,7 @@ def create_csvexport(survey):
     export.file_name = filename
     # Save export object first so it'll show up on the export management page
     export.save()
+    return export
 
 
 def s3_write_response_data(survey, export, qual=None, debug=None):
@@ -77,6 +78,12 @@ def s3_write_response_data(survey, export, qual=None, debug=None):
         if bottomrownum > student_queryset_count:
             bottomrownum = student_queryset_count
         query_chunk = surveyed_students[toprownum:bottomrownum]
+        # TODO: Move this to another function
+        print 'Extracting objects {top}-{bottom} out of {total}'.format(
+            top=toprownum,
+            bottom=bottomrownum,
+            total=student_queryset_count
+        )
         chunk_filename_string = "{debug}temp_chunk_{topnum}_{bottomnum}.csv"
         if debug:
             chunk_filename = chunk_filename_string.format(

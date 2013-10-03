@@ -250,8 +250,11 @@ def match_and_create_responses(newcsv, survey, session, filetype, vars_in_csv):
                     resp_defaults_dict['on_teacher'] = Teacher.objects.get(legacy_survey_index=s_t_index)
                     s_t_c_index = newcsv.get_value(i, 's_t_c')
                     resp_defaults_dict['on_course'] = Course.objects.get(legacy_survey_index=s_t_c_index)
-                schshort = newcsv.get_value(i, 'School_Short')
-                resp_defaults_dict['on_schoolrecord'] = SchoolParticipation.objects.get(legacy_school_short=schshort)
+                else:
+                    schshort = newcsv.get_value(i, 'School_Short')
+                    resp_defaults_dict['on_schoolrecord'] = SchoolParticipation.objects.get(
+                        survey=survey,
+                        legacy_school_short=schshort)
 
                 for v in vars_in_csv:
                     a = row[v]

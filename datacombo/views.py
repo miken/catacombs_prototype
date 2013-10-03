@@ -746,13 +746,15 @@ def delete_export(request, pk):
 @login_required
 def export_wait(request, pk, qual=None):
     survey = get_object_or_404(Survey, pk=pk)
-    # Create a CSVExport Session first
-    export = create_csvexport(survey)
 
     # Enqueue this task for background processing
     if qual:
+        # Create a CSVExport Session first
+        export = create_csvexport(survey, 'Student Comments')
         q.enqueue(s3_write_response_data, survey, export, qual)
     else:
+        # Create a CSVExport Session first
+        export = create_csvexport(survey, 'Student Responses')
         q.enqueue(s3_write_response_data, survey, export)
     # s3_write_response_data(survey)
     return render(request, 'export/export_wait.html', {'survey_name': survey.name})

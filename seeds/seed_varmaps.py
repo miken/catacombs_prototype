@@ -11,6 +11,7 @@ def execute():
         survey = Survey.objects.get(code=scode)
         vm.survey = survey
         varname = maps.get_value(vm_raw, 'varname')
+        # print 'finding {}'.format(varname)
         var = Variable.objects.get(survey=survey, name=varname)
         vm.variable = var
         vm.save()
