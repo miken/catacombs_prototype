@@ -201,6 +201,22 @@ class VarMap(models.Model):
         return self.raw_name
 
 
+class CustomRecode(models.Model):
+    '''
+    This model instructs datacombo how to recode a variable from the raw survey data files
+    '''
+    variable = models.ForeignKey(Variable, verbose_name=u'Database Variable to recode')
+    orig_code = models.PositiveSmallIntegerField(verbose_name=u'Original response code in raw data')
+    recode = models.PositiveSmallIntegerField(verbose_name=u'Response code in database')
+
+    def __unicode__(self):
+        return '{varname}: {orig_code} => {recode}'.format(
+            varname=self.variable.name,
+            orig_code=self.orig_code,
+            recode=self.recode,
+        )
+
+
 class VarMatchRecord(models.Model):
     '''
     This model keeps track of whether a survey variable is found in the uploaded CSV file. There are two cases:

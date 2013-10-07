@@ -13,8 +13,8 @@ from django.utils.decorators import method_decorator
 from django.core.files.storage import default_storage
 
 # Import models and custom forms
-from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure, CSVExport
-from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm, CSVExportForm
+from datacombo.models import Variable, School, Survey, ImportSession, SchoolParticipation, Teacher, Subject, Course, VarMap, SummaryMeasure, CSVExport, CustomRecode
+from datacombo.forms import UploadFileForm, SchoolParticipationForm, VarForm, VarMapForm, CSVExportForm, CustomRecodeForm
 from datacombo.upload import process_uploaded
 from datacombo.export import s3_write_response_data, create_csvexport
 
@@ -468,7 +468,10 @@ class SurveyView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(SurveyView, self).get_context_data(**kwargs)
-        context['variables'] = self.get_object().variable_set.order_by('summary_measure', 'name')
+        variables = self.get_object().variable_set.order_by('summary_measure', 'name')
+        context['variables'] = variables
+        recodes = CustomRecode.objects.filter(variable__in=variables)
+        context['recodes'] = recodes.order_by('variable', 'orig_code')
         schools = self.get_object().school_set.distinct()
         context['schools'] = schools
         return context
@@ -581,6 +584,87 @@ class DeleteVarMapView(DeleteView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(DeleteVarMapView, self).dispatch(*args, **kwargs)
+
+
+# View function for mapping variables from raw data to database
+# TODO Can probably remove this?
+@login_required
+def recode_view(request, pk):
+    # Read survey ID from parsed pk
+    survey_id = pk
+    survey = Survey.objects.get(id=survey_id)
+    context = {}
+    context['survey'] = survey
+    return render_to_response('recode/recode.html', context, context_instance=RequestContext(request))
+
+
+class UpdateCustomRecodeView(UpdateView):
+
+    model = CustomRecode
+    form_class = CustomRecodeForm
+    template_name = 'recode/edit_recode.html'
+
+    def get_success_url(self):
+        return reverse(
+            'surveys-view',
+            kwargs={'pk': self.get_object().variable.survey.id}
+        )
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateCustomRecodeView, self).get_context_data(**kwargs)
+        context['action'] = reverse('recode-edit',
+                                    kwargs={'pk': self.get_object().id})
+        return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(UpdateCustomRecodeView, self).dispatch(*args, **kwargs)
+
+
+class DeleteCustomRecodeView(DeleteView):
+
+    model = CustomRecode
+    template_name = 'recode/delete_recode.html'
+
+    def get_success_url(self):
+        return reverse('surveys-view',
+            kwargs={'pk': self.survey_id}
+        )
+
+    def delete(self, request, *args, **kwargs):
+        self.survey_id = self.get_object().variable.survey.id
+        return super(DeleteCustomRecodeView, self).delete(request, *args, **kwargs)
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DeleteCustomRecodeView, self).dispatch(*args, **kwargs)
+
+
+@login_required
+def add_recode(request, pk):
+    # Read survey ID from parsed pk
+    survey_id = pk
+    survey = Survey.objects.get(id=survey_id)
+    context = {}
+    context['survey'] = survey
+    if request.method == 'POST':
+        form = CustomRecodeForm(request.POST)
+        if form.is_valid():
+            # Create a new variable mapping object
+            cr = CustomRecodeForm()
+            cr.variable = form.cleaned_data['variable']
+            cr.orig_code = form.cleaned_data['orig_code']
+            cr.recode = form.cleaned_data['recode']
+            cr.save()
+            return redirect('surveys-view', pk=survey_id)
+    else:
+        form = CustomRecodeForm()
+        # Filter for the variables available to this survey
+        form.fields['variable'].queryset = Variable.objects.filter(survey=survey)
+    context['form'] = form
+    context['action'] = reverse('recode-add', kwargs={'pk': pk})
+    return render_to_response('recode/edit_recode.html', context, context_instance=RequestContext(request))
 
 
 @login_required

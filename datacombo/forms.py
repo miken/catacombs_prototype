@@ -1,6 +1,6 @@
 from django import forms
 
-from datacombo.models import SchoolParticipation, Variable, VarMap, CSVExport
+from datacombo.models import SchoolParticipation, Variable, VarMap, CSVExport, CustomRecode
 
 
 class UploadFileForm(forms.Form):
@@ -26,6 +26,12 @@ class VarMapForm(forms.ModelForm):
     class Meta:
         model = VarMap
         fields = ['raw_name', 'variable']
+
+
+class CustomRecodeForm(forms.ModelForm):
+    class Meta:
+        model = CustomRecode
+        fields = ['variable', 'orig_code', 'recode']
 
 
 class VarForm(forms.ModelForm):

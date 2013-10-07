@@ -44,6 +44,15 @@ urlpatterns = patterns('',
     url(r'^vars/delete/(?P<pk>\d+)/$', datacombo.views.DeleteVariableView.as_view(),
         name='variables-delete',),
 
+    # Custom Recode
+    # Add a new custom recode
+    url(r'^surveys/(?P<pk>\d+)/recodes/add$', datacombo.views.add_recode, name='recode-add',),
+    # Edit a custom recode
+    url(r'^vars/recodes/(?P<pk>\d+)/$', datacombo.views.UpdateCustomRecodeView.as_view(), name='recode-edit',),
+    # Delete a custom recode
+    url(r'^vars/recodes/(?P<pk>\d+)/delete$', datacombo.views.DeleteCustomRecodeView.as_view(), name='recode-delete',),
+
+
     # Schools
     url(r'^schools/$', datacombo.views.ListSchoolView.as_view(), name='schools-list',),
     url(r'^schools/new$', datacombo.views.CreateSchoolView.as_view(), name='schools-new',),

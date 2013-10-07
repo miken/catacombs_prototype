@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if varmap.id %}
+    <h1>Edit Variable Map</h1>
+{% else %}
+    <h1>Add Variable Map</h1>
+{% endif %}
+
+{% if survey.id %}
+  <p>Adding a new variable map for: <strong>{{ survey.name }}</strong></p>
+{% endif %}
+
+{% if varmap.id %}
+  <p>Survey: <strong>{{ varmap.survey.name }}</strong></p>
+  <p>Database Variable: <strong>{{ varmap.variable.name }}</strong></p>
+{% endif %}
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+    {{ form.as_p }}
+  </ul>
+  <button id="save_varmap" type="submit" class="btn btn-primary btn-lg">Save</button>
+  {% if varmap.id %}
+    <a href="{% url "varmap-delete" pk=varmap.id %}" class="btn btn-danger btn-lg">Delete</a>
+  {% endif %}
+</form>
+
+{% if varmap.id %}
+  <p><a href="{% url "surveys-view" pk=varmap.survey.id %}">Back to {{ varmap.survey.name }}</a></p>
+{% elif survey.id %}
+  <p><a href="{% url "surveys-view" pk=survey.id %}">Back to {{ survey.name }}</a></p>
+{% endif %}
+{% endblock %}
