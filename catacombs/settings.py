@@ -229,10 +229,10 @@ ALLOWED_HOSTS = ['*']
 
 # Not ideal to store secret access key here
 # Let's reconsider where else we could store AWS credentials
-AWS_STORAGE_BUCKET_NAME = 'yt_catacombs'
-AWS_ACCESS_KEY_ID = 'AKIAI4UY5LXGS4ZCWQVQ'
-AWS_SECRET_ACCESS_KEY = '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'
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '')
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', '')
 
 # The following 4 lines should be under if not DEBUG
 # However, for the time being, DEBUG is True
